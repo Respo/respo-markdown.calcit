@@ -2,6 +2,18 @@
 # yarn lockfile v1
 
 
+"@calcit/procs@^0.2.42":
+  version "0.2.42"
+  resolved "https://registry.yarnpkg.com/@calcit/procs/-/procs-0.2.42.tgz#539d424b3fd8d53be2e868801101c3c4c10b6cf9"
+  integrity sha512-fc9fuQs2mG/qTRk3wDyyeGpA1AuXHPszowy9/fG3Gj2K0V8PGMxUHV+CEyE/tqJQkiVu1fHauY2gSxJO2OGZHw==
+  dependencies:
+    "@calcit/ternary-tree" "0.0.7"
+
+"@calcit/ternary-tree@0.0.7":
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/@calcit/ternary-tree/-/ternary-tree-0.0.7.tgz#ae41e3b02cc51f6ff08aa11c7db4cbd4c55440d5"
+  integrity sha512-7MCgpJ36yVvObQYE+budozGLtvHzZU50bh3PyCa2j/B9fcpdRaDESyrZu7DEPaaE+FDAS/ivAzNIXKLBPImqug==
+
 colorette@^1.2.1:
   version "1.2.1"
   resolved "https://registry.npm.taobao.org/colorette/download/colorette-1.2.1.tgz#4d0b921325c14faf92633086a536db6e89564b1b"
