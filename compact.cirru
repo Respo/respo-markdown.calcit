@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:version |0.3.1)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:version |0.3.2)
   :files $ {}
     |respo-md.comp.container $ {}
       :ns $ quote
@@ -38,7 +38,7 @@
                       :style $ merge ui/textarea
                         {} (:height 240) (:width |100%)
                       :on $ {}
-                        :input $ fn (e d!) (println |Editing: state $ :value e)
+                        :input $ fn (e d!) (; println |Editing: state $ :value e)
                           d! cursor $ assoc state :draft (:value e)
                   div
                     {} $ :style
@@ -50,7 +50,7 @@
       :proc $ quote ()
     |respo-md.comp.md $ {}
       :ns $ quote
-        ns respo-md.comp.md $ :require ([] respo.util.format :refer $ [] hsl) ([] respo-ui.core :as ui) ([] respo.core :refer $ [] create-element) ([] respo.comp.space :refer $ [] =<) ([] respo-md.util.core :refer $ [] split-block split-line) ([] respo.core :refer $ [] defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style) ([] respo.util.list :refer $ [] map-with-idx)
+        ns respo-md.comp.md $ :require ([] respo.util.format :refer $ [] hsl) ([] respo-ui.core :as ui) ([] respo.core :refer $ [] create-element) ([] respo.comp.space :refer $ [] =<) ([] respo-md.util.core :refer $ [] split-block split-line) ([] respo.core :refer $ [] defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li) ([] respo.util.list :refer $ [] map-with-idx)
       :defs $ {}
         |comp-md-block $ quote
           defcomp comp-md-block (text options)
@@ -58,19 +58,19 @@
                 blocks $ split-block text
                 css $ :css options
                 class-name $ :class-name options
-              list->
+              div
                 {}
                   :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
                   :style $ :style options
+                , &
                 let
                     css $ :css options
                     p-elements $ ->> blocks
-                      map-with-idx $ fn (block)
+                      map $ fn (block)
                         let[] (mode lines) block (<> $ pr-str mode)
                           case mode (:text $ comp-text-block lines) (:code $ comp-code-block lines options) (<> "|Unknown content.")
                   if (nil? css) p-elements $ prepend p-elements
-                    [] -1 $ style
-                      {} (:inner-text css) (:scoped true)
+                    style $ {} (:inner-text css) (:scoped true)
         |comp-image $ quote
           defn comp-image (chunk)
             let
@@ -80,9 +80,10 @@
                 img $ {} (:src url) (:alt content)
         |comp-text-block $ quote
           defcomp comp-text-block (lines)
-            list-> ({} $ :class-name |md-p)
-              ->> lines $ map-with-idx
-                fn (line) (comp-line line)
+            div ({} $ :class-name |md-p) (, &)
+              ->> lines
+                map-with-idx $ fn (line) (comp-line line)
+                map last
         |comp-line $ quote
           defcomp comp-line (line)
             cond
@@ -98,10 +99,10 @@
                 blockquote ({}) & $ map last (render-inline $ substr line 2)
               (starts-with? line "|* ")
                 li ({}) & $ map last (render-inline $ substr line 2)
-              true $ list-> ({}) (render-inline line)
+              true $ div ({}) & (map last $ render-inline line)
         |comp-md $ quote
           defcomp comp-md (text)
-            list-> ({}) (render-inline text)
+            div ({}) & $ map last (render-inline text)
         |comp-link $ quote
           defn comp-link (chunk)
             let
@@ -141,8 +142,6 @@
                   and (not $ blank? lang) (fn? highlight-fn)
                   {} $ :innerHTML (highlight-fn content lang)
                   {} $ :inner-text content
-        |li $ quote
-          defn li (props & children) (create-element :li props children)
       :proc $ quote ()
     |respo-md.main $ {}
       :ns $ quote
