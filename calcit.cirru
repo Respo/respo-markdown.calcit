@@ -967,7 +967,7 @@
                           |T $ {} (:type :leaf) (:text |useful) (:by |root) (:at 1505725057558)
                           |j $ {} (:type :expr) (:by nil) (:at 1505725057558)
                             :data $ {}
-                              |T $ {} (:type :leaf) (:text |subs) (:by |root) (:at 1505725057558)
+                              |T $ {} (:type :leaf) (:text |substr) (:by |wA2nX3K2f) (:at 1612252030100)
                               |j $ {} (:type :leaf) (:text |chunk) (:by |root) (:at 1505725057558)
                               |r $ {} (:type :leaf) (:text |1) (:by |root) (:at 1505725057558)
                               |v $ {} (:type :expr) (:by nil) (:at 1505725057558)
@@ -1432,7 +1432,10 @@
                   |v $ {} (:type :expr) (:by |root) (:at 1505731195914)
                     :data $ {}
                       |D $ {} (:type :leaf) (:text |fn) (:by |root) (:at 1505731196579)
-                      |L $ {} (:type :expr) (:by |root) (:at 1505731205783) (:data $ {})
+                      |L $ {} (:type :expr) (:by |root) (:at 1505731205783)
+                        :data $ {}
+                          |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251648032) (:text |store)
+                          |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251649006) (:text |prev)
                       |T $ {} (:type :expr) (:by |root) (:at 1505731203017)
                         :data $ {}
                           |T $ {} (:type :leaf) (:text |render-app!) (:by |root) (:at 1505725057558)
@@ -2001,21 +2004,17 @@
                                           |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |let)
                                           |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                             :data $ {}
-                                              |T $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
-                                                :data $ {}
-                                                  |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
-                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
-                                                    :data $ {}
-                                                      |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |re-pattern)
-                                                      |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text "||^\\[[^\\]]+\\]\\([^\\)]+\\)")
                                               |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                                 :data $ {}
                                                   |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |guess)
-                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
+                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1612251751745)
                                                     :data $ {}
-                                                      |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |re-find)
-                                                      |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
-                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
+                                                      |T $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
+                                                        :data $ {}
+                                                          |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251758317) (:text |re-find-all)
+                                                          |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251934577) (:text "|\"^\\[[^\\]]+\\]\\([^\\)]+\\)")
+                                                          |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
+                                                      |D $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251753850) (:text |first)
                                           |r $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                             :data $ {}
                                               |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |if)
@@ -2056,7 +2055,7 @@
                                                     :data $ {}
                                                       |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |replace)
                                                       |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
-                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
+                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251802738) (:text |guess)
                                                       |v $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text ||)
                                                   |v $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text ||)
                                                   |x $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |:text)
@@ -2079,21 +2078,17 @@
                                           |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |let)
                                           |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                             :data $ {}
-                                              |T $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
-                                                :data $ {}
-                                                  |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
-                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
-                                                    :data $ {}
-                                                      |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |re-pattern)
-                                                      |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text "||^\\!\\[[^\\]]*\\]\\([^\\)]+\\)")
                                               |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                                 :data $ {}
                                                   |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |guess)
-                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
+                                                  |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1612251776491)
                                                     :data $ {}
-                                                      |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |re-find)
-                                                      |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
-                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
+                                                      |T $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
+                                                        :data $ {}
+                                                          |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251775956) (:text |re-find-all)
+                                                          |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251936699) (:text "|\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)")
+                                                          |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
+                                                      |D $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251777425) (:text |first)
                                           |r $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732556009)
                                             :data $ {}
                                               |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |if)
@@ -2134,7 +2129,7 @@
                                                     :data $ {}
                                                       |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |replace)
                                                       |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |line)
-                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |pattern)
+                                                      |r $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1612251804395) (:text |guess)
                                                       |v $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text ||)
                                                   |v $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text ||)
                                                   |x $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732556009) (:text |:text)
@@ -2255,4 +2250,4 @@
                       |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1574868941964) (:text |:storage-key)
                       |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1574868969123) (:text "|\"respo-markdown")
         :proc $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1574868941964) (:data $ {})
-  :configs $ {} (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:output |src) (:port 6001) (:extension |.cljs) (:init-fn |respo-md.main/main!) (:compact-output? true) (:storage-key |calcit.cirru) (:version |0.3.0)
+  :configs $ {} (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:output |src) (:port 6001) (:extension |.cljs) (:init-fn |respo-md.main/main!) (:compact-output? true) (:storage-key |calcit.cirru) (:version |0.3.1)

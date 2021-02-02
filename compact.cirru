@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:version |0.3.0)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru) (:version |0.3.1)
   :files $ {}
     |respo-md.comp.container $ {}
       :ns $ quote
@@ -105,7 +105,7 @@
         |comp-link $ quote
           defn comp-link (chunk)
             let
-                useful $ subs chunk 1
+                useful $ substr chunk 1
                   - (count chunk) 1
               let[] (content url) (split useful "|](")
                 if
@@ -158,7 +158,7 @@
           defn highligher (code lang) (js/console.warn "\"highlighe not ready") (str |<code> code |</code>)
         |main! $ quote
           defn main! () (println "\"Running mode:" $ if config/dev? "\"dev" "\"release") (if ssr? $ render-app! realize-ssr!) (render-app! render!)
-            add-watch *store :changes $ fn () (render-app! render!)
+            add-watch *store :changes $ fn (store prev) (render-app! render!)
             println "|App started!"
         |mount-target $ quote (def mount-target $ js/document.querySelector |.app)
         |reload! $ quote
@@ -232,25 +232,23 @@
                           , | :text
                       recur acc left (str buffer |h) :text
                     |[ $ let
-                        pattern $ re-pattern "|^\\[[^\\]]+\\]\\([^\\)]+\\)"
-                        guess $ re-find pattern line
+                        guess $ first (re-find-all "\"^\\[[^\\]]+\\]\\([^\\)]+\\)" line)
                       if (some? guess)
                         recur
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :link guess
-                          replace line pattern |
+                          replace line guess |
                           , | :text
                         recur acc left (str buffer |[) :text
                     |! $ let
-                        pattern $ re-pattern "|^\\!\\[[^\\]]*\\]\\([^\\)]+\\)"
-                        guess $ re-find pattern line
+                        guess $ first (re-find-all "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" line)
                       if (some? guess)
                         recur
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :image guess
-                          replace line pattern |
+                          replace line guess |
                           , | :text
                         recur acc left (str buffer |!) :text
                     cursor $ recur acc left (str buffer cursor) :text
