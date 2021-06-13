@@ -2,7 +2,7 @@
 {} (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
-    :version |0.3.3
+    :version |0.3.4
   :files $ {}
     |respo-md.comp.container $ {}
       :ns $ quote
@@ -308,7 +308,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :link guess
-                          replace line guess |
+                          .replace line guess |
                           , | :text
                         recur acc left (str buffer |[) :text
                     |! $ let
@@ -318,7 +318,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :image guess
-                          replace line guess |
+                          .replace line guess |
                           , | :text
                         recur acc left (str buffer |!) :text
                     cursor $ recur acc left (str buffer cursor) :text
