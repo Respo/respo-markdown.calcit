@@ -204,7 +204,7 @@
                 next-store $ if (= op :states) (update-states @*store op-data) @*store
               reset! *store next-store
         |highligher $ quote
-          defn highligher (code lang) (js/console.warn "\"highlighe not ready") (str |<code> code |</code>)
+          defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"

@@ -1403,7 +1403,7 @@
               |t $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1610732783545)
                 :data $ {}
                   |T $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732787182) (:text |js/console.warn)
-                  |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1610732795160) (:text "|\"highlighe not ready")
+                  |j $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1623590946570) (:text "|\"highligher not ready")
           |main! $ {} (:type :expr) (:by nil) (:at 1505725057558)
             :data $ {}
               |T $ {} (:type :leaf) (:text |defn) (:by |root) (:at 1505725057558)
