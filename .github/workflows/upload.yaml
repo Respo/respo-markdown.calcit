@@ -21,8 +21,8 @@ jobs:
         mkdir -p ~/.config/calcit/modules/ && cd ~/.config/calcit/modules/
         && git clone https://github.com/calcit-lang/lilac.git
         && git clone https://github.com/calcit-lang/memof.git
-        && git clone https://github.com/Respo/respo.calcit.git --branch 0.14.19
-        && git clone https://github.com/Respo/respo-ui.calcit.git --branch 0.4.1
+        && git clone https://github.com/Respo/respo.calcit.git --branch 0.14.27
+        && git clone https://github.com/Respo/respo-ui.calcit.git
 
     - name: "compiles to js"
       run: >
