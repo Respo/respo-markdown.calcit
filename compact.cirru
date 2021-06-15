@@ -2,7 +2,7 @@
 {} (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
-    :version |0.3.3
+    :version |0.3.5
   :files $ {}
     |respo-md.comp.container $ {}
       :ns $ quote
@@ -98,7 +98,7 @@
         |comp-image $ quote
           defn comp-image (chunk)
             let
-                useful $ substr chunk 2
+                useful $ &str:slice chunk 2
                   - (count chunk) 1
               let[] (content url) (split useful "|](")
                 img $ {} (:src url) (:alt content)
@@ -116,27 +116,27 @@
             cond
                 starts-with? line "|# "
                 h1 ({}) & $ map
-                  render-inline $ substr line 2
+                  render-inline $ &str:slice line 2
                   , last
               (starts-with? line "|## ")
                 h2 ({}) & $ map
-                  render-inline $ substr line 3
+                  render-inline $ &str:slice line 3
                   , last
               (starts-with? line "|### ")
                 h3 ({}) & $ map
-                  render-inline $ substr line 4
+                  render-inline $ &str:slice line 4
                   , last
               (starts-with? line "|#### ")
                 h4 ({}) & $ map
-                  render-inline $ substr line 5
+                  render-inline $ &str:slice line 5
                   , last
               (starts-with? line "|> ")
                 blockquote ({}) & $ map
-                  render-inline $ substr line 2
+                  render-inline $ &str:slice line 2
                   , last
               (starts-with? line "|* ")
                 li ({}) & $ map
-                  render-inline $ substr line 2
+                  render-inline $ &str:slice line 2
                   , last
               true $ div ({}) &
                 map (render-inline line) last
@@ -146,7 +146,7 @@
         |comp-link $ quote
           defn comp-link (chunk)
             let
-                useful $ substr chunk 1
+                useful $ &str:slice chunk 1
                   - (count chunk) 1
               let[] (content url) (split useful "|](")
                 if
@@ -154,7 +154,7 @@
                   a
                     {} (:href url) (:target |_blank)
                     code $ {}
-                      :inner-text $ substr content 1
+                      :inner-text $ &str:slice content 1
                         dec $ count content
                   a $ {} (:href url) (:inner-text content) (:target |_blank)
         |blockquote $ quote
@@ -204,7 +204,7 @@
                 next-store $ if (= op :states) (update-states @*store op-data) @*store
               reset! *store next-store
         |highligher $ quote
-          defn highligher (code lang) (js/console.warn "\"highlighe not ready") (str |<code> code |</code>)
+          defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
         |main! $ quote
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
@@ -252,7 +252,7 @@
                       recur left acc ([]) :empty
                     (starts-with? cursor "|```")
                       recur left acc
-                        [] $ substr cursor 3
+                        [] $ &str:slice cursor 3
                         , :code
                     :else $ recur left acc ([] cursor) :text
                   :text $ cond
@@ -264,7 +264,7 @@
                     (starts-with? cursor "|```")
                       recur left
                         conj acc $ [] :text buffer
-                        [] $ substr cursor 3
+                        [] $ &str:slice cursor 3
                         , :code
                     :else $ recur left acc (conj buffer cursor) :text
                   :code $ if (starts-with? cursor "|```")
@@ -280,7 +280,7 @@
               if (= | buffer) acc $ conj acc ([] mode buffer)
               let
                   cursor $ first line
-                  left $ substr line 1
+                  left $ &str:slice line 1
                 case mode
                   :text $ case cursor
                     "|`" $ recur
@@ -290,8 +290,8 @@
                       , left | :code
                     |h $ if
                       or
-                        = |http:// $ substr line 0 7
-                        = |https:// $ substr line 0 8
+                        = |http:// $ &str:slice line 0 7
+                        = |https:// $ &str:slice line 0 8
                       let
                           pieces $ split line "| "
                         recur
@@ -308,7 +308,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :link guess
-                          replace line guess |
+                          .replace line guess |
                           , | :text
                         recur acc left (str buffer |[) :text
                     |! $ let
@@ -318,7 +318,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :image guess
-                          replace line guess |
+                          .replace line guess |
                           , | :text
                         recur acc left (str buffer |!) :text
                     cursor $ recur acc left (str buffer cursor) :text
