@@ -83,18 +83,16 @@
                 {}
                   :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
                   :style $ :style options
-                , & $ let
-                    css $ :css options
-                    p-elements $ -> blocks
-                      map $ fn (block)
-                        let[] (mode lines) block
-                          <> $ pr-str mode
-                          case mode
-                            :text $ comp-text-block lines
-                            :code $ comp-code-block lines options
-                            <> "|Unknown content."
-                  if (nil? css) p-elements $ prepend p-elements
-                    style $ {} (:inner-text css) (:scoped true)
+                if (some? css)
+                  style $ {} (:inner-text css) (:scoped true)
+                , & $ -> blocks
+                  map $ fn (block)
+                    let[] (mode lines) block
+                      <> $ pr-str mode
+                      case-default mode
+                        <> $ str "|Unknown content: " mode
+                        :text $ comp-text-block lines
+                        :code $ comp-code-block lines options
         |comp-image $ quote
           defn comp-image (chunk)
             let
@@ -106,43 +104,27 @@
           defcomp comp-text-block (lines)
             div
               {} $ :class-name |md-p
-              , & $ ->
-                map-with-idx
-                  fn (line) (comp-line line)
-                  , lines
-                map last
+              , & $ -> lines
+                map $ fn (line) (comp-line line)
         |comp-line $ quote
           defcomp comp-line (line)
             cond
                 starts-with? line "|# "
-                h1 ({}) & $ map
-                  render-inline $ &str:slice line 2
-                  , last
+                h1 ({}) & $ render-inline (&str:slice line 2)
               (starts-with? line "|## ")
-                h2 ({}) & $ map
-                  render-inline $ &str:slice line 3
-                  , last
+                h2 ({}) & $ render-inline (&str:slice line 3)
               (starts-with? line "|### ")
-                h3 ({}) & $ map
-                  render-inline $ &str:slice line 4
-                  , last
+                h3 ({}) & $ render-inline (&str:slice line 4)
               (starts-with? line "|#### ")
-                h4 ({}) & $ map
-                  render-inline $ &str:slice line 5
-                  , last
+                h4 ({}) & $ render-inline (&str:slice line 5)
               (starts-with? line "|> ")
-                blockquote ({}) & $ map
-                  render-inline $ &str:slice line 2
-                  , last
+                blockquote ({}) & $ render-inline (&str:slice line 2)
               (starts-with? line "|* ")
-                li ({}) & $ map
-                  render-inline $ &str:slice line 2
-                  , last
-              true $ div ({}) &
-                map (render-inline line) last
+                li ({}) & $ render-inline (&str:slice line 2)
+              true $ div ({}) & (render-inline line)
         |comp-md $ quote
           defcomp comp-md (text)
-            div ({}) & $ map (render-inline text) last
+            div ({}) & $ render-inline text
         |comp-link $ quote
           defn comp-link (chunk)
             let
@@ -156,22 +138,23 @@
                     code $ {}
                       :inner-text $ &str:slice content 1
                         dec $ count content
-                  a $ {} (:href url) (:inner-text content) (:target |_blank)
+                  a $ {} (:href url)
+                    :inner-text $ w-log content
+                    :target |_blank
         |blockquote $ quote
           defn blockquote (props & children) (create-element :blockquote props & children)
         |render-inline $ quote
           defn render-inline (text)
             -> (split-line text)
-              map-indexed $ fn (idx chunk)
-                [] idx $ let[] (mode content) chunk
-                  case mode
-                    :code $ code ({}) (<> content nil)
-                    :url $ a
-                      {} (:href content) (:inner-text content) (:target |_blank)
-                    :link $ comp-link content
-                    :image $ comp-image content
-                    :text $ <> content nil
-                    mode $ <> (str |Unknown: content) nil
+              map $ fn (chunk)
+                let[] (mode content) chunk $ case-default mode
+                  <> (str |Unknown: content) nil
+                  :code $ code ({}) (<> content nil)
+                  :url $ a
+                    {} (:href content) (:inner-text content) (:target |_blank)
+                  :link $ comp-link content
+                  :image $ comp-image content
+                  :text $ <> content nil
         |comp-code-block $ quote
           defcomp comp-code-block (lines options)
             let
@@ -282,7 +265,8 @@
                   cursor $ first line
                   left $ &str:slice line 1
                 case mode
-                  :text $ case cursor
+                  :text $ case-default cursor
+                    recur acc left (str buffer cursor) :text
                     "|`" $ recur
                       if (some? buffer)
                         conj acc $ [] :text buffer
@@ -298,7 +282,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :url $ first pieces
-                          str "| " $ join "| " (rest pieces)
+                          str "| " $ join-str (rest pieces) "| "
                           , | :text
                       recur acc left (str buffer |h) :text
                     |[ $ let
@@ -308,7 +292,7 @@
                           conj
                             if (= | buffer) acc $ conj acc ([] :text buffer)
                             [] :link guess
-                          .replace line guess |
+                          .!replace line guess |
                           , | :text
                         recur acc left (str buffer |[) :text
                     |! $ let
@@ -321,7 +305,6 @@
                           .replace line guess |
                           , | :text
                         recur acc left (str buffer |!) :text
-                    cursor $ recur acc left (str buffer cursor) :text
                   :code $ if (= cursor "|`")
                     recur
                       conj acc $ [] :code buffer
