@@ -1007,10 +1007,7 @@
                                   |r $ {} (:type :expr) (:by nil) (:at 1505725057558)
                                     :data $ {}
                                       |T $ {} (:type :leaf) (:text |:inner-text) (:by |root) (:at 1505725057558)
-                                      |j $ {} (:type :expr) (:by |wA2nX3K2f) (:at 1624121156062)
-                                        :data $ {}
-                                          |T $ {} (:type :leaf) (:text |content) (:by |root) (:at 1505725057558)
-                                          |D $ {} (:type :leaf) (:by |wA2nX3K2f) (:at 1624121157845) (:text |w-log)
+                                      |j $ {} (:type :leaf) (:text |content) (:by |root) (:at 1505725057558)
                                   |v $ {} (:type :expr) (:by nil) (:at 1505725057558)
                                     :data $ {}
                                       |T $ {} (:type :leaf) (:text |:target) (:by |root) (:at 1505725057558)
@@ -2206,4 +2203,4 @@
     :init-fn |respo-md.main/main!
     :compact-output? true
     :storage-key |calcit.cirru
-    :version |0.3.5
+    :version |0.3.7

@@ -2,7 +2,7 @@
 {} (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
-    :version |0.3.5
+    :version |0.3.7
   :files $ {}
     |respo-md.comp.container $ {}
       :ns $ quote
@@ -138,9 +138,7 @@
                     code $ {}
                       :inner-text $ &str:slice content 1
                         dec $ count content
-                  a $ {} (:href url)
-                    :inner-text $ w-log content
-                    :target |_blank
+                  a $ {} (:href url) (:inner-text content) (:target |_blank)
         |blockquote $ quote
           defn blockquote (props & children) (create-element :blockquote props & children)
         |render-inline $ quote
