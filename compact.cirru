@@ -2,7 +2,7 @@
 {} (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
-    :version |0.3.8
+    :version |0.3.9
   :files $ {}
     |respo-md.comp.md $ {}
       :ns $ quote
@@ -246,7 +246,7 @@
                           , | :text
                       recur acc left (str buffer |h) :text
                     |[ $ let
-                        guess $ .-0
+                        guess $ get0
                           .!match line $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)" "\"g"
                       if (some? guess)
                         recur
@@ -257,8 +257,8 @@
                           , | :text
                         recur acc left (str buffer |[) :text
                     |! $ let
-                        guess $ .-0
-                          .!match line $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)"
+                        guess $ get0
+                          .!match line $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
                       if (some? guess)
                         recur
                           conj
@@ -272,6 +272,9 @@
                       conj acc $ [] :code buffer
                       , left | :text
                     recur acc left (str buffer cursor) :code
+        |get0 $ quote
+          defn get0 (xs)
+            if (nil? xs) nil $ .-0 xs
         |split-block $ quote
           defn split-block (text)
             split-block-iter (split-lines text) ([]) ([]) :empty
