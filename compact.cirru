@@ -2,8 +2,159 @@
 {} (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
-    :version |0.3.7
+    :version |0.3.8
   :files $ {}
+    |respo-md.comp.md $ {}
+      :ns $ quote
+        ns respo-md.comp.md $ :require
+          [] respo.util.format :refer $ [] hsl
+          [] respo-ui.core :as ui
+          [] respo.core :refer $ [] create-element
+          [] respo.comp.space :refer $ [] =<
+          [] respo-md.util.core :refer $ [] split-block split-line
+          [] respo.core :refer $ [] defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
+          [] respo.util.list :refer $ [] map-with-idx
+      :defs $ {}
+        |render-inline $ quote
+          defn render-inline (text)
+            -> (split-line text)
+              map $ fn (chunk)
+                let[] (mode content) chunk $ case-default mode
+                  <> (str |Unknown: content) nil
+                  :code $ code ({}) (<> content nil)
+                  :url $ a
+                    {} (:href content) (:inner-text content) (:target |_blank)
+                  :link $ comp-link content
+                  :image $ comp-image content
+                  :text $ <> content nil
+        |comp-text-block $ quote
+          defcomp comp-text-block (lines)
+            div
+              {} $ :class-name |md-p
+              , & $ -> lines
+                map $ fn (line) (comp-line line)
+        |comp-line $ quote
+          defcomp comp-line (line)
+            cond
+                starts-with? line "|# "
+                h1 ({}) & $ render-inline (&str:slice line 2)
+              (starts-with? line "|## ")
+                h2 ({}) & $ render-inline (&str:slice line 3)
+              (starts-with? line "|### ")
+                h3 ({}) & $ render-inline (&str:slice line 4)
+              (starts-with? line "|#### ")
+                h4 ({}) & $ render-inline (&str:slice line 5)
+              (starts-with? line "|> ")
+                blockquote ({}) & $ render-inline (&str:slice line 2)
+              (starts-with? line "|* ")
+                li ({}) & $ render-inline (&str:slice line 2)
+              true $ div ({}) & (render-inline line)
+        |comp-link $ quote
+          defn comp-link (chunk)
+            let
+                useful $ &str:slice chunk 1
+                  - (count chunk) 1
+              let[] (content url) (split useful "|](")
+                if
+                  and (starts-with? content "|`") (ends-with? content "|`")
+                  a
+                    {} (:href url) (:target |_blank)
+                    code $ {}
+                      :inner-text $ &str:slice content 1
+                        dec $ count content
+                  a $ {} (:href url) (:inner-text content) (:target |_blank)
+        |blockquote $ quote
+          defn blockquote (props & children) (create-element :blockquote props & children)
+        |comp-image $ quote
+          defn comp-image (chunk)
+            let
+                useful $ &str:slice chunk 2
+                  - (count chunk) 1
+              let[] (content url) (split useful "|](")
+                img $ {} (:src url) (:alt content)
+        |comp-code-block $ quote
+          defcomp comp-code-block (lines options)
+            let
+                lang $ first lines
+                content $ join-str (rest lines) &newline
+                highlight-fn $ :highlight options
+              pre
+                {} $ :class-name |md-code-block
+                code $ if
+                  and
+                    not $ blank? lang
+                    fn? highlight-fn
+                  {} $ :innerHTML (highlight-fn content lang)
+                  {} $ :inner-text content
+        |comp-md-block $ quote
+          defcomp comp-md-block (text options)
+            let
+                blocks $ split-block text
+                css $ :css options
+                class-name $ :class-name options
+              div
+                {}
+                  :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
+                  :style $ :style options
+                if (some? css)
+                  style $ {} (:inner-text css) (:scoped true)
+                , & $ -> blocks
+                  map $ fn (block)
+                    let[] (mode lines) block
+                      <> $ pr-str mode
+                      case-default mode
+                        <> $ str "|Unknown content: " mode
+                        :text $ comp-text-block lines
+                        :code $ comp-code-block lines options
+        |comp-md $ quote
+          defcomp comp-md (text)
+            div ({}) & $ render-inline text
+    |respo-md.config $ {}
+      :ns $ quote (ns respo-md.config)
+      :defs $ {}
+        |dev? $ quote (def dev? true)
+        |site $ quote
+          def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/respo-markdown/") (:title "\"Markdown") (:icon "\"http://cdn.tiye.me/logo/respo.png") (:storage-key "\"respo-markdown")
+    |respo-md.schema $ {}
+      :ns $ quote (ns respo-md.schema)
+      :defs $ {}
+        |store $ quote
+          def store $ {}
+            :states $ {}
+    |respo-md.main $ {}
+      :ns $ quote
+        ns respo-md.main $ :require
+          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
+          [] respo-md.comp.container :refer $ [] comp-container
+          [] cljs.reader :refer $ [] read-string
+          [] respo-md.schema :as schema
+          [] respo.cursor :refer $ [] update-states
+          [] respo-md.config :as config
+      :defs $ {}
+        |render-app! $ quote
+          defn render-app! (renderer)
+            renderer mount-target (comp-container @*store highligher) dispatch!
+        |ssr? $ quote
+          def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+        |mount-target $ quote
+          def mount-target $ js/document.querySelector |.app
+        |main! $ quote
+          defn main! ()
+            println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
+            if ssr? $ render-app! realize-ssr!
+            render-app! render!
+            add-watch *store :changes $ fn (store prev) (render-app! render!)
+            println "|App started!"
+        |*store $ quote (defatom *store schema/store)
+        |dispatch! $ quote
+          defn dispatch! (op op-data)
+            let
+                next-store $ if (= op :states) (update-states @*store op-data) @*store
+              reset! *store next-store
+        |reload! $ quote
+          defn reload! () (clear-cache!) (render-app! render!) (println "|Code update.")
+        |highligher $ quote
+          defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
     |respo-md.comp.container $ {}
       :ns $ quote
         ns respo-md.comp.container $ :require
@@ -61,159 +212,66 @@
                       {} (:highlight highlighter) (:css "|.md-p code {\n  background-color: #edf;\n  padding: 0 8px;\n}") (:class-name |demo)
         |initial-state $ quote
           def initial-state $ {} (:draft |) (:text |)
-      :proc $ quote ()
-    |respo-md.comp.md $ {}
-      :ns $ quote
-        ns respo-md.comp.md $ :require
-          [] respo.util.format :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] create-element
-          [] respo.comp.space :refer $ [] =<
-          [] respo-md.util.core :refer $ [] split-block split-line
-          [] respo.core :refer $ [] defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
-          [] respo.util.list :refer $ [] map-with-idx
-      :defs $ {}
-        |comp-md-block $ quote
-          defcomp comp-md-block (text options)
-            let
-                blocks $ split-block text
-                css $ :css options
-                class-name $ :class-name options
-              div
-                {}
-                  :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
-                  :style $ :style options
-                if (some? css)
-                  style $ {} (:inner-text css) (:scoped true)
-                , & $ -> blocks
-                  map $ fn (block)
-                    let[] (mode lines) block
-                      <> $ pr-str mode
-                      case-default mode
-                        <> $ str "|Unknown content: " mode
-                        :text $ comp-text-block lines
-                        :code $ comp-code-block lines options
-        |comp-image $ quote
-          defn comp-image (chunk)
-            let
-                useful $ &str:slice chunk 2
-                  - (count chunk) 1
-              let[] (content url) (split useful "|](")
-                img $ {} (:src url) (:alt content)
-        |comp-text-block $ quote
-          defcomp comp-text-block (lines)
-            div
-              {} $ :class-name |md-p
-              , & $ -> lines
-                map $ fn (line) (comp-line line)
-        |comp-line $ quote
-          defcomp comp-line (line)
-            cond
-                starts-with? line "|# "
-                h1 ({}) & $ render-inline (&str:slice line 2)
-              (starts-with? line "|## ")
-                h2 ({}) & $ render-inline (&str:slice line 3)
-              (starts-with? line "|### ")
-                h3 ({}) & $ render-inline (&str:slice line 4)
-              (starts-with? line "|#### ")
-                h4 ({}) & $ render-inline (&str:slice line 5)
-              (starts-with? line "|> ")
-                blockquote ({}) & $ render-inline (&str:slice line 2)
-              (starts-with? line "|* ")
-                li ({}) & $ render-inline (&str:slice line 2)
-              true $ div ({}) & (render-inline line)
-        |comp-md $ quote
-          defcomp comp-md (text)
-            div ({}) & $ render-inline text
-        |comp-link $ quote
-          defn comp-link (chunk)
-            let
-                useful $ &str:slice chunk 1
-                  - (count chunk) 1
-              let[] (content url) (split useful "|](")
-                if
-                  and (starts-with? content "|`") (ends-with? content "|`")
-                  a
-                    {} (:href url) (:target |_blank)
-                    code $ {}
-                      :inner-text $ &str:slice content 1
-                        dec $ count content
-                  a $ {} (:href url) (:inner-text content) (:target |_blank)
-        |blockquote $ quote
-          defn blockquote (props & children) (create-element :blockquote props & children)
-        |render-inline $ quote
-          defn render-inline (text)
-            -> (split-line text)
-              map $ fn (chunk)
-                let[] (mode content) chunk $ case-default mode
-                  <> (str |Unknown: content) nil
-                  :code $ code ({}) (<> content nil)
-                  :url $ a
-                    {} (:href content) (:inner-text content) (:target |_blank)
-                  :link $ comp-link content
-                  :image $ comp-image content
-                  :text $ <> content nil
-        |comp-code-block $ quote
-          defcomp comp-code-block (lines options)
-            let
-                lang $ first lines
-                content $ join-str (rest lines) &newline
-                highlight-fn $ :highlight options
-              pre
-                {} $ :class-name |md-code-block
-                code $ if
-                  and
-                    not $ blank? lang
-                    fn? highlight-fn
-                  {} $ :innerHTML (highlight-fn content lang)
-                  {} $ :inner-text content
-      :proc $ quote ()
-    |respo-md.main $ {}
-      :ns $ quote
-        ns respo-md.main $ :require
-          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
-          [] respo-md.comp.container :refer $ [] comp-container
-          [] cljs.reader :refer $ [] read-string
-          [] respo-md.schema :as schema
-          [] respo.cursor :refer $ [] update-states
-          [] respo-md.config :as config
-      :defs $ {}
-        |*store $ quote (defatom *store schema/store)
-        |dispatch! $ quote
-          defn dispatch! (op op-data)
-            let
-                next-store $ if (= op :states) (update-states @*store op-data) @*store
-              reset! *store next-store
-        |highligher $ quote
-          defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
-        |main! $ quote
-          defn main! ()
-            println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
-            if ssr? $ render-app! realize-ssr!
-            render-app! render!
-            add-watch *store :changes $ fn (store prev) (render-app! render!)
-            println "|App started!"
-        |mount-target $ quote
-          def mount-target $ js/document.querySelector |.app
-        |reload! $ quote
-          defn reload! () (clear-cache!) (render-app! render!) (println "|Code update.")
-        |render-app! $ quote
-          defn render-app! (renderer)
-            renderer mount-target (comp-container @*store highligher) dispatch!
-        |ssr? $ quote
-          def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
-      :proc $ quote ()
-    |respo-md.schema $ {}
-      :ns $ quote (ns respo-md.schema)
-      :defs $ {}
-        |store $ quote
-          def store $ {}
-            :states $ {}
-      :proc $ quote ()
     |respo-md.util.core $ {}
       :ns $ quote
         ns respo-md.util.core $ :require
       :defs $ {}
+        |split-line-iter $ quote
+          defn split-line-iter (acc line buffer mode)
+            if (= | line)
+              if (= | buffer) acc $ conj acc ([] mode buffer)
+              let
+                  cursor $ first line
+                  left $ &str:slice line 1
+                case-default mode
+                  raise $ str "|Unknown mode:" mode
+                  :text $ case-default cursor
+                    recur acc left (str buffer cursor) :text
+                    "|`" $ recur
+                      if (some? buffer)
+                        conj acc $ [] :text buffer
+                        , acc
+                      , left | :code
+                    |h $ if
+                      or
+                        = |http:// $ &str:slice line 0 7
+                        = |https:// $ &str:slice line 0 8
+                      let
+                          pieces $ split line "| "
+                        recur
+                          conj
+                            if (= | buffer) acc $ conj acc ([] :text buffer)
+                            [] :url $ first pieces
+                          str "| " $ join-str (rest pieces) "| "
+                          , | :text
+                      recur acc left (str buffer |h) :text
+                    |[ $ let
+                        guess $ .-0
+                          .!match line $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)" "\"g"
+                      if (some? guess)
+                        recur
+                          conj
+                            if (= | buffer) acc $ conj acc ([] :text buffer)
+                            [] :link guess
+                          .!replace line guess |
+                          , | :text
+                        recur acc left (str buffer |[) :text
+                    |! $ let
+                        guess $ .-0
+                          .!match line $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)"
+                      if (some? guess)
+                        recur
+                          conj
+                            if (= | buffer) acc $ conj acc ([] :text buffer)
+                            [] :image guess
+                          .replace line guess |
+                          , | :text
+                        recur acc left (str buffer |!) :text
+                  :code $ if (= cursor "|`")
+                    recur
+                      conj acc $ [] :code buffer
+                      , left | :text
+                    recur acc left (str buffer cursor) :code
         |split-block $ quote
           defn split-block (text)
             split-block-iter (split-lines text) ([]) ([]) :empty
@@ -255,65 +313,3 @@
                       , :empty
                     recur left acc (conj buffer cursor) :code
                   mode $ raise (str "|Strange splitting mode: " mode)
-        |split-line-iter $ quote
-          defn split-line-iter (acc line buffer mode)
-            if (= | line)
-              if (= | buffer) acc $ conj acc ([] mode buffer)
-              let
-                  cursor $ first line
-                  left $ &str:slice line 1
-                case mode
-                  :text $ case-default cursor
-                    recur acc left (str buffer cursor) :text
-                    "|`" $ recur
-                      if (some? buffer)
-                        conj acc $ [] :text buffer
-                        , acc
-                      , left | :code
-                    |h $ if
-                      or
-                        = |http:// $ &str:slice line 0 7
-                        = |https:// $ &str:slice line 0 8
-                      let
-                          pieces $ split line "| "
-                        recur
-                          conj
-                            if (= | buffer) acc $ conj acc ([] :text buffer)
-                            [] :url $ first pieces
-                          str "| " $ join-str (rest pieces) "| "
-                          , | :text
-                      recur acc left (str buffer |h) :text
-                    |[ $ let
-                        guess $ first (re-find-all line "\"^\\[[^\\]]+\\]\\([^\\)]+\\)")
-                      if (some? guess)
-                        recur
-                          conj
-                            if (= | buffer) acc $ conj acc ([] :text buffer)
-                            [] :link guess
-                          .!replace line guess |
-                          , | :text
-                        recur acc left (str buffer |[) :text
-                    |! $ let
-                        guess $ first (re-find-all line "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)")
-                      if (some? guess)
-                        recur
-                          conj
-                            if (= | buffer) acc $ conj acc ([] :text buffer)
-                            [] :image guess
-                          .replace line guess |
-                          , | :text
-                        recur acc left (str buffer |!) :text
-                  :code $ if (= cursor "|`")
-                    recur
-                      conj acc $ [] :code buffer
-                      , left | :text
-                    recur acc left (str buffer cursor) :code
-                  mode $ raise (str "|Unknown mode:" mode)
-      :proc $ quote ()
-    |respo-md.config $ {}
-      :ns $ quote (ns respo-md.config)
-      :defs $ {}
-        |dev? $ quote (def dev? true)
-        |site $ quote
-          def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/respo-markdown/") (:title "\"Markdown") (:icon "\"http://cdn.tiye.me/logo/respo.png") (:storage-key "\"respo-markdown")
-      :proc $ quote ()
