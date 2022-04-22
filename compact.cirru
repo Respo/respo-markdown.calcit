@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.3.9)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.3.10)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -52,15 +52,16 @@
                       merge ui/flex $ {} (:padding 8)
                     comp-md-block (:draft state)
                       {} (:highlight highlighter) (:css "|.md-p code {\n  background-color: #edf;\n  padding: 0 8px;\n}") (:class-name |demo)
+                =< nil 200
         |initial-state $ quote
           def initial-state $ {} (:draft |) (:text |)
       :ns $ quote
         ns respo-md.comp.container $ :require
-          [] respo.util.format :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.comp.space :refer $ [] =<
-          [] respo-md.comp.md :refer $ [] comp-md comp-md-block
-          [] respo.core :refer $ [] defcomp <> div span textarea input a
+          respo.util.format :refer $ hsl
+          respo-ui.core :as ui
+          respo.comp.space :refer $ =<
+          respo-md.comp.md :refer $ comp-md comp-md-block
+          respo.core :refer $ defcomp <> div span textarea input a
     |respo-md.comp.md $ {}
       :defs $ {}
         |blockquote $ quote
@@ -159,13 +160,13 @@
                   :text $ <> content nil
       :ns $ quote
         ns respo-md.comp.md $ :require
-          [] respo.util.format :refer $ [] hsl
-          [] respo-ui.core :as ui
-          [] respo.core :refer $ [] create-element
-          [] respo.comp.space :refer $ [] =<
-          [] respo-md.util.core :refer $ [] split-block split-line
-          [] respo.core :refer $ [] defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
-          [] respo.util.list :refer $ [] map-with-idx
+          respo.util.format :refer $ hsl
+          respo-ui.core :as ui
+          respo.core :refer $ create-element
+          respo.comp.space :refer $ =<
+          respo-md.util.core :refer $ split-block split-line
+          respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
+          respo.util.list :refer $ map-with-idx
     |respo-md.config $ {}
       :defs $ {}
         |dev? $ quote (def dev? true)
@@ -186,27 +187,31 @@
           defn main! ()
             println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
             if config/dev? $ load-console-formatter!
-            if ssr? $ render-app! realize-ssr!
-            render-app! render!
-            add-watch *store :changes $ fn (store prev) (render-app! render!)
+            render-app!
+            add-watch *store :changes $ fn (store prev) (render-app!)
             println "|App started!"
         |mount-target $ quote
           def mount-target $ js/document.querySelector |.app
         |reload! $ quote
-          defn reload! () (clear-cache!) (render-app! render!) (println "|Code update.")
+          defn reload! () $ if (nil? build-errors)
+            do (remove-watch *store :changes) (clear-cache!)
+              add-watch *store :changes $ fn (reel prev) (render-app!)
+              render-app!
+              hud! "\"ok~" "\"Ok"
+            hud! "\"error" build-errors
         |render-app! $ quote
-          defn render-app! (renderer)
-            renderer mount-target (comp-container @*store highligher) dispatch!
+          defn render-app! () $ render! mount-target (comp-container @*store highligher) dispatch!
         |ssr? $ quote
           def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
       :ns $ quote
         ns respo-md.main $ :require
-          [] respo.core :refer $ [] render! clear-cache! realize-ssr!
-          [] respo-md.comp.container :refer $ [] comp-container
-          [] cljs.reader :refer $ [] read-string
-          [] respo-md.schema :as schema
-          [] respo.cursor :refer $ [] update-states
-          [] respo-md.config :as config
+          respo.core :refer $ render! clear-cache! realize-ssr!
+          respo-md.comp.container :refer $ comp-container
+          respo-md.schema :as schema
+          respo.cursor :refer $ update-states
+          respo-md.config :as config
+          "\"./calcit.build-errors" :default build-errors
+          "\"bottom-tip" :default hud!
     |respo-md.schema $ {}
       :defs $ {}
         |store $ quote
@@ -228,7 +233,8 @@
               let
                   cursor $ first lines
                   left $ rest lines
-                case mode
+                case-default mode
+                  raise $ str "|Strange splitting mode: " mode
                   :empty $ cond
                       = cursor |
                       recur left acc ([]) :empty
@@ -236,7 +242,7 @@
                       recur left acc
                         [] $ &str:slice cursor 3
                         , :code
-                    :else $ recur left acc ([] cursor) :text
+                    true $ recur left acc ([] cursor) :text
                   :text $ cond
                       = cursor |
                       recur left
@@ -248,14 +254,13 @@
                         conj acc $ [] :text buffer
                         [] $ &str:slice cursor 3
                         , :code
-                    :else $ recur left acc (conj buffer cursor) :text
+                    true $ recur left acc (conj buffer cursor) :text
                   :code $ if (starts-with? cursor "|```")
                     recur left
                       conj acc $ [] mode buffer
                       []
                       , :empty
                     recur left acc (conj buffer cursor) :code
-                  mode $ raise (str "|Strange splitting mode: " mode)
         |split-line $ quote
           defn split-line (line)
             split-line-iter ([]) line | :text
