@@ -60,9 +60,17 @@ Write your own CSS to style the HTML:
 }
 ```
 
+### Custom Syntax
+
+To insert HTML by raw:
+
+```cirru
+#!html <div>TODO</div>
+```
+
 ### Workflow
 
-https://github.com/calcit-lang/calcit-workflow
+https://github.com/calcit-lang/respo-calcit-workflow
 
 ### License
 

@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.3.10)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.3.11)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -102,6 +102,9 @@
                 blockquote ({}) & $ render-inline (&str:slice line 2)
               (starts-with? line "|* ")
                 li ({}) & $ render-inline (&str:slice line 2)
+              (starts-with? line "|#!html ")
+                div $ {} (:class-name "\"html-container")
+                  :innerHTML $ .trim (&str:slice line 7)
               true $ div ({}) & (render-inline line)
         |comp-link $ quote
           defn comp-link (chunk)
