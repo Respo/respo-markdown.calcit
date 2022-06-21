@@ -1,6 +1,6 @@
 
 {}
-  :configs $ {} (:compact-output? true) (:extension |.cljs) (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.3.11)
+  :configs $ {} (:compact-output? true) (:extension |.cljs) (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.3.12)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :ir $ {} (:package |respo-md)
@@ -706,6 +706,28 @@
                           |T $ {} (:at 1610732569696) (:by |wA2nX3K2f) (:text |starts-with?) (:type :leaf)
                           |j $ {} (:at 1505725057558) (:by |root) (:text |line) (:type :leaf)
                           |r $ {} (:at 1505725057558) (:by |root) (:text "||* ") (:type :leaf)
+                      |j $ {} (:at 1610733209022) (:by |wA2nX3K2f) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1612254635649) (:by |wA2nX3K2f) (:text |li) (:type :leaf)
+                          |b $ {} (:at 1610734150301) (:by |wA2nX3K2f) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1610734150301) (:by |wA2nX3K2f) (:text |{}) (:type :leaf)
+                          |j $ {} (:at 1610733209022) (:by |wA2nX3K2f) (:text |&) (:type :leaf)
+                          |r $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:type :expr)
+                            :data $ {}
+                              |T $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:text |render-inline) (:type :leaf)
+                              |j $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:type :expr)
+                                :data $ {}
+                                  |T $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:text |&str:slice) (:type :leaf)
+                                  |j $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:text |line) (:type :leaf)
+                                  |r $ {} (:at 1624121043142) (:by |wA2nX3K2f) (:text |2) (:type :leaf)
+                  |y5 $ {} (:at 1505725057558) (:by nil) (:type :expr)
+                    :data $ {}
+                      |T $ {} (:at 1505725057558) (:by nil) (:type :expr)
+                        :data $ {}
+                          |T $ {} (:at 1610732569696) (:by |wA2nX3K2f) (:text |starts-with?) (:type :leaf)
+                          |j $ {} (:at 1505725057558) (:by |root) (:text |line) (:type :leaf)
+                          |r $ {} (:at 1655784119971) (:by |wA2nX3K2f) (:text "||- ") (:type :leaf)
                       |j $ {} (:at 1610733209022) (:by |wA2nX3K2f) (:type :expr)
                         :data $ {}
                           |T $ {} (:at 1612254635649) (:by |wA2nX3K2f) (:text |li) (:type :leaf)
