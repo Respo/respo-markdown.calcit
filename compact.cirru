@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.0-a1)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.0-a2)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -217,9 +217,12 @@
           :doc |
         |dispatch! $ %{} :CodeEntry
           :code $ quote
-            defn dispatch! (op op-data)
+            defn dispatch! (op)
               let
-                  next-store $ if (= op :states) (update-states @*store op-data) @*store
+                  next-store $ tag-match op
+                      :states cursor s
+                      update-states @*store cursor s
+                    _ $ do (eprintln "\"unknown op:" op) @*store
                 reset! *store next-store
           :doc |
         |highligher $ %{} :CodeEntry
