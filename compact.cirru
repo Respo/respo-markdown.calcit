@@ -1,12 +1,12 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.0-a2)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.0-a3)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
-    |respo-md.comp.container $ {}
+    |respo-md.comp.container $ %{} :FileEntry
       :defs $ {}
-        |comp-container $ %{} :CodeEntry
+        |comp-container $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (store highlighter)
               let
@@ -54,12 +54,10 @@
                       comp-md-block (:draft state)
                         {} (:highlight highlighter) (:css "|.md-p code {\n  background-color: #edf;\n  padding: 0 8px;\n}") (:class-name |demo)
                   =< nil 200
-          :doc |
-        |initial-state $ %{} :CodeEntry
+        |initial-state $ %{} :CodeEntry (:doc |)
           :code $ quote
             def initial-state $ {} (:draft |) (:text |)
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.container $ :require
             respo.util.format :refer $ hsl
@@ -67,14 +65,12 @@
             respo.comp.space :refer $ =<
             respo-md.comp.md :refer $ comp-md comp-md-block
             respo.core :refer $ defcomp <> div span textarea input a
-        :doc |
-    |respo-md.comp.md $ {}
+    |respo-md.comp.md $ %{} :FileEntry
       :defs $ {}
-        |blockquote $ %{} :CodeEntry
+        |blockquote $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn blockquote (props & children) (create-element :blockquote props & children)
-          :doc |
-        |comp-code-block $ %{} :CodeEntry
+        |comp-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-code-block (lines options)
               let
@@ -89,8 +85,7 @@
                       fn? highlight-fn
                     {} $ :innerHTML (highlight-fn content lang)
                     {} $ :inner-text content
-          :doc |
-        |comp-image $ %{} :CodeEntry
+        |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
               let
@@ -98,8 +93,7 @@
                     - (count chunk) 1
                 let[] (content url) (split useful "|](")
                   img $ {} (:src url) (:alt content)
-          :doc |
-        |comp-line $ %{} :CodeEntry
+        |comp-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-line (line)
               cond
@@ -121,8 +115,7 @@
                   div $ {} (:class-name "\"html-container")
                     :innerHTML $ .trim (&str:slice line 7)
                 true $ div ({}) & (render-inline line)
-          :doc |
-        |comp-link $ %{} :CodeEntry
+        |comp-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-link (chunk)
               let
@@ -137,13 +130,11 @@
                         :inner-text $ &str:slice content 1
                           dec $ count content
                     a $ {} (:href url) (:inner-text content) (:target |_blank)
-          :doc |
-        |comp-md $ %{} :CodeEntry
+        |comp-md $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-md (text)
               div ({}) & $ render-inline text
-          :doc |
-        |comp-md-block $ %{} :CodeEntry
+        |comp-md-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-md-block (text options)
               let
@@ -159,21 +150,19 @@
                   , & $ -> blocks
                     map $ fn (block)
                       let[] (mode lines) block
-                        <> $ pr-str mode
+                        <> $ to-lispy-string mode
                         case-default mode
                           <> $ str "|Unknown content: " mode
                           :text $ comp-text-block lines
                           :code $ comp-code-block lines options
-          :doc |
-        |comp-text-block $ %{} :CodeEntry
+        |comp-text-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-text-block (lines)
               div
                 {} $ :class-name |md-p
                 , & $ -> lines
                   map $ fn (line) (comp-line line)
-          :doc |
-        |render-inline $ %{} :CodeEntry
+        |render-inline $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-inline (text)
               -> (split-line text)
@@ -186,8 +175,7 @@
                     :link $ comp-link content
                     :image $ comp-image content
                     :text $ <> content nil
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.md $ :require
             respo.util.format :refer $ hsl
@@ -197,25 +185,20 @@
             respo-md.util.core :refer $ split-block split-line
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
             respo.util.list :refer $ map-with-idx
-        :doc |
-    |respo-md.config $ {}
+    |respo-md.config $ %{} :FileEntry
       :defs $ {}
-        |dev? $ %{} :CodeEntry
+        |dev? $ %{} :CodeEntry (:doc |)
           :code $ quote (def dev? true)
-          :doc |
-        |site $ %{} :CodeEntry
+        |site $ %{} :CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/respo-markdown/") (:title "\"Markdown") (:icon "\"http://cdn.tiye.me/logo/respo.png") (:storage-key "\"respo-markdown")
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns respo-md.config)
-        :doc |
-    |respo-md.main $ {}
+    |respo-md.main $ %{} :FileEntry
       :defs $ {}
-        |*store $ %{} :CodeEntry
+        |*store $ %{} :CodeEntry (:doc |)
           :code $ quote (defatom *store schema/store)
-          :doc |
-        |dispatch! $ %{} :CodeEntry
+        |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
               let
@@ -224,12 +207,10 @@
                       update-states @*store cursor s
                     _ $ do (eprintln "\"unknown op:" op) @*store
                 reset! *store next-store
-          :doc |
-        |highligher $ %{} :CodeEntry
+        |highligher $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
-          :doc |
-        |main! $ %{} :CodeEntry
+        |main! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn main! ()
               println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
@@ -237,12 +218,10 @@
               render-app!
               add-watch *store :changes $ fn (store prev) (render-app!)
               println "|App started!"
-          :doc |
-        |mount-target $ %{} :CodeEntry
+        |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
-          :doc |
-        |reload! $ %{} :CodeEntry
+        |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
               do (remove-watch *store :changes) (clear-cache!)
@@ -250,16 +229,13 @@
                 render-app!
                 hud! "\"ok~" "\"Ok"
               hud! "\"error" build-errors
-          :doc |
-        |render-app! $ %{} :CodeEntry
+        |render-app! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*store highligher) dispatch!
-          :doc |
-        |ssr? $ %{} :CodeEntry
+        |ssr? $ %{} :CodeEntry (:doc |)
           :code $ quote
             def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.main $ :require
             respo.core :refer $ render! clear-cache! realize-ssr!
@@ -269,30 +245,25 @@
             respo-md.config :as config
             "\"./calcit.build-errors" :default build-errors
             "\"bottom-tip" :default hud!
-        :doc |
-    |respo-md.schema $ {}
+    |respo-md.schema $ %{} :FileEntry
       :defs $ {}
-        |store $ %{} :CodeEntry
+        |store $ %{} :CodeEntry (:doc |)
           :code $ quote
             def store $ {}
               :states $ {}
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns respo-md.schema)
-        :doc |
-    |respo-md.util.core $ {}
+    |respo-md.util.core $ %{} :FileEntry
       :defs $ {}
-        |get0 $ %{} :CodeEntry
+        |get0 $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn get0 (xs)
               if (nil? xs) nil $ .-0 xs
-          :doc |
-        |split-block $ %{} :CodeEntry
+        |split-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-block (text)
               split-block-iter (split-lines text) ([]) ([]) :empty
-          :doc |
-        |split-block-iter $ %{} :CodeEntry
+        |split-block-iter $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-block-iter (lines acc buffer mode)
               if (empty? lines)
@@ -328,13 +299,11 @@
                         []
                         , :empty
                       recur left acc (conj buffer cursor) :code
-          :doc |
-        |split-line $ %{} :CodeEntry
+        |split-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-line (line)
               split-line-iter ([]) line | :text
-          :doc |
-        |split-line-iter $ %{} :CodeEntry
+        |split-line-iter $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-line-iter (acc line buffer mode)
               if (= | line)
@@ -391,8 +360,6 @@
                         conj acc $ [] :code buffer
                         , left | :text
                       recur acc left (str buffer cursor) :code
-          :doc |
-      :ns $ %{} :CodeEntry
+      :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require
-        :doc |
