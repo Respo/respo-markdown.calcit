@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.0-a3)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.1)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -52,7 +52,7 @@
                       {} $ :style
                         merge ui/flex $ {} (:padding 8)
                       comp-md-block (:draft state)
-                        {} (:highlight highlighter) (:css "|.md-p code {\n  background-color: #edf;\n  padding: 0 8px;\n}") (:class-name |demo)
+                        {} (:highlight highlighter) (:class-name |demo)
                   =< nil 200
         |initial-state $ %{} :CodeEntry (:doc |)
           :code $ quote
@@ -78,7 +78,7 @@
                   content $ join-str (rest lines) &newline
                   highlight-fn $ :highlight options
                 pre
-                  {} $ :class-name |md-code-block
+                  {} $ :class-name (str-spaced |md-code-block style-code-block)
                   code $ if
                     and
                       not $ blank? lang
@@ -139,14 +139,11 @@
             defcomp comp-md-block (text options)
               let
                   blocks $ split-block text
-                  css $ :css options
                   class-name $ :class-name options
                 div
                   {}
                     :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
                     :style $ :style options
-                  if (some? css)
-                    style $ {} (:inner-text css) (:scoped true)
                   , & $ -> blocks
                     map $ fn (block)
                       let[] (mode lines) block
@@ -159,7 +156,7 @@
           :code $ quote
             defcomp comp-text-block (lines)
               div
-                {} $ :class-name |md-p
+                {} $ :class-name (str-spaced |md-p style-paragraph)
                 , & $ -> lines
                   map $ fn (line) (comp-line line)
         |render-inline $ %{} :CodeEntry (:doc |)
@@ -175,6 +172,26 @@
                     :link $ comp-link content
                     :image $ comp-image content
                     :text $ <> content nil
+        |style-code-block $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-code-block $ {}
+              "\"&" $ {}
+                :border $ str "\"1px solid " (hsl 0 0 86)
+                :border-radius "\"8px"
+                :padding "\"4px 8px"
+                :max-width 600
+        |style-paragraph $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-paragraph $ {}
+              "\"&" $ {}
+              "\"& code" $ {}
+                :border $ str "\"1px solid " (hsl 0 0 086)
+                :border-radius "\"4px"
+                :padding "\"2px 4px"
+                :margin "\"2px 4px"
+              "\"& img" $ {} (:max-width 480) (:max-height 320)
+                :border $ str "\"1px solid " (hsl 0 0 90)
+                :border-radius "\"8px"
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.md $ :require
@@ -185,6 +202,7 @@
             respo-md.util.core :refer $ split-block split-line
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
             respo.util.list :refer $ map-with-idx
+            respo.css :refer $ defstyle
     |respo-md.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
