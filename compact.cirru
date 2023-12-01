@@ -14,21 +14,20 @@
                   cursor $ either (:cursor states) ([])
                   state $ either (:data states) initial-state
                 div
-                  {} $ :style
-                    merge ui/global $ {} (:width |80%) (:margin "|0 auto")
+                  {} (:class-name css/global)
+                    :style $ {} (:width |80%) (:margin "|0 auto")
                   div ({})
                     a
                       {} $ :href |https://github.com/Respo/respo-markdown
                       <> |respo-markdown
                   div ({})
-                    comp-md-block "|Respo Markdown component renders Markdown text to virtual DOM in Respo. Require the code with\n\n```clojure\n(require '[respo-md.comp.md :refer [comp-md comp-md-block]]\n\n(comp-md \"content\")\n\n(comp-md-block \"content\\nnew line\" {})\n```\n" $ {}
+                    comp-md-block "|Respo Markdown component renders Markdown text to virtual DOM in Respo. Require the code with\n\n```cirru\n:require\n  respo-md.comp.md :refer $ comp-md comp-md-block\n\ncomp-md \"|content\"\n\ncomp-md-block \"|content\\nnew line\" $ {}\n```\n" $ {}
                   div
                     {} $ :style ({})
                     div ({}) (comp-md "|This is an example for using `comp-md`:")
                     div ({})
-                      input $ {}
-                        :style $ merge ui/input
-                          {} $ :width |100%
+                      input $ {} (:class-name css/input)
+                        :style $ {} (:width |100%)
                         :value $ :text state
                         :placeholder "|text inline"
                         :on-input $ fn (e d!)
@@ -42,15 +41,14 @@
                     div ({})
                       textarea $ {} (:placeholder "|multi-line content")
                         :value $ :draft state
-                        :style $ merge ui/textarea
-                          {} (:height 240) (:width |100%)
-                        :on $ {}
-                          :input $ fn (e d!)
-                            ; println |Editing: state $ :value e
-                            d! cursor $ assoc state :draft (:value e)
+                        :class-name css/textarea
+                        :style $ {} (:height 240) (:width |100%)
+                        :on-input $ fn (e d!)
+                          ; println |Editing: state $ :value e
+                          d! cursor $ assoc state :draft (:value e)
                     div
-                      {} $ :style
-                        merge ui/flex $ {} (:padding 8)
+                      {} (:class-name css/flex)
+                        :style $ {} (:padding 8)
                       comp-md-block (:draft state)
                         {} (:highlight highlighter) (:class-name |demo)
                   =< nil 200
@@ -62,6 +60,7 @@
           ns respo-md.comp.container $ :require
             respo.util.format :refer $ hsl
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.comp.space :refer $ =<
             respo-md.comp.md :refer $ comp-md comp-md-block
             respo.core :refer $ defcomp <> div span textarea input a
@@ -76,15 +75,16 @@
               let
                   lang $ first lines
                   content $ join-str (rest lines) &newline
-                  highlight-fn $ :highlight options
-                pre
-                  {} $ :class-name (str-spaced |md-code-block style-code-block)
-                  code $ if
+                  highlight-fn $ either (:highlight options)
+                    fn (x & l) x
+                comp-snippet
+                  if
                     and
                       not $ blank? lang
                       fn? highlight-fn
-                    {} $ :innerHTML (highlight-fn content lang)
-                    {} $ :inner-text content
+                    highlight-fn content lang
+                    , content
+                  {} $ :class-name style-code-block
         |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
@@ -203,6 +203,7 @@
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
             respo.util.list :refer $ map-with-idx
             respo.css :refer $ defstyle
+            respo-ui.comp :refer $ comp-snippet
     |respo-md.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
