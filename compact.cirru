@@ -92,7 +92,7 @@
                   useful $ &str:slice chunk 2
                     - (count chunk) 1
                 let[] (content url) (split useful "|](")
-                  img $ {} (:src url) (:alt content)
+                  img $ {} (:src url) (:class-name style-image) (:alt content)
         |comp-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-line (line)
@@ -142,16 +142,14 @@
                   class-name $ :class-name options
                 div
                   {}
-                    :class-name $ if (nil? class-name) |md-block (str "|md-block " class-name)
+                    :class-name $ if (nil? class-name) |md-block (str-spaced |md-block class-name)
                     :style $ :style options
                   , & $ -> blocks
                     map $ fn (block)
-                      let[] (mode lines) block
-                        <> $ to-lispy-string mode
-                        case-default mode
-                          <> $ str "|Unknown content: " mode
-                          :text $ comp-text-block lines
-                          :code $ comp-code-block lines options
+                      tag-match block
+                          :text lines
+                          comp-text-block lines
+                        (:code lines) (comp-code-block lines options)
         |comp-text-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-text-block (lines)
@@ -164,14 +162,21 @@
             defn render-inline (text)
               -> (split-line text)
                 map $ fn (chunk)
-                  let[] (mode content) chunk $ case-default mode
-                    <> (str |Unknown: content) nil
-                    :code $ code ({}) (<> content nil)
-                    :url $ a
-                      {} (:href content) (:inner-text content) (:target |_blank)
-                    :link $ comp-link content
-                    :image $ comp-image content
-                    :text $ <> content nil
+                  tag-match chunk
+                      :code content
+                      code
+                        {} $ :class-name style-inline-code
+                        <> content nil
+                    (:url content)
+                      a $ {} (:href content) (:inner-text content) (:target |_blank)
+                    (:link content) (comp-link content)
+                    (:image content) (comp-image content)
+                    (:text content) (<> content nil)
+                    (:emphasis content)
+                      create-element :b $ {} (:inner-text content)
+                    (:italic content)
+                      create-element :i $ {} (:inner-text content)
+                    _ $ <> (str |Unknown: chunk) nil
         |style-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code-block $ {}
@@ -180,18 +185,24 @@
                 :border-radius "\"8px"
                 :padding "\"4px 8px"
                 :max-width 600
-        |style-paragraph $ %{} :CodeEntry (:doc |)
+        |style-image $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defstyle style-paragraph $ {}
+            defstyle style-image $ {}
+              "\"&" $ {} (:max-width 480) (:max-height 320)
+                :border $ str "\"1px solid " (hsl 0 0 90)
+                :border-radius "\"8px"
+        |style-inline-code $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-inline-code $ {}
               "\"&" $ {}
-              "\"& code" $ {}
                 :border $ str "\"1px solid " (hsl 0 0 086)
                 :border-radius "\"4px"
                 :padding "\"2px 4px"
                 :margin "\"2px 4px"
-              "\"& img" $ {} (:max-width 480) (:max-height 320)
-                :border $ str "\"1px solid " (hsl 0 0 90)
-                :border-radius "\"8px"
+        |style-paragraph $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-paragraph $ {}
+              "\"&" $ {}
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.md $ :require
@@ -278,6 +289,22 @@
           :code $ quote
             defn get0 (xs)
               if (nil? xs) nil $ .-0 xs
+        |get1 $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn get1 (xs)
+              if (nil? xs) nil $ .-1 xs
+        |peek-emphasis $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def peek-emphasis $ new js/RegExp "\"^([^*/]+)\\*\\*"
+        |peek-image $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def peek-image $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
+        |peek-italic $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def peek-italic $ new js/RegExp "\"^([^*/]+)\\*"
+        |peek-link $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def peek-link $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)"
         |split-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-block (text)
@@ -286,7 +313,7 @@
           :code $ quote
             defn split-block-iter (lines acc buffer mode)
               if (empty? lines)
-                if (empty? buffer) acc $ conj acc ([] mode buffer)
+                if (empty? buffer) acc $ conj acc (:: mode buffer)
                 let
                     cursor $ first lines
                     left $ rest lines
@@ -303,18 +330,18 @@
                     :text $ cond
                         = cursor |
                         recur left
-                          conj acc $ [] :text buffer
+                          conj acc $ :: :text buffer
                           []
                           , :empty
                       (starts-with? cursor "|```")
                         recur left
-                          conj acc $ [] :text buffer
+                          conj acc $ :: :text buffer
                           [] $ &str:slice cursor 3
                           , :code
                       true $ recur left acc (conj buffer cursor) :text
                     :code $ if (starts-with? cursor "|```")
                       recur left
-                        conj acc $ [] mode buffer
+                        conj acc $ :: :code buffer
                         []
                         , :empty
                       recur left acc (conj buffer cursor) :code
@@ -326,7 +353,7 @@
           :code $ quote
             defn split-line-iter (acc line buffer mode)
               if (= | line)
-                if (= | buffer) acc $ conj acc ([] mode buffer)
+                if (= | buffer) acc $ conj acc (:: mode buffer)
                 let
                     cursor $ first line
                     left $ &str:slice line 1
@@ -336,7 +363,7 @@
                       recur acc left (str buffer cursor) :text
                       "|`" $ recur
                         if (some? buffer)
-                          conj acc $ [] :text buffer
+                          conj acc $ :: :text buffer
                           , acc
                         , left | :code
                       |h $ if
@@ -347,36 +374,62 @@
                             pieces $ split line "| "
                           recur
                             conj
-                              if (= | buffer) acc $ conj acc ([] :text buffer)
-                              [] :url $ first pieces
+                              if (= | buffer) acc $ conj acc (:: :text buffer)
+                              :: :url $ first pieces
                             str "| " $ join-str (rest pieces) "| "
                             , | :text
                         recur acc left (str buffer |h) :text
                       |[ $ let
-                          guess $ get0
-                            .!match line $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)" "\"g"
+                          guess $ get0 (.!match line peek-link)
                         if (some? guess)
                           recur
                             conj
-                              if (= | buffer) acc $ conj acc ([] :text buffer)
-                              [] :link guess
+                              if (= | buffer) acc $ conj acc (:: :text buffer)
+                              :: :link guess
                             .!replace line guess |
                             , | :text
                           recur acc left (str buffer |[) :text
                       |! $ let
-                          guess $ get0
-                            .!match line $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
+                          guess $ get0 (.!match line peek-image)
                         if (some? guess)
                           recur
                             conj
-                              if (= | buffer) acc $ conj acc ([] :text buffer)
-                              [] :image guess
+                              if (= | buffer) acc $ conj acc (:: :text buffer)
+                              :: :image guess
                             .replace line guess |
                             , | :text
                           recur acc left (str buffer |!) :text
+                      |* $ if (= left "\"")
+                        recur acc left (str buffer |*) :text
+                        let
+                            next-left $ &str:slice left 1
+                          if
+                            = "\"*" $ first left
+                            let
+                                matched $ .!match next-left peek-emphasis
+                              if (some? matched)
+                                let
+                                    emphasis $ get1 matched
+                                    rest-line $ &str:slice next-left
+                                      + 2 $ count emphasis
+                                  recur
+                                    conj acc (:: :text buffer) (:: :emphasis emphasis)
+                                    , rest-line | :text
+                                recur acc left (str buffer |*) :text
+                            let
+                                matched $ .!match next-left peek-italic
+                              if (some? matched)
+                                let
+                                    italic $ get1 matched
+                                    rest-line $ &str:slice next-left
+                                      + 1 $ count italic
+                                  recur
+                                    conj acc (:: :text buffer) (:: :italic italic)
+                                    , rest-line | :text
+                                recur acc left (str buffer |*) :text
                     :code $ if (= cursor "|`")
                       recur
-                        conj acc $ [] :code buffer
+                        conj acc $ :: :code buffer
                         , left | :text
                       recur acc left (str buffer cursor) :code
       :ns $ %{} :CodeEntry (:doc |)
