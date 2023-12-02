@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.1)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.2)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -35,14 +35,15 @@
                     div ({})
                       comp-md $ :text state
                   =< nil 40
+                  div ({}) (comp-md "|Example For using `comp-md-block`:")
                   div
-                    {} $ :style ({})
-                    div ({}) (comp-md "|Example For using `comp-md-block`:")
-                    div ({})
+                    {} $ :class-name css/row
+                    div
+                      {} $ :class-name css/expand
                       textarea $ {} (:placeholder "|multi-line content")
                         :value $ :draft state
-                        :class-name css/textarea
-                        :style $ {} (:height 240) (:width |100%)
+                        :class-name $ str-spaced css/textarea css/font-code!
+                        :style $ {} (:height "\"100%") (:width "\"100%") (:font-size 13)
                         :on-input $ fn (e d!)
                           ; println |Editing: state $ :value e
                           d! cursor $ assoc state :draft (:value e)
@@ -77,14 +78,9 @@
                   content $ join-str (rest lines) &newline
                   highlight-fn $ either (:highlight options)
                     fn (x & l) x
-                comp-snippet
-                  if
-                    and
-                      not $ blank? lang
-                      fn? highlight-fn
-                    highlight-fn content lang
-                    , content
-                  {} $ :class-name style-code-block
+                if (= lang "\"cirru")
+                  memof1-call comp-cirru-snippet content $ {} (:class-name style-code-block)
+                  memof1-call comp-snippet content $ {} (:class-name style-code-block) (:highlighter highlight-fn) (:lang lang)
         |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
@@ -106,11 +102,13 @@
                 (starts-with? line "|#### ")
                   h4 ({}) & $ render-inline (&str:slice line 5)
                 (starts-with? line "|> ")
-                  blockquote ({}) & $ render-inline (&str:slice line 2)
-                (starts-with? line "|* ")
-                  li ({}) & $ render-inline (&str:slice line 2)
-                (starts-with? line "|- ")
-                  li ({}) & $ render-inline (&str:slice line 2)
+                  blockquote
+                    {} $ :class-name style-blockquote
+                    , & $ render-inline (&str:slice line 2)
+                (or (starts-with? line "|* ") (starts-with? line "|- "))
+                  li
+                    {} $ :class-name style-line-list
+                    , & $ render-inline (&str:slice line 2)
                 (starts-with? line "|#!html ")
                   div $ {} (:class-name "\"html-container")
                     :innerHTML $ .trim (&str:slice line 7)
@@ -122,21 +120,31 @@
                   useful $ &str:slice chunk 1
                     - (count chunk) 1
                 let[] (content url) (split useful "|](")
-                  if
-                    and (starts-with? content "|`") (ends-with? content "|`")
-                    a
-                      {} (:href url) (:target |_blank)
-                      code $ {}
-                        :inner-text $ &str:slice content 1
-                          dec $ count content
-                    a $ {} (:href url) (:inner-text content) (:target |_blank)
+                  span ({})
+                    if
+                      and (starts-with? content "|`") (ends-with? content "|`")
+                      a
+                        {}
+                          :class-name $ str-spaced css/link style-default-link
+                          :href url
+                          :target |_blank
+                        code $ {}
+                          :inner-text $ &str:slice content 1
+                            dec $ count content
+                      a $ {}
+                        :class-name $ str-spaced css/link style-default-link
+                        :href url
+                        :inner-text $ str-spaced "\"🌐" content
+                        :target |_blank
         |comp-md $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defcomp comp-md (text)
-              div ({}) & $ render-inline text
+            defcomp comp-md (text ? options)
+              div
+                {} $ :class-name (get options :class-name)
+                , & $ memof1-call render-inline text
         |comp-md-block $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defcomp comp-md-block (text options)
+            defcomp comp-md-block (text ? options)
               let
                   blocks $ split-block text
                   class-name $ :class-name options
@@ -156,7 +164,7 @@
               div
                 {} $ :class-name (str-spaced |md-p style-paragraph)
                 , & $ -> lines
-                  map $ fn (line) (comp-line line)
+                  map $ fn (line) (memof1-call comp-line line)
         |render-inline $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-inline (text)
@@ -177,14 +185,23 @@
                     (:italic content)
                       create-element :i $ {} (:inner-text content)
                     _ $ <> (str |Unknown: chunk) nil
+        |style-blockquote $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-blockquote $ {}
+              "\"&" $ {}
+                :border-left $ str "\"6px solid " (hsl 0 0 90)
+                :margin-left 0
+                :padding-left 12
+                :color $ hsl 0 0 50
         |style-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code-block $ {}
-              "\"&" $ {}
-                :border $ str "\"1px solid " (hsl 0 0 86)
-                :border-radius "\"8px"
-                :padding "\"4px 8px"
-                :max-width 600
+              "\"&" $ {} (:max-width "\"60vw")
+        |style-default-link $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-default-link $ {}
+              "\"&" $ {} (:opacity 0.9) (:transition-duration "\"200ms")
+              "\"&:hover" $ {} (:opacity 1) (:transform "\"scale(1)")
         |style-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-image $ {}
@@ -197,8 +214,22 @@
               "\"&" $ {}
                 :border $ str "\"1px solid " (hsl 0 0 086)
                 :border-radius "\"4px"
+                :font-size 12
                 :padding "\"2px 4px"
                 :margin "\"2px 4px"
+        |style-line-list $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-line-list $ {}
+              "\"&" $ {} (:margin-left 12)
+              "\"&::marker" $ {}
+                :color $ hsl 0 0 80
+                :font-family ui/font-code
+                :white-space :pre
+                :content "\"'● '"
+                :transition-duration "\"300ms"
+              "\"&:hover::marker" $ {}
+                :color $ hsl 0 0 50
+                :content "\"'● '"
         |style-paragraph $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-paragraph $ {}
@@ -208,13 +239,15 @@
           ns respo-md.comp.md $ :require
             respo.util.format :refer $ hsl
             respo-ui.core :as ui
+            respo-ui.css :as css
             respo.core :refer $ create-element
             respo.comp.space :refer $ =<
             respo-md.util.core :refer $ split-block split-line
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
             respo.util.list :refer $ map-with-idx
             respo.css :refer $ defstyle
-            respo-ui.comp :refer $ comp-snippet
+            respo-ui.comp :refer $ comp-cirru-snippet comp-snippet
+            memof.once :refer $ memof1-call
     |respo-md.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)

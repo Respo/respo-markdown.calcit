@@ -12,6 +12,7 @@ Supported features:
 * Quoteblock
 * Unordered list
 * Inline code
+* Inline emphasis and italic
 * Url
 * Inline link
 * Image link
