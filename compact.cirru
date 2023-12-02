@@ -15,13 +15,17 @@
                   state $ either (:data states) initial-state
                 div
                   {} (:class-name css/global)
-                    :style $ {} (:width |80%) (:margin "|0 auto")
-                  div ({})
+                    :style $ {} (:width |80%) (:margin "|0 auto") (:padding 8)
+                  div
+                    {} $ :class-name css/row-middle
+                    img $ {} (:src "\"https://cos-sh.tiye.me/cos-up/bb4c2755050318e864b56f59145d726e-SubstractRespo.png") (:width 40)
+                    =< 8 nil
                     a
-                      {} $ :href |https://github.com/Respo/respo-markdown
+                      {} $ :href |https://github.com/Respo/respo-markdown.calcit
                       <> |respo-markdown
                   div ({})
                     comp-md-block "|Respo Markdown component renders Markdown text to virtual DOM in Respo. Require the code with\n\n```cirru\n:require\n  respo-md.comp.md :refer $ comp-md comp-md-block\n\ncomp-md \"|content\"\n\ncomp-md-block \"|content\\nnew line\" $ {}\n```\n" $ {}
+                  =< nil 40
                   div
                     {} $ :style ({})
                     div ({}) (comp-md "|This is an example for using `comp-md`:")
@@ -64,7 +68,7 @@
             respo-ui.css :as css
             respo.comp.space :refer $ =<
             respo-md.comp.md :refer $ comp-md comp-md-block
-            respo.core :refer $ defcomp <> div span textarea input a
+            respo.core :refer $ defcomp <> div span textarea input a img
     |respo-md.comp.md $ %{} :FileEntry
       :defs $ {}
         |blockquote $ %{} :CodeEntry (:doc |)
