@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.2)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.3)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -109,6 +109,10 @@
                   blockquote
                     {} $ :class-name style-blockquote
                     , & $ render-inline (&str:slice line 2)
+                (starts-with? line "\" ")
+                  div
+                    {} $ :class-name style-indent-line
+                    comp-line $ .!trimLeft line
                 (or (starts-with? line "|* ") (starts-with? line "|- "))
                   li
                     {} $ :class-name style-line-list
@@ -212,6 +216,10 @@
               "\"&" $ {} (:max-width 480) (:max-height 320)
                 :border $ str "\"1px solid " (hsl 0 0 90)
                 :border-radius "\"8px"
+        |style-indent-line $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-indent-line $ {}
+              "\"&" $ {} (:padding-left "\"2em")
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-inline-code $ {}
