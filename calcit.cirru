@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.4.3)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.4.4)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -760,23 +760,63 @@
                           |T $ %{} :Leaf (:at 1736013207268) (:by |wA2nX3K2f) (:text |starts-with?)
                           |b $ %{} :Leaf (:at 1736013207992) (:by |wA2nX3K2f) (:text |line)
                           |h $ %{} :Leaf (:at 1736013209260) (:by |wA2nX3K2f) (:text "|\" ")
-                      |b $ %{} :Expr (:at 1736013256202) (:by |wA2nX3K2f)
+                      |b $ %{} :Expr (:at 1736013832772) (:by |wA2nX3K2f)
                         :data $ {}
-                          |T $ %{} :Leaf (:at 1736013257180) (:by |wA2nX3K2f) (:text |div)
-                          |b $ %{} :Expr (:at 1736013257495) (:by |wA2nX3K2f)
+                          |D $ %{} :Leaf (:at 1736013834600) (:by |wA2nX3K2f) (:text |let)
+                          |L $ %{} :Expr (:at 1736013834855) (:by |wA2nX3K2f)
                             :data $ {}
-                              |T $ %{} :Leaf (:at 1736013257839) (:by |wA2nX3K2f) (:text |{})
-                              |b $ %{} :Expr (:at 1736013263037) (:by |wA2nX3K2f)
+                              |T $ %{} :Expr (:at 1736013834986) (:by |wA2nX3K2f)
                                 :data $ {}
-                                  |T $ %{} :Leaf (:at 1736013264630) (:by |wA2nX3K2f) (:text |:class-name)
-                                  |b $ %{} :Leaf (:at 1736013275677) (:by |wA2nX3K2f) (:text |style-indent-line)
-                          |h $ %{} :Expr (:at 1736013304609) (:by |wA2nX3K2f)
+                                  |T $ %{} :Leaf (:at 1736013836897) (:by |wA2nX3K2f) (:text |content)
+                                  |b $ %{} :Expr (:at 1736013841763) (:by |wA2nX3K2f)
+                                    :data $ {}
+                                      |T $ %{} :Leaf (:at 1736013841763) (:by |wA2nX3K2f) (:text |.!trimLeft)
+                                      |b $ %{} :Leaf (:at 1736013841763) (:by |wA2nX3K2f) (:text |line)
+                              |b $ %{} :Expr (:at 1736013843506) (:by |wA2nX3K2f)
+                                :data $ {}
+                                  |T $ %{} :Leaf (:at 1736013848278) (:by |wA2nX3K2f) (:text |space-size)
+                                  |b $ %{} :Expr (:at 1736013849583) (:by |wA2nX3K2f)
+                                    :data $ {}
+                                      |T $ %{} :Leaf (:at 1736013859173) (:by |wA2nX3K2f) (:text |&-)
+                                      |b $ %{} :Expr (:at 1736013850579) (:by |wA2nX3K2f)
+                                        :data $ {}
+                                          |T $ %{} :Leaf (:at 1736013851262) (:by |wA2nX3K2f) (:text |count)
+                                          |b $ %{} :Leaf (:at 1736013853009) (:by |wA2nX3K2f) (:text |line)
+                                      |h $ %{} :Expr (:at 1736013850579) (:by |wA2nX3K2f)
+                                        :data $ {}
+                                          |T $ %{} :Leaf (:at 1736013851262) (:by |wA2nX3K2f) (:text |count)
+                                          |b $ %{} :Leaf (:at 1736013857473) (:by |wA2nX3K2f) (:text |content)
+                              |h $ %{} :Expr (:at 1736014051665) (:by |wA2nX3K2f)
+                                :data $ {}
+                                  |T $ %{} :Leaf (:at 1736014053773) (:by |wA2nX3K2f) (:text |spaces)
+                                  |b $ %{} :Expr (:at 1736014054698) (:by |wA2nX3K2f)
+                                    :data $ {}
+                                      |T $ %{} :Leaf (:at 1736014057464) (:by |wA2nX3K2f) (:text |.!slice)
+                                      |b $ %{} :Leaf (:at 1736014059637) (:by |wA2nX3K2f) (:text |line)
+                                      |h $ %{} :Leaf (:at 1736014061656) (:by |wA2nX3K2f) (:text |0)
+                                      |l $ %{} :Leaf (:at 1736014064052) (:by |wA2nX3K2f) (:text |space-size)
+                          |T $ %{} :Expr (:at 1736013256202) (:by |wA2nX3K2f)
                             :data $ {}
-                              |T $ %{} :Leaf (:at 1736013308465) (:by |wA2nX3K2f) (:text |comp-line)
-                              |b $ %{} :Expr (:at 1736013314866) (:by |wA2nX3K2f)
+                              |T $ %{} :Leaf (:at 1736013257180) (:by |wA2nX3K2f) (:text |div)
+                              |b $ %{} :Expr (:at 1736013257495) (:by |wA2nX3K2f)
                                 :data $ {}
-                                  |D $ %{} :Leaf (:at 1736013367630) (:by |wA2nX3K2f) (:text |.!trimLeft)
-                                  |T $ %{} :Leaf (:at 1736013309833) (:by |wA2nX3K2f) (:text |line)
+                                  |T $ %{} :Leaf (:at 1736013257839) (:by |wA2nX3K2f) (:text |{})
+                              |e $ %{} :Expr (:at 1736014073840) (:by |wA2nX3K2f)
+                                :data $ {}
+                                  |T $ %{} :Leaf (:at 1736014074175) (:by |wA2nX3K2f) (:text |<>)
+                                  |b $ %{} :Expr (:at 1736014130760) (:by |wA2nX3K2f)
+                                    :data $ {}
+                                      |D $ %{} :Leaf (:at 1736014131442) (:by |wA2nX3K2f) (:text |str)
+                                      |T $ %{} :Leaf (:at 1736014076054) (:by |wA2nX3K2f) (:text |spaces)
+                                      |b $ %{} :Leaf (:at 1736014132248) (:by |wA2nX3K2f) (:text |spaces)
+                                  |h $ %{} :Leaf (:at 1736014112418) (:by |wA2nX3K2f) (:text |style-indent)
+                              |h $ %{} :Expr (:at 1736013304609) (:by |wA2nX3K2f)
+                                :data $ {}
+                                  |T $ %{} :Leaf (:at 1736013308465) (:by |wA2nX3K2f) (:text |comp-line)
+                                  |b $ %{} :Expr (:at 1736013314866) (:by |wA2nX3K2f)
+                                    :data $ {}
+                                      |D $ %{} :Leaf (:at 1736013367630) (:by |wA2nX3K2f) (:text |.!trimLeft)
+                                      |T $ %{} :Leaf (:at 1736013309833) (:by |wA2nX3K2f) (:text |line)
                   |y $ %{} :Expr (:at 1505725057558) (:by nil)
                     :data $ {}
                       |T $ %{} :Expr (:at 1701531610932) (:by |wA2nX3K2f)
@@ -1444,24 +1484,28 @@
                             :data $ {}
                               |T $ %{} :Leaf (:at 1701525439220) (:by |wA2nX3K2f) (:text |:border-radius)
                               |b $ %{} :Leaf (:at 1701525439220) (:by |wA2nX3K2f) (:text "|\"8px")
-        |style-indent-line $ %{} :CodeEntry (:doc |)
-          :code $ %{} :Expr (:at 1736013276683) (:by |wA2nX3K2f)
+        |style-indent $ %{} :CodeEntry (:doc |)
+          :code $ %{} :Expr (:at 1736014112775) (:by |wA2nX3K2f)
             :data $ {}
-              |T $ %{} :Leaf (:at 1736013279316) (:by |wA2nX3K2f) (:text |defstyle)
-              |b $ %{} :Leaf (:at 1736013276683) (:by |wA2nX3K2f) (:text |style-indent-line)
-              |h $ %{} :Expr (:at 1736013276683) (:by |wA2nX3K2f)
+              |T $ %{} :Leaf (:at 1736014114289) (:by |wA2nX3K2f) (:text |defstyle)
+              |b $ %{} :Leaf (:at 1736014112775) (:by |wA2nX3K2f) (:text |style-indent)
+              |h $ %{} :Expr (:at 1736014112775) (:by |wA2nX3K2f)
                 :data $ {}
-                  |T $ %{} :Leaf (:at 1736013282821) (:by |wA2nX3K2f) (:text |{})
-                  |b $ %{} :Expr (:at 1736013283146) (:by |wA2nX3K2f)
+                  |T $ %{} :Leaf (:at 1736014115409) (:by |wA2nX3K2f) (:text |{})
+                  |b $ %{} :Expr (:at 1736014115762) (:by |wA2nX3K2f)
                     :data $ {}
-                      |T $ %{} :Leaf (:at 1736013291639) (:by |wA2nX3K2f) (:text "|\"&")
-                      |b $ %{} :Expr (:at 1736013287892) (:by |wA2nX3K2f)
+                      |T $ %{} :Leaf (:at 1736014118179) (:by |wA2nX3K2f) (:text "|\"&")
+                      |b $ %{} :Expr (:at 1736014118506) (:by |wA2nX3K2f)
                         :data $ {}
-                          |T $ %{} :Leaf (:at 1736013288196) (:by |wA2nX3K2f) (:text |{})
-                          |b $ %{} :Expr (:at 1736013288453) (:by |wA2nX3K2f)
+                          |T $ %{} :Leaf (:at 1736014118809) (:by |wA2nX3K2f) (:text |{})
+                          |b $ %{} :Expr (:at 1736014119748) (:by |wA2nX3K2f)
                             :data $ {}
-                              |T $ %{} :Leaf (:at 1736013299949) (:by |wA2nX3K2f) (:text |:padding-left)
-                              |b $ %{} :Leaf (:at 1736013301930) (:by |wA2nX3K2f) (:text "|\"2em")
+                              |T $ %{} :Leaf (:at 1736014120958) (:by |wA2nX3K2f) (:text |:white-space)
+                              |b $ %{} :Leaf (:at 1736014120958) (:by |wA2nX3K2f) (:text |:pre)
+                          |h $ %{} :Expr (:at 1736014179661) (:by |wA2nX3K2f)
+                            :data $ {}
+                              |T $ %{} :Leaf (:at 1736014182209) (:by |wA2nX3K2f) (:text |:float)
+                              |b $ %{} :Leaf (:at 1736014183028) (:by |wA2nX3K2f) (:text |:left)
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ %{} :Expr (:at 1701525512631) (:by |wA2nX3K2f)
             :data $ {}
