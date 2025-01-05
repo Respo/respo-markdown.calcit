@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.4.5)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:output |src) (:port 6001) (:reload-fn |respo-md.main/reload!) (:storage-key |calcit.cirru) (:version |0.4.6)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -1199,29 +1199,36 @@
                                       |D $ %{} :Leaf (:at 1736071690442) (:by |wA2nX3K2f) (:text |p0)
                                       |T $ %{} :Expr (:at 1736071673726) (:by |wA2nX3K2f)
                                         :data $ {}
-                                          |D $ %{} :Leaf (:at 1736071674626) (:by |wA2nX3K2f) (:text |nth)
+                                          |D $ %{} :Leaf (:at 1736073681715) (:by |wA2nX3K2f) (:text |get)
                                           |T $ %{} :Expr (:at 1736071640426) (:by |wA2nX3K2f)
                                             :data $ {}
-                                              |T $ %{} :Leaf (:at 1736071642147) (:by |wA2nX3K2f) (:text |nth)
+                                              |T $ %{} :Leaf (:at 1736073695540) (:by |wA2nX3K2f) (:text |get)
                                               |b $ %{} :Leaf (:at 1736071645985) (:by |wA2nX3K2f) (:text |lines)
                                               |h $ %{} :Leaf (:at 1736071646297) (:by |wA2nX3K2f) (:text |1)
                                           |b $ %{} :Leaf (:at 1736071675728) (:by |wA2nX3K2f) (:text |0)
                               |h $ %{} :Expr (:at 1736071693024) (:by |wA2nX3K2f)
                                 :data $ {}
                                   |T $ %{} :Leaf (:at 1736071696266) (:by |wA2nX3K2f) (:text |if)
-                                  |b $ %{} :Expr (:at 1736071696507) (:by |wA2nX3K2f)
+                                  |b $ %{} :Expr (:at 1736073687884) (:by |wA2nX3K2f)
                                     :data $ {}
-                                      |T $ %{} :Leaf (:at 1736071696817) (:by |wA2nX3K2f) (:text |or)
-                                      |b $ %{} :Expr (:at 1736071697430) (:by |wA2nX3K2f)
+                                      |D $ %{} :Leaf (:at 1736073689378) (:by |wA2nX3K2f) (:text |and)
+                                      |L $ %{} :Expr (:at 1736073690397) (:by |wA2nX3K2f)
                                         :data $ {}
-                                          |T $ %{} :Leaf (:at 1736071701261) (:by |wA2nX3K2f) (:text |.starts-with?)
-                                          |b $ %{} :Leaf (:at 1736071701760) (:by |wA2nX3K2f) (:text |p0)
-                                          |h $ %{} :Leaf (:at 1736071704162) (:by |wA2nX3K2f) (:text "|\":-")
-                                      |h $ %{} :Expr (:at 1736071697430) (:by |wA2nX3K2f)
+                                          |T $ %{} :Leaf (:at 1736073690734) (:by |wA2nX3K2f) (:text |some?)
+                                          |b $ %{} :Leaf (:at 1736073691409) (:by |wA2nX3K2f) (:text |p0)
+                                      |T $ %{} :Expr (:at 1736071696507) (:by |wA2nX3K2f)
                                         :data $ {}
-                                          |T $ %{} :Leaf (:at 1736071701261) (:by |wA2nX3K2f) (:text |.starts-with?)
-                                          |b $ %{} :Leaf (:at 1736071701760) (:by |wA2nX3K2f) (:text |p0)
-                                          |h $ %{} :Leaf (:at 1736071708609) (:by |wA2nX3K2f) (:text "|\"--")
+                                          |T $ %{} :Leaf (:at 1736071696817) (:by |wA2nX3K2f) (:text |or)
+                                          |b $ %{} :Expr (:at 1736071697430) (:by |wA2nX3K2f)
+                                            :data $ {}
+                                              |T $ %{} :Leaf (:at 1736071701261) (:by |wA2nX3K2f) (:text |.starts-with?)
+                                              |b $ %{} :Leaf (:at 1736071701760) (:by |wA2nX3K2f) (:text |p0)
+                                              |h $ %{} :Leaf (:at 1736071704162) (:by |wA2nX3K2f) (:text "|\":-")
+                                          |h $ %{} :Expr (:at 1736071697430) (:by |wA2nX3K2f)
+                                            :data $ {}
+                                              |T $ %{} :Leaf (:at 1736071701261) (:by |wA2nX3K2f) (:text |.starts-with?)
+                                              |b $ %{} :Leaf (:at 1736071701760) (:by |wA2nX3K2f) (:text |p0)
+                                              |h $ %{} :Leaf (:at 1736071708609) (:by |wA2nX3K2f) (:text "|\"--")
                                   |h $ %{} :Expr (:at 1736071712772) (:by |wA2nX3K2f)
                                     :data $ {}
                                       |T $ %{} :Leaf (:at 1736071720040) (:by |wA2nX3K2f) (:text |.slice)

@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.5)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.6)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -177,9 +177,10 @@
               let
                   header-line $ first lines
                   body-lines $ let
-                      p0 $ nth (nth lines 1) 0
+                      p0 $ get (get lines 1) 0
                     if
-                      or (.starts-with? p0 "\":-") (.starts-with? p0 "\"--")
+                      and (some? p0)
+                        or (.starts-with? p0 "\":-") (.starts-with? p0 "\"--")
                       .slice lines 2
                       .slice lines 1
                 create-element :table
