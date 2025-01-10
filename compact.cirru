@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.6)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.7)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -208,16 +208,14 @@
                 map $ fn (chunk)
                   tag-match chunk
                       :code content
-                      code
-                        {} $ :class-name style-inline-code
-                        <> content nil
+                      code $ {} (:class-name style-inline-code) (:inner-text content)
                     (:url content)
                       a $ {} (:href content) (:inner-text content) (:target |_blank)
                     (:link content) (comp-link content)
                     (:image content) (comp-image content)
                     (:text content) (<> content nil)
                     (:emphasis content)
-                      create-element :b $ {} (:inner-text content)
+                      create-element :b ({}) & $ render-inline content
                     (:italic content)
                       create-element :i $ {} (:inner-text content)
                     _ $ <> (str |Unknown: chunk) nil
@@ -385,7 +383,7 @@
               if (nil? xs) nil $ .-1 xs
         |peek-emphasis $ %{} :CodeEntry (:doc |)
           :code $ quote
-            def peek-emphasis $ new js/RegExp "\"^([^*/]+)\\*\\*"
+            def peek-emphasis $ new js/RegExp "\"^(.+)\\*\\*"
         |peek-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-image $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
