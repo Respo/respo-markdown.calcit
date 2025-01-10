@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.2)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.6)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -15,7 +15,7 @@
                   state $ either (:data states) initial-state
                 div
                   {} (:class-name css/global)
-                    :style $ {} (:width |80%) (:margin "|0 auto") (:padding 8)
+                    :style $ {} (:width |96%) (:margin "|0 auto") (:padding 8)
                   div
                     {} $ :class-name css/row-middle
                     img $ {} (:src "\"https://cos-sh.tiye.me/cos-up/bb4c2755050318e864b56f59145d726e-SubstractRespo.png") (:width 40)
@@ -109,6 +109,14 @@
                   blockquote
                     {} $ :class-name style-blockquote
                     , & $ render-inline (&str:slice line 2)
+                (starts-with? line "\" ")
+                  let
+                      content $ .!trimLeft line
+                      space-size $ &- (count line) (count content)
+                      spaces $ .!slice line 0 space-size
+                    div ({})
+                      <> (str spaces spaces) style-indent
+                      comp-line $ .!trimLeft line
                 (or (starts-with? line "|* ") (starts-with? line "|- "))
                   li
                     {} $ :class-name style-line-list
@@ -162,6 +170,30 @@
                           :text lines
                           comp-text-block lines
                         (:code lines) (comp-code-block lines options)
+                        (:table lines) (comp-table-block lines)
+        |comp-table-block $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn comp-table-block (lines)
+              let
+                  header-line $ first lines
+                  body-lines $ let
+                      p0 $ get (get lines 1) 0
+                    if
+                      and (some? p0)
+                        or (.starts-with? p0 "\":-") (.starts-with? p0 "\"--")
+                      .slice lines 2
+                      .slice lines 1
+                create-element :table
+                  {} $ :class-name style-md-table
+                  create-element :thead ({})
+                    create-element :tr ({}) & $ -> header-line
+                      map $ fn (x)
+                        create-element :th ({}) & $ render-inline x
+                  create-element :tbody ({}) & $ -> body-lines
+                    map $ fn (line)
+                      create-element :tr ({}) & $ -> line
+                        map $ fn (x)
+                          create-element :td ({}) & $ render-inline x
         |comp-text-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-text-block (lines)
@@ -212,6 +244,10 @@
               "\"&" $ {} (:max-width 480) (:max-height 320)
                 :border $ str "\"1px solid " (hsl 0 0 90)
                 :border-radius "\"8px"
+        |style-indent $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defstyle style-indent $ {}
+              "\"&" $ {} (:white-space :pre) (:float :left)
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-inline-code $ {}
@@ -234,6 +270,23 @@
               "\"&:hover::marker" $ {}
                 :color $ hsl 0 0 50
                 :content "\"'● '"
+        |style-md-table $ %{} :CodeEntry (:doc "|reused some styles from https://pure-css.github.io/tables/")
+          :code $ quote
+            defstyle style-md-table $ {}
+              "\"&" $ {}
+                :border $ str "\"1px solid " (hsl 0 0 90)
+                :empty-cells :show
+                :border-collapse :collapse
+              "\"& thead" $ {}
+                :background-color $ hsl 0 0 96
+              "\"& tr" $ {}
+                :border-top $ str "\"1px solid " (hsl 0 0 94)
+              "\"& td, & th" $ {}
+                :border-left $ str "\"1px solid " (hsl 0 0 94)
+                :padding "\"0.5em 1em"
+                :line-height "\"1.5em"
+                :text-align :left
+                :vertical-align :middle
         |style-paragraph $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-paragraph $ {}
@@ -247,7 +300,7 @@
             respo.core :refer $ create-element
             respo.comp.space :refer $ =<
             respo-md.util.core :refer $ split-block split-line
-            respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li
+            respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li create-element
             respo.util.list :refer $ map-with-idx
             respo.css :refer $ defstyle
             respo-ui.comp :refer $ comp-cirru-snippet comp-snippet
@@ -363,6 +416,11 @@
                         recur left acc
                           [] $ &str:slice cursor 3
                           , :code
+                      (table-line? cursor)
+                        recur left
+                          conj acc $ :: :text buffer
+                          [] $ split-table-content cursor
+                          , :table
                       true $ recur left acc ([] cursor) :text
                     :text $ cond
                         = cursor |
@@ -375,6 +433,11 @@
                           conj acc $ :: :text buffer
                           [] $ &str:slice cursor 3
                           , :code
+                      (table-line? cursor)
+                        recur left
+                          conj acc $ :: :text buffer
+                          [] $ split-table-content cursor
+                          , :table
                       true $ recur left acc (conj buffer cursor) :text
                     :code $ if (starts-with? cursor "|```")
                       recur left
@@ -382,6 +445,14 @@
                         []
                         , :empty
                       recur left acc (conj buffer cursor) :code
+                    :table $ if (table-line? cursor)
+                      recur left acc
+                        conj buffer $ split-table-content cursor
+                        , :table
+                      recur left
+                        conj acc $ :: :table buffer
+                        []
+                        , :empty
         |split-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-line (line)
@@ -469,6 +540,17 @@
                         conj acc $ :: :code buffer
                         , left | :text
                       recur acc left (str buffer cursor) :code
+        |split-table-content $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn split-table-content (cursor)
+              -> cursor
+                .slice 1 $ dec (count cursor)
+                .split "\"|"
+                .map $ fn (x) (.trim x)
+        |table-line? $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn table-line? (cursor)
+              and (starts-with? cursor "\"|") (ends-with? cursor "\"|")
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require
