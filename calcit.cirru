@@ -3299,7 +3299,7 @@
                                                               |b $ %{} :Expr (:at 1701527256512) (:by |wA2nX3K2f)
                                                                 :data $ {}
                                                                   |T $ %{} :Leaf (:at 1701527256512) (:by |wA2nX3K2f) (:text |.!match)
-                                                                  |b $ %{} :Leaf (:at 1701527256512) (:by |wA2nX3K2f) (:text |next-left)
+                                                                  |b $ %{} :Leaf (:at 1740591383301) (:by |wA2nX3K2f) (:text |left)
                                                                   |h $ %{} :Leaf (:at 1701528326805) (:by |wA2nX3K2f) (:text |peek-italic)
                                                       |h $ %{} :Expr (:at 1701527267223) (:by |wA2nX3K2f)
                                                         :data $ {}
@@ -3329,12 +3329,8 @@
                                                                           |b $ %{} :Leaf (:at 1701527275596) (:by |wA2nX3K2f) (:text |next-left)
                                                                           |h $ %{} :Expr (:at 1701527275596) (:by |wA2nX3K2f)
                                                                             :data $ {}
-                                                                              |T $ %{} :Leaf (:at 1701527275596) (:by |wA2nX3K2f) (:text |+)
-                                                                              |b $ %{} :Leaf (:at 1701527281836) (:by |wA2nX3K2f) (:text |1)
-                                                                              |h $ %{} :Expr (:at 1701527275596) (:by |wA2nX3K2f)
-                                                                                :data $ {}
-                                                                                  |T $ %{} :Leaf (:at 1701527275596) (:by |wA2nX3K2f) (:text |count)
-                                                                                  |b $ %{} :Leaf (:at 1701527318341) (:by |wA2nX3K2f) (:text |italic)
+                                                                              |T $ %{} :Leaf (:at 1701527275596) (:by |wA2nX3K2f) (:text |count)
+                                                                              |b $ %{} :Leaf (:at 1701527318341) (:by |wA2nX3K2f) (:text |italic)
                                                               |h $ %{} :Expr (:at 1701527275596) (:by |wA2nX3K2f)
                                                                 :data $ {}
                                                                   |T $ %{} :Leaf (:at 1701527275596) (:by |wA2nX3K2f) (:text |recur)

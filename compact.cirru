@@ -523,12 +523,11 @@
                                     , rest-line | :text
                                 recur acc left (str buffer |*) :text
                             let
-                                matched $ .!match next-left peek-italic
+                                matched $ .!match left peek-italic
                               if (some? matched)
                                 let
                                     italic $ get1 matched
-                                    rest-line $ &str:slice next-left
-                                      + 1 $ count italic
+                                    rest-line $ &str:slice next-left (count italic)
                                   recur
                                     conj acc (:: :text buffer) (:: :italic italic)
                                     , rest-line | :text
