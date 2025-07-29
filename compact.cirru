@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.8)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.9)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -83,8 +83,12 @@
                   highlight-fn $ either (:highlight options)
                     fn (x & l) x
                 if (= lang "\"cirru")
-                  memof1-call comp-cirru-snippet content $ {} (:class-name style-code-block)
-                  memof1-call comp-snippet content $ {} (:class-name style-code-block) (:highlighter highlight-fn) (:lang lang)
+                  memof1-call comp-cirru-snippet content $ {}
+                    :class-name $ str-spaced "\"md-code-block" style-code-block
+                  memof1-call comp-snippet content $ {}
+                    :class-name $ str-spaced "\"md-code-block" style-code-block
+                    :highlighter highlight-fn
+                    :lang lang
         |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
@@ -160,13 +164,13 @@
               let
                   blocks $ split-block text
                   class-name $ :class-name options
-                div
+                list->
                   {}
                     :class-name $ if (nil? class-name) |md-block (str-spaced |md-block class-name)
                     :style $ :style options
-                  , & $ -> blocks
-                    map $ fn (block)
-                      tag-match block
+                  -> blocks $ map-indexed
+                    fn (idx block)
+                      [] idx $ tag-match block
                           :text lines
                           comp-text-block lines
                         (:code lines) (comp-code-block lines options)
