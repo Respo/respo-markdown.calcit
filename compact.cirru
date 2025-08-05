@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.9)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.10)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -76,19 +76,34 @@
             defn blockquote (props & children) (create-element :blockquote props & children)
         |comp-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
-            defcomp comp-code-block (lines options)
+            defcomp comp-code-block (indented-lines options)
               let
+                  peek $ first indented-lines
+                  lines $ if (number? peek) (rest indented-lines) indented-lines
+                  indented $ if (number? peek) (first indented-lines) 0
+                  indentation $ if indented
+                    .join-str (repeat "\" " indented) "\""
+                    , "\""
                   lang $ first lines
-                  content $ join-str (rest lines) &newline
+                  content $ -> (rest lines)
+                    map $ fn (line) (.strip-prefix line indentation)
+                    join-str &newline
                   highlight-fn $ either (:highlight options)
                     fn (x & l) x
-                if (= lang "\"cirru")
-                  memof1-call comp-cirru-snippet content $ {}
-                    :class-name $ str-spaced "\"md-code-block" style-code-block
-                  memof1-call comp-snippet content $ {}
-                    :class-name $ str-spaced "\"md-code-block" style-code-block
-                    :highlighter highlight-fn
-                    :lang lang
+                  code-block $ if (= lang "\"cirru")
+                    memof1-call comp-cirru-snippet content $ {}
+                      :class-name $ str-spaced "\"md-code-block" style-code-block
+                    memof1-call comp-snippet content $ {}
+                      :class-name $ str-spaced "\"md-code-block" style-code-block
+                      :highlighter highlight-fn
+                      :lang lang
+                if (> indented 0)
+                  div
+                    {} $ :class-name css/row
+                    span $ {} (:inner-text indentation) (:class-name css/font-code)
+                      :style $ {} (:white-space :pre)
+                    , code-block
+                  , code-block
         |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
@@ -118,8 +133,7 @@
                       content $ .!trimLeft line
                       space-size $ &- (count line) (count content)
                       spaces $ .!slice line 0 space-size
-                    div ({})
-                      <> (str spaces spaces) style-indent
+                    div ({}) (<> spaces style-indent)
                       comp-line $ .!trimLeft line
                 (or (starts-with? line "|* ") (starts-with? line "|- "))
                   li
@@ -234,7 +248,7 @@
         |style-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code-block $ {}
-              "\"&" $ {} (:max-width "\"60vw")
+              "\"&" $ {} (:max-width "\"60vw") (:margin-bottom 8)
         |style-default-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-default-link $ {}
@@ -249,7 +263,7 @@
         |style-indent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-indent $ {}
-              "\"&" $ {} (:white-space :pre) (:float :left)
+              "\"&" $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code)
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-inline-code $ {}
@@ -385,6 +399,9 @@
           :code $ quote
             defn get1 (xs)
               if (nil? xs) nil $ .-1 xs
+        |pattern-indented-code $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            def pattern-indented-code $ &raw-code "\"/^(\\s+)```/"
         |peek-emphasis $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-emphasis $ new js/RegExp "\"^(.+)\\*\\*"
@@ -418,6 +435,14 @@
                         recur left acc
                           [] $ &str:slice cursor 3
                           , :code
+                      (cursor.!match pattern-indented-code)
+                        let
+                            raw $ cursor.!match pattern-indented-code
+                          recur left acc
+                            []
+                              count $ .-1 raw
+                              &str:slice cursor $ .-length (.-0 raw)
+                            , :code
                       (table-line? cursor)
                         recur left
                           conj acc $ :: :text buffer
@@ -435,13 +460,23 @@
                           conj acc $ :: :text buffer
                           [] $ &str:slice cursor 3
                           , :code
+                      (cursor.!match pattern-indented-code)
+                        let
+                            raw $ cursor.!match pattern-indented-code
+                          recur left
+                            conj acc $ :: :text buffer
+                            []
+                              count $ .-1 raw
+                              &str:slice cursor $ .-length (.-0 raw)
+                            , :code
                       (table-line? cursor)
                         recur left
                           conj acc $ :: :text buffer
                           [] $ split-table-content cursor
                           , :table
                       true $ recur left acc (conj buffer cursor) :text
-                    :code $ if (starts-with? cursor "|```")
+                    :code $ if
+                      or (starts-with? cursor "|```") (cursor.!match pattern-indented-code)
                       recur left
                         conj acc $ :: :code buffer
                         []
