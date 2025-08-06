@@ -1,6 +1,6 @@
 
 {} (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.10)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.11)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -90,18 +90,19 @@
                     join-str &newline
                   highlight-fn $ either (:highlight options)
                     fn (x & l) x
+                  indented? $ &> indented 0
                   code-block $ if (= lang "\"cirru")
                     memof1-call comp-cirru-snippet content $ {}
-                      :class-name $ str-spaced "\"md-code-block" style-code-block
+                      :class-name $ str-spaced "\"md-code-block" style-code-block (if indented? css/expand)
                     memof1-call comp-snippet content $ {}
-                      :class-name $ str-spaced "\"md-code-block" style-code-block
+                      :class-name $ str-spaced "\"md-code-block" style-code-block (if indented? css/expand)
                       :highlighter highlight-fn
                       :lang lang
-                if (> indented 0)
+                if indented?
                   div
                     {} $ :class-name css/row
-                    span $ {} (:inner-text indentation) (:class-name css/font-code)
-                      :style $ {} (:white-space :pre)
+                    span $ {} (:inner-text indentation)
+                      :class-name $ str-spaced css/font-code style-indent
                     , code-block
                   , code-block
         |comp-image $ %{} :CodeEntry (:doc |)
@@ -263,7 +264,7 @@
         |style-indent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-indent $ {}
-              "\"&" $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code)
+              "\"&" $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-inline-code $ {}
@@ -341,6 +342,7 @@
                   next-store $ tag-match op
                       :states cursor s
                       update-states @*store cursor s
+                    (:hydrate-storage s) s
                     _ $ do (eprintln "\"unknown op:" op) @*store
                 reset! *store next-store
         |highligher $ %{} :CodeEntry (:doc |)
@@ -353,10 +355,23 @@
               if config/dev? $ load-console-formatter!
               render-app!
               add-watch *store :changes $ fn (store prev) (render-app!)
+              js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
+              js/window.addEventListener |visibilitychange $ fn (event)
+                if (= "\"hidden" js/document.visibilityState) (persist-storage!)
+              flipped js/setInterval 60000 persist-storage!
+              let
+                  raw $ js/localStorage.getItem (:storage-key config/site)
+                when (some? raw)
+                  dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
               println "|App started!"
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
+        |persist-storage! $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn persist-storage! ()
+              println "\"Saved at" $ .!toISOString (new js/Date)
+              js/localStorage.setItem (:storage-key config/site) (format-cirru-edn @*store)
         |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
