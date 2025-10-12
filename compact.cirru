@@ -57,9 +57,11 @@
                       comp-md-block (:draft state)
                         {} (:highlight highlighter) (:class-name |demo)
                   =< nil 200
+          :examples $ []
         |initial-state $ %{} :CodeEntry (:doc |)
           :code $ quote
             def initial-state $ {} (:draft |) (:text |)
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.container $ :require
@@ -74,6 +76,7 @@
         |blockquote $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn blockquote (props & children) (create-element :blockquote props & children)
+          :examples $ []
         |comp-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-code-block (indented-lines options)
@@ -105,6 +108,7 @@
                       :class-name $ str-spaced css/font-code style-indent
                     , code-block
                   , code-block
+          :examples $ []
         |comp-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-image (chunk)
@@ -113,6 +117,7 @@
                     - (count chunk) 1
                 let[] (content url) (split useful "|](")
                   img $ {} (:src url) (:class-name style-image) (:alt content)
+          :examples $ []
         |comp-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-line (line)
@@ -144,6 +149,7 @@
                   div $ {} (:class-name "\"html-container")
                     :innerHTML $ .trim (&str:slice line 7)
                 true $ div ({}) & (render-inline line)
+          :examples $ []
         |comp-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-link (chunk)
@@ -167,12 +173,14 @@
                         :href url
                         :inner-text $ str-spaced "\"🌐" content
                         :target |_blank
+          :examples $ []
         |comp-md $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-md (text ? options)
               div
                 {} $ :class-name (get options :class-name)
                 , & $ memof1-call render-inline text
+          :examples $ []
         |comp-md-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-md-block (text ? options)
@@ -190,6 +198,7 @@
                           comp-text-block lines
                         (:code lines) (comp-code-block lines options)
                         (:table lines) (comp-table-block lines)
+          :examples $ []
         |comp-table-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn comp-table-block (lines)
@@ -213,6 +222,7 @@
                       create-element :tr ({}) & $ -> line
                         map $ fn (x)
                           create-element :td ({}) & $ render-inline x
+          :examples $ []
         |comp-text-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defcomp comp-text-block (lines)
@@ -220,6 +230,7 @@
                 {} $ :class-name (str-spaced |md-p style-paragraph)
                 , & $ -> lines
                   map $ fn (line) (memof1-call comp-line line)
+          :examples $ []
         |render-inline $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-inline (text)
@@ -238,6 +249,7 @@
                     (:italic content)
                       create-element :i $ {} (:inner-text content)
                     _ $ <> (str |Unknown: chunk) nil
+          :examples $ []
         |style-blockquote $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-blockquote $ {}
@@ -246,25 +258,30 @@
                 :margin-left 0
                 :padding-left 12
                 :color $ hsl 0 0 50
+          :examples $ []
         |style-code-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-code-block $ {}
               "\"&" $ {} (:max-width "\"60vw") (:margin-bottom 8)
+          :examples $ []
         |style-default-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-default-link $ {}
               "\"&" $ {} (:opacity 0.9) (:transition-duration "\"200ms")
               "\"&:hover" $ {} (:opacity 1) (:transform "\"scale(1)")
+          :examples $ []
         |style-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-image $ {}
               "\"&" $ {} (:max-width 480) (:max-height 320)
                 :border $ str "\"1px solid " (hsl 0 0 90)
                 :border-radius "\"8px"
+          :examples $ []
         |style-indent $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-indent $ {}
               "\"&" $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
+          :examples $ []
         |style-inline-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-inline-code $ {}
@@ -274,6 +291,7 @@
                 :font-size 12
                 :padding "\"2px 4px"
                 :margin "\"2px 4px"
+          :examples $ []
         |style-line-list $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-line-list $ {}
@@ -287,6 +305,7 @@
               "\"&:hover::marker" $ {}
                 :color $ hsl 0 0 50
                 :content "\"'● '"
+          :examples $ []
         |style-md-table $ %{} :CodeEntry (:doc "|reused some styles from https://pure-css.github.io/tables/")
           :code $ quote
             defstyle style-md-table $ {}
@@ -304,10 +323,12 @@
                 :line-height "\"1.5em"
                 :text-align :left
                 :vertical-align :middle
+          :examples $ []
         |style-paragraph $ %{} :CodeEntry (:doc |)
           :code $ quote
             defstyle style-paragraph $ {}
               "\"&" $ {}
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.comp.md $ :require
@@ -326,15 +347,18 @@
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |)
           :code $ quote (def dev? true)
+          :examples $ []
         |site $ %{} :CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/respo-markdown/") (:title "\"Markdown") (:icon "\"http://cdn.tiye.me/logo/respo.png") (:storage-key "\"respo-markdown")
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns respo-md.config)
     |respo-md.main $ %{} :FileEntry
       :defs $ {}
         |*store $ %{} :CodeEntry (:doc |)
           :code $ quote (defatom *store schema/store)
+          :examples $ []
         |dispatch! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
@@ -345,9 +369,11 @@
                     (:hydrate-storage s) s
                     _ $ do (eprintln "\"unknown op:" op) @*store
                 reset! *store next-store
+          :examples $ []
         |highligher $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
+          :examples $ []
         |main! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn main! ()
@@ -364,14 +390,17 @@
                 when (some? raw)
                   dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
               println "|App started!"
+          :examples $ []
         |mount-target $ %{} :CodeEntry (:doc |)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
+          :examples $ []
         |persist-storage! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! ()
               println "\"Saved at" $ .!toISOString (new js/Date)
               js/localStorage.setItem (:storage-key config/site) (format-cirru-edn @*store)
+          :examples $ []
         |reload! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
@@ -380,12 +409,15 @@
                 render-app!
                 hud! "\"ok~" "\"Ok"
               hud! "\"error" build-errors
+          :examples $ []
         |render-app! $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*store highligher) dispatch!
+          :examples $ []
         |ssr? $ %{} :CodeEntry (:doc |)
           :code $ quote
             def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.main $ :require
@@ -402,6 +434,7 @@
           :code $ quote
             def store $ {}
               :states $ {}
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote (ns respo-md.schema)
     |respo-md.util.core $ %{} :FileEntry
@@ -410,29 +443,37 @@
           :code $ quote
             defn get0 (xs)
               if (nil? xs) nil $ .-0 xs
+          :examples $ []
         |get1 $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn get1 (xs)
               if (nil? xs) nil $ .-1 xs
+          :examples $ []
         |pattern-indented-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             def pattern-indented-code $ &raw-code "\"/^(\\s+)```/"
+          :examples $ []
         |peek-emphasis $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-emphasis $ new js/RegExp "\"^(.+)\\*\\*"
+          :examples $ []
         |peek-image $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-image $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
+          :examples $ []
         |peek-italic $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-italic $ new js/RegExp "\"^([^*/]+)\\*"
+          :examples $ []
         |peek-link $ %{} :CodeEntry (:doc |)
           :code $ quote
             def peek-link $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)"
+          :examples $ []
         |split-block $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-block (text)
               split-block-iter (split-lines text) ([]) ([]) :empty
+          :examples $ []
         |split-block-iter $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-block-iter (lines acc buffer mode)
@@ -505,10 +546,12 @@
                         conj acc $ :: :table buffer
                         []
                         , :empty
+          :examples $ []
         |split-line $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-line (line)
               split-line-iter ([]) line | :text
+          :examples $ []
         |split-line-iter $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-line-iter (acc line buffer mode)
@@ -591,6 +634,7 @@
                         conj acc $ :: :code buffer
                         , left | :text
                       recur acc left (str buffer cursor) :code
+          :examples $ []
         |split-table-content $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn split-table-content (cursor)
@@ -598,10 +642,12 @@
                 .slice 1 $ dec (count cursor)
                 .split "\"|"
                 .map $ fn (x) (.trim x)
+          :examples $ []
         |table-line? $ %{} :CodeEntry (:doc |)
           :code $ quote
             defn table-line? (cursor)
               and (starts-with? cursor "\"|") (ends-with? cursor "\"|")
+          :examples $ []
       :ns $ %{} :CodeEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require
