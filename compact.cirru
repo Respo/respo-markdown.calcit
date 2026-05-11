@@ -1,12 +1,12 @@
 
-{} (:package |respo-md)
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.11)
     :modules $ [] |respo.calcit/compact.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
     |respo-md.comp.container $ %{} :FileEntry
       :defs $ {}
-        |comp-container $ %{} :CodeEntry (:doc |)
+        |comp-container $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-container (store highlighter)
               let
@@ -18,7 +18,8 @@
                     :style $ {} (:width |96%) (:margin "|0 auto") (:padding 8)
                   div
                     {} $ :class-name css/row-middle
-                    img $ {} (:src "\"https://cos-sh.tiye.me/cos-up/bb4c2755050318e864b56f59145d726e-SubstractRespo.png") (:width 40)
+                    img $ {} (:src |https://cos-sh.tiye.me/cos-up/bb4c2755050318e864b56f59145d726e-SubstractRespo.png)
+                      :style $ {} (:width 40)
                     =< 8 nil
                     a
                       {} $ :href |https://github.com/Respo/respo-markdown.calcit
@@ -47,7 +48,7 @@
                       textarea $ {} (:placeholder "|multi-line content")
                         :value $ :draft state
                         :class-name $ str-spaced css/textarea css/font-code!
-                        :style $ {} (:height "\"100%") (:width "\"100%") (:font-size 13)
+                        :style $ {} (:height |100%) (:width |100%) (:font-size 13)
                         :on-input $ fn (e d!)
                           ; println |Editing: state $ :value e
                           d! cursor $ assoc state :draft (:value e)
@@ -58,11 +59,11 @@
                         {} (:highlight highlighter) (:class-name |demo)
                   =< nil 200
           :examples $ []
-        |initial-state $ %{} :CodeEntry (:doc |)
+        |initial-state $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             def initial-state $ {} (:draft |) (:text |)
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.comp.container $ :require
             respo.util.format :refer $ hsl
@@ -73,11 +74,11 @@
             respo.core :refer $ defcomp <> div span textarea input a img
     |respo-md.comp.md $ %{} :FileEntry
       :defs $ {}
-        |blockquote $ %{} :CodeEntry (:doc |)
+        |blockquote $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn blockquote (props & children) (create-element :blockquote props & children)
           :examples $ []
-        |comp-code-block $ %{} :CodeEntry (:doc |)
+        |comp-code-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-code-block (indented-lines options)
               let
@@ -85,8 +86,8 @@
                   lines $ if (number? peek) (rest indented-lines) indented-lines
                   indented $ if (number? peek) (first indented-lines) 0
                   indentation $ if indented
-                    .join-str (repeat "\" " indented) "\""
-                    , "\""
+                    .join-str (repeat "| " indented) |
+                    , |
                   lang $ first lines
                   content $ -> (rest lines)
                     map $ fn (line) (.strip-prefix line indentation)
@@ -94,11 +95,11 @@
                   highlight-fn $ either (:highlight options)
                     fn (x & l) x
                   indented? $ &> indented 0
-                  code-block $ if (= lang "\"cirru")
+                  code-block $ if (= lang |cirru)
                     memof1-call comp-cirru-snippet content $ {}
-                      :class-name $ str-spaced "\"md-code-block" style-code-block (if indented? css/expand)
+                      :class-name $ str-spaced |md-code-block style-code-block (if indented? css/expand)
                     memof1-call comp-snippet content $ {}
-                      :class-name $ str-spaced "\"md-code-block" style-code-block (if indented? css/expand)
+                      :class-name $ str-spaced |md-code-block style-code-block (if indented? css/expand)
                       :highlighter highlight-fn
                       :lang lang
                 if indented?
@@ -109,7 +110,7 @@
                     , code-block
                   , code-block
           :examples $ []
-        |comp-image $ %{} :CodeEntry (:doc |)
+        |comp-image $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn comp-image (chunk)
               let
@@ -118,7 +119,7 @@
                 let[] (content url) (split useful "|](")
                   img $ {} (:src url) (:class-name style-image) (:alt content)
           :examples $ []
-        |comp-line $ %{} :CodeEntry (:doc |)
+        |comp-line $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-line (line)
               cond
@@ -134,7 +135,7 @@
                   blockquote
                     {} $ :class-name style-blockquote
                     , & $ render-inline (&str:slice line 2)
-                (starts-with? line "\" ")
+                (starts-with? line "| ")
                   let
                       content $ .!trimLeft line
                       space-size $ &- (count line) (count content)
@@ -146,11 +147,11 @@
                     {} $ :class-name style-line-list
                     , & $ render-inline (&str:slice line 2)
                 (starts-with? line "|#!html ")
-                  div $ {} (:class-name "\"html-container")
+                  div $ {} (:class-name |html-container)
                     :innerHTML $ .trim (&str:slice line 7)
                 true $ div ({}) & (render-inline line)
           :examples $ []
-        |comp-link $ %{} :CodeEntry (:doc |)
+        |comp-link $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn comp-link (chunk)
               let
@@ -171,17 +172,17 @@
                       a $ {}
                         :class-name $ str-spaced css/link style-default-link
                         :href url
-                        :inner-text $ str-spaced "\"🌐" content
+                        :inner-text $ str-spaced "|🌐" content
                         :target |_blank
           :examples $ []
-        |comp-md $ %{} :CodeEntry (:doc |)
+        |comp-md $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-md (text ? options)
               div
                 {} $ :class-name (get options :class-name)
                 , & $ memof1-call render-inline text
           :examples $ []
-        |comp-md-block $ %{} :CodeEntry (:doc |)
+        |comp-md-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-md-block (text ? options)
               let
@@ -194,12 +195,11 @@
                   -> blocks $ map-indexed
                     fn (idx block)
                       [] idx $ tag-match block
-                          :text lines
-                          comp-text-block lines
+                        (:text lines) (comp-text-block lines)
                         (:code lines) (comp-code-block lines options)
                         (:table lines) (comp-table-block lines)
           :examples $ []
-        |comp-table-block $ %{} :CodeEntry (:doc |)
+        |comp-table-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn comp-table-block (lines)
               let
@@ -208,7 +208,7 @@
                       p0 $ get (get lines 1) 0
                     if
                       and (some? p0)
-                        or (.starts-with? p0 "\":-") (.starts-with? p0 "\"--")
+                        or (.starts-with? p0 |:-) (.starts-with? p0 |--)
                       .slice lines 2
                       .slice lines 1
                 create-element :table
@@ -223,7 +223,7 @@
                         map $ fn (x)
                           create-element :td ({}) & $ render-inline x
           :examples $ []
-        |comp-text-block $ %{} :CodeEntry (:doc |)
+        |comp-text-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-text-block (lines)
               div
@@ -231,13 +231,13 @@
                 , & $ -> lines
                   map $ fn (line) (memof1-call comp-line line)
           :examples $ []
-        |render-inline $ %{} :CodeEntry (:doc |)
+        |render-inline $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn render-inline (text)
               -> (split-line text)
                 map $ fn (chunk)
                   tag-match chunk
-                      :code content
+                    (:code content)
                       code $ {} (:class-name style-inline-code) (:inner-text content)
                     (:url content)
                       a $ {} (:href content) (:inner-text content) (:target |_blank)
@@ -250,86 +250,86 @@
                       create-element :i $ {} (:inner-text content)
                     _ $ <> (str |Unknown: chunk) nil
           :examples $ []
-        |style-blockquote $ %{} :CodeEntry (:doc |)
+        |style-blockquote $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-blockquote $ {}
-              "\"&" $ {}
-                :border-left $ str "\"6px solid " (hsl 0 0 90)
+              |& $ {}
+                :border-left $ str "|6px solid " (hsl 0 0 90)
                 :margin-left 0
                 :padding-left 12
                 :color $ hsl 0 0 50
           :examples $ []
-        |style-code-block $ %{} :CodeEntry (:doc |)
+        |style-code-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-code-block $ {}
-              "\"&" $ {} (:max-width "\"60vw") (:margin-bottom 8)
+              |& $ {} (:max-width |60vw) (:margin-bottom 8)
           :examples $ []
-        |style-default-link $ %{} :CodeEntry (:doc |)
+        |style-default-link $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-default-link $ {}
-              "\"&" $ {} (:opacity 0.9) (:transition-duration "\"200ms")
-              "\"&:hover" $ {} (:opacity 1) (:transform "\"scale(1)")
+              |& $ {} (:opacity 0.9) (:transition-duration |200ms)
+              |&:hover $ {} (:opacity 1) (:transform "|scale(1)")
           :examples $ []
-        |style-image $ %{} :CodeEntry (:doc |)
+        |style-image $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-image $ {}
-              "\"&" $ {} (:max-width 480) (:max-height 320)
-                :border $ str "\"1px solid " (hsl 0 0 90)
-                :border-radius "\"8px"
+              |& $ {} (:max-width 480) (:max-height 320)
+                :border $ str "|1px solid " (hsl 0 0 90)
+                :border-radius |8px
           :examples $ []
-        |style-indent $ %{} :CodeEntry (:doc |)
+        |style-indent $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-indent $ {}
-              "\"&" $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
+              |& $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
           :examples $ []
-        |style-inline-code $ %{} :CodeEntry (:doc |)
+        |style-inline-code $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-inline-code $ {}
-              "\"&" $ {}
-                :border $ str "\"1px solid " (hsl 0 0 086)
-                :border-radius "\"4px"
+              |& $ {}
+                :border $ str "|1px solid " (hsl 0 0 086)
+                :border-radius |4px
                 :font-size 12
-                :padding "\"2px 4px"
-                :margin "\"2px 4px"
+                :padding "|2px 4px"
+                :margin "|2px 4px"
           :examples $ []
-        |style-line-list $ %{} :CodeEntry (:doc |)
+        |style-line-list $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-line-list $ {}
-              "\"&" $ {} (:margin-left 12)
-              "\"&::marker" $ {}
+              |& $ {} (:margin-left 12)
+              |&::marker $ {}
                 :color $ hsl 0 0 80
                 :font-family ui/font-code
                 :white-space :pre
-                :content "\"'● '"
-                :transition-duration "\"300ms"
-              "\"&:hover::marker" $ {}
+                :content "|'● '"
+                :transition-duration |300ms
+              |&:hover::marker $ {}
                 :color $ hsl 0 0 50
-                :content "\"'● '"
+                :content "|'● '"
           :examples $ []
-        |style-md-table $ %{} :CodeEntry (:doc "|reused some styles from https://pure-css.github.io/tables/")
+        |style-md-table $ %{} :CodeEntry (:doc "|reused some styles from https://pure-css.github.io/tables/") (:schema :dynamic)
           :code $ quote
             defstyle style-md-table $ {}
-              "\"&" $ {}
-                :border $ str "\"1px solid " (hsl 0 0 90)
+              |& $ {}
+                :border $ str "|1px solid " (hsl 0 0 90)
                 :empty-cells :show
                 :border-collapse :collapse
-              "\"& thead" $ {}
+              "|& thead" $ {}
                 :background-color $ hsl 0 0 96
-              "\"& tr" $ {}
-                :border-top $ str "\"1px solid " (hsl 0 0 94)
-              "\"& td, & th" $ {}
-                :border-left $ str "\"1px solid " (hsl 0 0 94)
-                :padding "\"0.5em 1em"
-                :line-height "\"1.5em"
+              "|& tr" $ {}
+                :border-top $ str "|1px solid " (hsl 0 0 94)
+              "|& td, & th" $ {}
+                :border-left $ str "|1px solid " (hsl 0 0 94)
+                :padding "|0.5em 1em"
+                :line-height |1.5em
                 :text-align :left
                 :vertical-align :middle
           :examples $ []
-        |style-paragraph $ %{} :CodeEntry (:doc |)
+        |style-paragraph $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-paragraph $ {}
-              "\"&" $ {}
+              |& $ {}
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.comp.md $ :require
             respo.util.format :refer $ hsl
@@ -345,45 +345,44 @@
             memof.once :refer $ memof1-call
     |respo-md.config $ %{} :FileEntry
       :defs $ {}
-        |dev? $ %{} :CodeEntry (:doc |)
+        |dev? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote (def dev? true)
           :examples $ []
-        |site $ %{} :CodeEntry (:doc |)
+        |site $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def site $ {} (:dev-ui "\"http://localhost:8100/main-fonts.css") (:release-ui "\"http://cdn.tiye.me/favored-fonts/main-fonts.css") (:cdn-url "\"http://cdn.tiye.me/respo-markdown/") (:title "\"Markdown") (:icon "\"http://cdn.tiye.me/logo/respo.png") (:storage-key "\"respo-markdown")
+            def site $ {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/respo-markdown/) (:title |Markdown) (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |respo-markdown)
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote (ns respo-md.config)
     |respo-md.main $ %{} :FileEntry
       :defs $ {}
-        |*store $ %{} :CodeEntry (:doc |)
+        |*store $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote (defatom *store schema/store)
           :examples $ []
-        |dispatch! $ %{} :CodeEntry (:doc |)
+        |dispatch! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn dispatch! (op)
               let
                   next-store $ tag-match op
-                      :states cursor s
-                      update-states @*store cursor s
+                    (:states cursor s) (update-states @*store cursor s)
                     (:hydrate-storage s) s
-                    _ $ do (eprintln "\"unknown op:" op) @*store
+                    _ $ do (eprintln "|unknown op:" op) @*store
                 reset! *store next-store
           :examples $ []
-        |highligher $ %{} :CodeEntry (:doc |)
+        |highligher $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            defn highligher (code lang) (js/console.warn "\"highligher not ready") (str |<code> code |</code>)
+            defn highligher (code lang) (js/console.warn "|highligher not ready") (str |<code> code |</code>)
           :examples $ []
-        |main! $ %{} :CodeEntry (:doc |)
+        |main! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn main! ()
-              println "\"Running mode:" $ if config/dev? "\"dev" "\"release"
+              println "|Running mode:" $ if config/dev? |dev |release
               if config/dev? $ load-console-formatter!
               render-app!
               add-watch *store :changes $ fn (store prev) (render-app!)
               js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
               js/window.addEventListener |visibilitychange $ fn (event)
-                if (= "\"hidden" js/document.visibilityState) (persist-storage!)
+                if (= |hidden js/document.visibilityState) (persist-storage!)
               flipped js/setInterval 60000 persist-storage!
               let
                   raw $ js/localStorage.getItem (:storage-key config/site)
@@ -391,34 +390,34 @@
                   dispatch! $ :: :hydrate-storage (parse-cirru-edn raw)
               println "|App started!"
           :examples $ []
-        |mount-target $ %{} :CodeEntry (:doc |)
+        |mount-target $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             def mount-target $ js/document.querySelector |.app
           :examples $ []
-        |persist-storage! $ %{} :CodeEntry (:doc |)
+        |persist-storage! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn persist-storage! ()
-              println "\"Saved at" $ .!toISOString (new js/Date)
+              println "|Saved at" $ .!toISOString (new js/Date)
               js/localStorage.setItem (:storage-key config/site) (format-cirru-edn @*store)
           :examples $ []
-        |reload! $ %{} :CodeEntry (:doc |)
+        |reload! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn reload! () $ if (nil? build-errors)
               do (remove-watch *store :changes) (clear-cache!)
                 add-watch *store :changes $ fn (reel prev) (render-app!)
                 render-app!
-                hud! "\"ok~" "\"Ok"
-              hud! "\"error" build-errors
+                hud! |ok~ |Ok
+              hud! |error build-errors
           :examples $ []
-        |render-app! $ %{} :CodeEntry (:doc |)
+        |render-app! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*store highligher) dispatch!
           :examples $ []
-        |ssr? $ %{} :CodeEntry (:doc |)
+        |ssr? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             def ssr? $ some? (js/document.querySelector |meta.respo-ssr)
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.main $ :require
             respo.core :refer $ render! clear-cache! realize-ssr!
@@ -426,55 +425,86 @@
             respo-md.schema :as schema
             respo.cursor :refer $ update-states
             respo-md.config :as config
-            "\"./calcit.build-errors" :default build-errors
-            "\"bottom-tip" :default hud!
+            |./calcit.build-errors :default build-errors
+            |bottom-tip :default hud!
     |respo-md.schema $ %{} :FileEntry
       :defs $ {}
-        |store $ %{} :CodeEntry (:doc |)
+        |store $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             def store $ {}
               :states $ {}
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote (ns respo-md.schema)
     |respo-md.util.core $ %{} :FileEntry
       :defs $ {}
-        |get0 $ %{} :CodeEntry (:doc |)
+        |get0 $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn get0 (xs)
               if (nil? xs) nil $ .-0 xs
           :examples $ []
-        |get1 $ %{} :CodeEntry (:doc |)
+        |get1 $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn get1 (xs)
               if (nil? xs) nil $ .-1 xs
           :examples $ []
-        |pattern-indented-code $ %{} :CodeEntry (:doc |)
+        |handle-inline-star $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def pattern-indented-code $ &raw-code "\"/^(\\s+)```/"
+            defn handle-inline-star (left)
+              if (ignore-inline-star? left) ([] :literal nil nil)
+                if
+                  = |* $ first left
+                  let
+                      next-left $ &str:slice left 1
+                      matched $ .!match next-left peek-emphasis
+                    if (some? matched)
+                      let
+                          emphasis $ get1 matched
+                          rest-line $ &str:slice next-left
+                            + 2 $ count emphasis
+                        [] :emphasis emphasis rest-line
+                      [] :literal nil nil
+                  let
+                      next-left $ &str:slice left 1
+                      matched $ .!match left peek-italic
+                    if (some? matched)
+                      let
+                          italic $ get1 matched
+                          rest-line $ &str:slice next-left (count italic)
+                        [] :italic italic rest-line
+                      [] :literal nil nil
           :examples $ []
-        |peek-emphasis $ %{} :CodeEntry (:doc |)
+        |ignore-inline-star? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def peek-emphasis $ new js/RegExp "\"^(.+)\\*\\*"
+            defn ignore-inline-star? (left)
+              if (= left |) true $ = (first left) "| "
           :examples $ []
-        |peek-image $ %{} :CodeEntry (:doc |)
+        |pattern-indented-code $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def peek-image $ new js/RegExp "\"^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" "\"g"
+            def pattern-indented-code $ &raw-code "|/^(\\s+)```/"
           :examples $ []
-        |peek-italic $ %{} :CodeEntry (:doc |)
+        |peek-emphasis $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def peek-italic $ new js/RegExp "\"^([^*/]+)\\*"
+            def peek-emphasis $ new js/RegExp "|^(.+)\\*\\*"
           :examples $ []
-        |peek-link $ %{} :CodeEntry (:doc |)
+        |peek-image $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def peek-link $ new js/RegExp "\"^\\[[^\\]]+\\]\\([^\\)]+\\)"
+            def peek-image $ new js/RegExp "|^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" |g
           :examples $ []
-        |split-block $ %{} :CodeEntry (:doc |)
+        |peek-italic $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            def peek-italic $ new js/RegExp "|^([^*/]+)\\*"
+          :examples $ []
+        |peek-link $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            def peek-link $ new js/RegExp "|^\\[[^\\]]+\\]\\([^\\)]+\\)"
+          :examples $ []
+        |split-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-block (text)
               split-block-iter (split-lines text) ([]) ([]) :empty
           :examples $ []
-        |split-block-iter $ %{} :CodeEntry (:doc |)
+        |split-block-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-block-iter (lines acc buffer mode)
               if (empty? lines)
@@ -547,12 +577,12 @@
                         []
                         , :empty
           :examples $ []
-        |split-line $ %{} :CodeEntry (:doc |)
+        |split-line $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-line (line)
               split-line-iter ([]) line | :text
           :examples $ []
-        |split-line-iter $ %{} :CodeEntry (:doc |)
+        |split-line-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-line-iter (acc line buffer mode)
               if (= | line)
@@ -602,52 +632,35 @@
                             .replace line guess |
                             , | :text
                           recur acc left (str buffer |!) :text
-                      |* $ if (= left "\"")
-                        recur acc left (str buffer |*) :text
-                        let
-                            next-left $ &str:slice left 1
-                          if
-                            = "\"*" $ first left
-                            let
-                                matched $ .!match next-left peek-emphasis
-                              if (some? matched)
-                                let
-                                    emphasis $ get1 matched
-                                    rest-line $ &str:slice next-left
-                                      + 2 $ count emphasis
-                                  recur
-                                    conj acc (:: :text buffer) (:: :emphasis emphasis)
-                                    , rest-line | :text
-                                recur acc left (str buffer |*) :text
-                            let
-                                matched $ .!match left peek-italic
-                              if (some? matched)
-                                let
-                                    italic $ get1 matched
-                                    rest-line $ &str:slice next-left (count italic)
-                                  recur
-                                    conj acc (:: :text buffer) (:: :italic italic)
-                                    , rest-line | :text
-                                recur acc left (str buffer |*) :text
+                      |* $ let[] (kind content rest-line) (handle-inline-star left)
+                        case-default kind
+                          recur acc left (str buffer |*) :text
+                          :literal $ recur acc left (str buffer |*) :text
+                          :emphasis $ recur
+                            conj acc (:: :text buffer) (:: :emphasis content)
+                            , rest-line | :text
+                          :italic $ recur
+                            conj acc (:: :text buffer) (:: :italic content)
+                            , rest-line | :text
                     :code $ if (= cursor "|`")
                       recur
                         conj acc $ :: :code buffer
                         , left | :text
                       recur acc left (str buffer cursor) :code
           :examples $ []
-        |split-table-content $ %{} :CodeEntry (:doc |)
+        |split-table-content $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-table-content (cursor)
               -> cursor
                 .slice 1 $ dec (count cursor)
-                .split "\"|"
+                .split ||
                 .map $ fn (x) (.trim x)
           :examples $ []
-        |table-line? $ %{} :CodeEntry (:doc |)
+        |table-line? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn table-line? (cursor)
-              and (starts-with? cursor "\"|") (ends-with? cursor "\"|")
+              and (starts-with? cursor ||) (ends-with? cursor ||)
           :examples $ []
-      :ns $ %{} :CodeEntry (:doc |)
+      :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require

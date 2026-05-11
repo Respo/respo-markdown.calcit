@@ -1,9 +1,11 @@
 {
   "version": "0.4.11",
+  "packageManager": "yarn@4.12.0",
   "dependencies": {
-    "@calcit/procs": "^0.9.20",
+    "@calcit/procs": "^0.12.34",
     "cirru-color": "^0.2.4",
-    "copy-text-to-clipboard": "^3.2.2"
+    "copy-text-to-clipboard": "^3.2.2",
+    "dayjs": "^1.11.13"
   },
   "devDependencies": {
     "bottom-tip": "^0.1.5",
