@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: 24
 
-      - uses: calcit-lang/setup-cr@0.0.8
+      - uses: calcit-lang/setup-cr@0.0.9
 
       - name: Enable Corepack
         run: |
@@ -27,7 +27,7 @@ jobs:
       - name: "compiles to js"
         run: >
           caps --ci && yarn install --immutable
-          && cr js -1 && yarn vite build --base=./
+          && cr js && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy
