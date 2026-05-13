@@ -465,12 +465,12 @@
                         [] :emphasis emphasis rest-line
                       [] :literal nil nil
                   let
-                      next-left $ &str:slice left 1
                       matched $ .!match left peek-italic
                     if (some? matched)
                       let
                           italic $ get1 matched
-                          rest-line $ &str:slice next-left (count italic)
+                          rest-line $ &str:slice left
+                            + 1 $ count italic
                         [] :italic italic rest-line
                       [] :literal nil nil
           :examples $ []
