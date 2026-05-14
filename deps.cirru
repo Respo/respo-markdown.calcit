@@ -1,5 +1,5 @@
 
-{} (:calcit-version |0.12.34)
+{} (:calcit-version |0.12.35)
   :dependencies $ {} (|Respo/respo-ui.calcit |0.6.4)
     |Respo/respo.calcit |0.16.42
     |calcit-lang/lilac |0.5.1
