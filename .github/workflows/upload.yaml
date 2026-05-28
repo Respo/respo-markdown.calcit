@@ -1,9 +1,7 @@
 name: Upload
 
 on:
-  push:
-    branches:
-      - main
+  push: {}
   pull_request: {}
 
 jobs:
@@ -27,10 +25,11 @@ jobs:
       - name: "compiles to js"
         run: >
           caps --ci && yarn install --immutable
-          && cr js && yarn vite build --base=./
+          && cr js && node mathml-smoke.mjs && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy
+        if: github.ref == 'refs/heads/main'
         uses: Pendect/action-rsyncer@v2.0.0
         env:
           DEPLOY_KEY: ${{secrets.rsync_private_key}}
@@ -42,4 +41,5 @@ jobs:
           dest: "rsync-user@tiye.me:/web-assets/repo/${{ github.repository }}"
 
       - name: Display status from deploy
+        if: github.ref == 'refs/heads/main'
         run: echo "${{ steps.deploy.outputs.status }}"

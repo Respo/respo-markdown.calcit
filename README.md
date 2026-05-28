@@ -10,6 +10,7 @@ Supported features:
 - Quoteblock
 - Unordered list
 - Inline code
+- Inline and block math rendered as native MathML
 - Inline emphasis / italic
 - URL auto-link
 - Inline link
@@ -109,6 +110,11 @@ Write your own CSS to style HTML output:
 
 ### Custom Syntax
 
+Math fragments accept both Gemini-style dollar delimiters and LaTeX-style backslash delimiters:
+
+- Inline: `$a^2 + b^2 = c^2$`, `\(\frac{1}{2}\)`
+- Block: `$$\n\sum_{i=1}^{n} i\n$$`, `\[\sqrt{x}\]`
+
 To insert raw HTML:
 
 ```text
@@ -124,6 +130,15 @@ To insert raw HTML:
 ### Workflow
 
 https://github.com/calcit-lang/respo-calcit-workflow
+
+### Smoke Test
+
+After recompiling the snapshot, run the lightweight MathML smoke test:
+
+```bash
+cr js
+node mathml-smoke.mjs
+```
 
 ### License
 

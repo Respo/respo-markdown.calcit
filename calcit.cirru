@@ -175,12 +175,15 @@
                         :inner-text $ str-spaced "|🌐" content
                         :target |_blank
           :examples $ []
-        |comp-math-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |comp-math-block $ %{} :CodeEntry (:doc "|Renders a block-level math fragment as native MathML inside a styled container.") (:schema :dynamic)
           :code $ quote
             defcomp comp-math-block (lines)
               div $ {} (:class-name style-math-block)
                 :innerHTML $ mathml-markup (join-str lines &newline) true
           :examples $ []
+          :schema $ :: :fn
+            {} (:return 'respo.schema/Component)
+              :args $ [] :dynamic
         |comp-md $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-md (text ? options)
@@ -238,7 +241,7 @@
                 , & $ -> lines
                   map $ fn (line) (memof1-call comp-line line)
           :examples $ []
-        |escape-html $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |escape-html $ %{} :CodeEntry (:doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes.") (:schema :dynamic)
           :code $ quote
             defn escape-html (text)
               if (nil? text) | $ let
@@ -247,6 +250,9 @@
                   text3 $ .!replace text2 |> |&gt;
                 .!replace text3 "|\"" |&quot;
           :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
         |function-command? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn function-command? (name)
@@ -257,7 +263,7 @@
             defn greek-command (name)
               case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
           :examples $ []
-        |math-command-html $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.") (:schema :dynamic)
           :code $ quote
             defn math-command-html (name)
               let
@@ -274,24 +280,36 @@
                       |int "|<mo>∫</mo>"
                       |sum "|<mo>∑</mo>"
           :examples $ []
-        |math-delimiter-html $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |math-delimiter-html $ %{} :CodeEntry (:doc "|Wraps a single delimiter or operator character in a MathML operator node.") (:schema :dynamic)
           :code $ quote
             defn math-delimiter-html (cursor)
               str |<mo> (escape-html cursor) |</mo>
           :examples $ []
-        |math-operator-char? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.") (:schema :dynamic)
           :code $ quote
             defn math-operator-char? (cursor)
               or (= cursor |+) (= cursor |-) (= cursor |=) (= cursor "|(") (= cursor "|)") (= cursor |[) (= cursor |]) (= cursor |,) (= cursor |/) (= cursor |:)
           :examples $ []
-        |mathml-markup $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string
+        |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.") (:schema :dynamic)
           :code $ quote
             defn mathml-markup (source display?)
               let[] (body rest-line)
                 parse-math-row (normalize-math-source source) nil
                 str |<math><mrow> body |</mrow></math>
           :examples $ []
-        |normalize-math-source $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string :dynamic
+        |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.") (:schema :dynamic)
           :code $ quote
             defn normalize-math-source (source)
               -> source (split-lines)
@@ -299,6 +317,9 @@
                 join-str |
                 .trim
           :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
         |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn parse-command-name (line)
@@ -353,7 +374,7 @@
                       str |<mi> (escape-html cursor) |</mi>
                       , left
           :examples $ []
-        |parse-math-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.") (:schema :dynamic)
           :code $ quote
             defn parse-math-command (line)
               let[] (name rest-line) (parse-command-name line)
@@ -388,10 +409,16 @@
                           , |</mi>
                         &str:slice rest-line 1
           :examples $ []
-        |parse-math-row $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string
+        |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.") (:schema :dynamic)
           :code $ quote
             defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
           :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string :dynamic
         |parse-math-row-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn parse-math-row-iter (line stop-char acc)
@@ -505,10 +532,10 @@
                 :padding "|2px 4px"
                 :margin "|2px 4px"
           :examples $ []
-        |style-inline-math $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |style-inline-math $ %{} :CodeEntry (:doc "|Keeps inline MathML readable inside prose without over-expanding line height.") (:schema :dynamic)
           :code $ quote
             defstyle style-inline-math $ {}
-              |& $ {} (:font-family ui/font-code) (:white-space :pre-wrap) (:padding "|0 2px")
+              |& $ {} (:font-family ui/font-code) (:white-space :pre-wrap) (:padding "|0 3px") (:font-size 15)
                 :background-color $ hsl 0 0 97
                 :border-radius |4px
           :examples $ []
@@ -526,12 +553,13 @@
                 :color $ hsl 0 0 50
                 :content "|'● '"
           :examples $ []
-        |style-math-block $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |style-math-block $ %{} :CodeEntry (:doc "|Expands block MathML slightly so dense formulas stay readable in the preview pane.") (:schema :dynamic)
           :code $ quote
             defstyle style-math-block $ {}
-              |& $ {} (:font-family ui/font-code) (:white-space :pre-wrap) (:padding 12) (:margin "|8px 0")
+              |& $ {} (:font-family ui/font-code) (:white-space :pre-wrap) (:padding 14) (:margin "|10px 0") (:font-size 18)
                 :background-color $ hsl 0 0 97
                 :border-radius |8px
+                :line-height |1.6em
                 :overflow :auto
           :examples $ []
         |style-md-table $ %{} :CodeEntry (:doc "|reused some styles from https://pure-css.github.io/tables/") (:schema :dynamic)
