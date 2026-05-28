@@ -25,7 +25,7 @@ jobs:
       - name: "compiles to js"
         run: >
           caps --ci && yarn install --immutable
-          && cr js && node mathml-smoke.mjs && yarn vite build --base=./
+          && cr js && cr --entry smoke-test js && node test-main.mjs && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy

@@ -3,6 +3,8 @@
   :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.13)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
+    :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
+      :modules $ []
   :files $ {}
     |respo-md.comp.container $ %{} :FileEntry
       :defs $ {}
@@ -241,233 +243,6 @@
                 , & $ -> lines
                   map $ fn (line) (memof1-call comp-line line)
           :examples $ []
-        |escape-html $ %{} :CodeEntry (:doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes.")
-          :code $ quote
-            defn escape-html (text)
-              if (nil? text) | $ let
-                  text1 $ .!replace text |& |&amp;
-                  text2 $ .!replace text1 |< |&lt;
-                  text3 $ .!replace text2 |> |&gt;
-                .!replace text3 "|\"" |&quot;
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :string)
-              :args $ [] :string
-        |function-command? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn function-command? (name)
-              or (= name |lim) (= name |sin) (= name |cos) (= name |ln)
-          :examples $ []
-        |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn greek-command (name)
-              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
-          :examples $ []
-        |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
-          :code $ quote
-            defn math-command-html (name)
-              let
-                  greek $ greek-command name
-                if (some? greek)
-                  if
-                    or (= name |pm) (= name |neq) (= name |to)
-                    str |<mo> (escape-html greek) |</mo>
-                    str |<mi> (escape-html greek) |</mi>
-                  if (function-command? name)
-                    str |<mi> (escape-html name) |</mi>
-                    case-default name
-                      str |<mi> (escape-html name) |</mi>
-                      |int "|<mo>∫</mo>"
-                      |sum "|<mo>∑</mo>"
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :string)
-              :args $ [] :string
-        |math-delimiter-html $ %{} :CodeEntry (:doc "|Wraps a single delimiter or operator character in a MathML operator node.")
-          :code $ quote
-            defn math-delimiter-html (cursor)
-              str |<mo> (escape-html cursor) |</mo>
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :string)
-              :args $ [] :string
-        |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.")
-          :code $ quote
-            defn math-operator-char? (cursor)
-              or (= cursor |+) (= cursor |-) (= cursor |=) (= cursor "|(") (= cursor "|)") (= cursor |[) (= cursor |]) (= cursor |,) (= cursor |/) (= cursor |:)
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :dynamic)
-              :args $ [] :string
-        |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.")
-          :code $ quote
-            defn mathml-markup (source display?)
-              let[] (body rest-line)
-                parse-math-row (normalize-math-source source) nil
-                str |<math><mrow> body |</mrow></math>
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :string)
-              :args $ [] :string :dynamic
-        |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.")
-          :code $ quote
-            defn normalize-math-source (source)
-              -> source (split-lines)
-                map $ fn (line) (.trim line)
-                join-str |
-                .trim
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :string)
-              :args $ [] :string
-        |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-command-name (line)
-              let
-                  matched $ .!match line peek-command-name
-                if (some? matched)
-                  let
-                      name $ get1 matched
-                    [] name $ &str:slice line (count name)
-                  [] nil line
-          :examples $ []
-        |parse-math-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-math-arg (line)
-              if (= | line) ([] |<mrow></mrow> line)
-                if
-                  = (first line) |{
-                  let[] (body rest-line)
-                    parse-math-row (&str:slice line 1) |}
-                    [] (str |<mrow> body |</mrow>)
-                      if (= | rest-line) rest-line $ &str:slice rest-line 1
-                  parse-math-atom line
-          :examples $ []
-        |parse-math-atom $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-math-atom (line)
-              if (= | line) ([] || line)
-                let
-                    cursor $ first line
-                    left $ &str:slice line 1
-                  cond
-                      = cursor |
-                      parse-math-atom left
-                    (= cursor |{)
-                      let[] (body rest-line) (parse-math-row left |})
-                        let
-                            next-rest $ if (= | rest-line) rest-line (&str:slice rest-line 1)
-                          [] (str |<mrow> body |</mrow>) next-rest
-                    (= cursor |\) (parse-math-command left)
-                    (some? (.!match line peek-number))
-                      let
-                          matched $ .!match line peek-number
-                          content $ get1 matched
-                          next-rest $ &str:slice line (count content)
-                        []
-                          str |<mn> (escape-html content) |</mn>
-                          , next-rest
-                    (= cursor |') ([] "|<mo>′</mo>" left)
-                    (math-operator-char? cursor)
-                      [] (math-delimiter-html cursor) left
-                    true $ []
-                      str |<mi> (escape-html cursor) |</mi>
-                      , left
-          :examples $ []
-        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.")
-          :code $ quote
-            defn parse-math-command (line)
-              let[] (name rest-line) (parse-command-name line)
-                if (some? name)
-                  case-default name
-                    [] (math-command-html name) rest-line
-                    |binom $ let[] (upper rest1) (parse-math-arg rest-line)
-                      let[] (lower rest2) (parse-math-arg rest1)
-                        []
-                          str |<mrow> (math-delimiter-html "|(") upper (math-delimiter-html |,) lower (math-delimiter-html "|)") |</mrow>
-                          , rest2
-                    |frac $ let[] (numerator rest1) (parse-math-arg rest-line)
-                      let[] (denominator rest2) (parse-math-arg rest1)
-                        [] (str |<mfrac> numerator denominator |</mfrac>) rest2
-                    |left $ if (= | rest-line) ([] || rest-line)
-                      []
-                        math-delimiter-html $ first rest-line
-                        &str:slice rest-line 1
-                    |right $ if (= | rest-line) ([] || rest-line)
-                      []
-                        math-delimiter-html $ first rest-line
-                        &str:slice rest-line 1
-                    |sqrt $ let[] (content rest1) (parse-math-arg rest-line)
-                      [] (str |<msqrt> content |</msqrt>) rest1
-                  if (= | rest-line) ([] || rest-line)
-                    if
-                      = |, $ first rest-line
-                      [] |<mspace></mspace> $ &str:slice rest-line 1
-                      []
-                        str |<mo>\\</mo><mi>
-                          escape-html $ first rest-line
-                          , |</mi>
-                        &str:slice rest-line 1
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :dynamic)
-              :args $ [] :string
-        |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
-          :code $ quote
-            defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
-          :examples $ []
-          :schema $ :: :fn
-            {} (:return :dynamic)
-              :args $ [] :string :dynamic
-        |parse-math-row-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-math-row-iter (line stop-char acc)
-              if (= | line) ([] acc line)
-                let
-                    cursor $ first line
-                  if
-                    and (some? stop-char) (= cursor stop-char)
-                    [] acc line
-                    let[] (unit-html rest-line) (parse-math-unit line)
-                      recur rest-line stop-char $ str acc unit-html
-          :examples $ []
-        |parse-math-script $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-math-script (base line)
-              if (= | line) ([] base line)
-                case-default (first line) ([] base line)
-                  |^ $ let[] (sup rest1)
-                    parse-math-arg $ &str:slice line 1
-                    if
-                      and (not= | rest1)
-                        = (first rest1) |_
-                      let[] (sub rest2)
-                        parse-math-arg $ &str:slice rest1 1
-                        [] (str |<msubsup> base sub sup |</msubsup>) rest2
-                      [] (str |<msup> base sup |</msup>) rest1
-                  |_ $ let[] (sub rest1)
-                    parse-math-arg $ &str:slice line 1
-                    if
-                      and (not= | rest1)
-                        = (first rest1) |^
-                      let[] (sup rest2)
-                        parse-math-arg $ &str:slice rest1 1
-                        [] (str |<msubsup> base sub sup |</msubsup>) rest2
-                      [] (str |<msub> base sub |</msub>) rest1
-          :examples $ []
-        |parse-math-unit $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            defn parse-math-unit (line)
-              let[] (base rest-line) (parse-math-atom line) (parse-math-script base rest-line)
-          :examples $ []
-        |peek-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            def peek-command-name $ new js/RegExp "|^([A-Za-z]+)"
-          :examples $ []
-        |peek-number $ %{} :CodeEntry (:doc |) (:schema :dynamic)
-          :code $ quote
-            def peek-number $ new js/RegExp "|^([0-9]+)"
-          :examples $ []
         |render-inline $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn render-inline (text)
@@ -599,6 +374,7 @@
             respo.css :refer $ defstyle
             respo-ui.comp :refer $ comp-cirru-snippet comp-snippet
             memof.once :refer $ memof1-call
+            respo-md.util.math :refer $ mathml-markup
     |respo-md.config $ %{} :FileEntry
       :defs $ {}
         |dev? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -705,39 +481,39 @@
                   println $ str "|  actual:   " actual
                   raise $ str "|Test failed: " label
           :examples $ []
-        |test-all! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+        |main! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            defn test-all! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (println "|All math tests passed.")
+            defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (println "|All math tests passed.")
           :examples $ []
         |test-escape-html! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn test-escape-html! ()
-              assert= "|escape ampersand" |&amp; $ escape-html |&
-              assert= "|escape less-than" |&lt; $ escape-html |<
-              assert= "|escape greater-than" |&gt; $ escape-html |>
-              assert= "|escape nil" | $ escape-html nil
+              assert= |&amp; $ escape-html |&
+              assert= |&lt; $ escape-html |<
+              assert= |&gt; $ escape-html |>
+              assert= | $ escape-html |
               println "|test-escape-html! done"
           :examples $ []
         |test-mathml-markup! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn test-mathml-markup! ()
-              assert= "|simple number" |<math><mrow><mn>42</mn></mrow></math> $ mathml-markup |42 false
-              assert= "|simple identifier" |<math><mrow><mi>x</mi></mrow></math> $ mathml-markup |x false
-              assert= |superscript |<math><mrow><msup><mi>a</mi><mrow><mn>2</mn></mrow></msup></mrow></math> $ mathml-markup |a^2 false
-              assert= |fraction |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
+              assert= |<math><mrow><mn>42</mn></mrow></math> $ mathml-markup |42 false
+              assert= |<math><mrow><mi>x</mi></mrow></math> $ mathml-markup |x false
+              assert= |<math><mrow><msup><mi>a</mi><mn>2</mn></msup></mrow></math> $ mathml-markup |a^2 false
+              assert= |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn test-normalize-math! ()
-              assert= "|trim single line" |a+b $ normalize-math-source "|  a+b  "
-              assert= "|join multiline" "|a b" $ normalize-math-source "|  a \n b  "
+              assert= |a+b $ normalize-math-source "|  a+b  "
+              assert= |ab $ normalize-math-source "|  a \n b  "
               println "|test-normalize-math! done"
           :examples $ []
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.test $ :require
-            respo-md.comp.md :refer $ escape-html normalize-math-source mathml-markup
+            respo-md.util.math :refer $ escape-html normalize-math-source mathml-markup
     |respo-md.util.core $ %{} :FileEntry
       :defs $ {}
         |get0 $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -1114,3 +890,236 @@
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require
+    |respo-md.util.math $ %{} :FileEntry
+      :defs $ {}
+        |escape-html $ %{} :CodeEntry (:doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes.")
+          :code $ quote
+            defn escape-html (text)
+              if (nil? text) | $ let
+                  text1 $ .!replace text |& |&amp;
+                  text2 $ .!replace text1 |< |&lt;
+                  text3 $ .!replace text2 |> |&gt;
+                .!replace text3 "|\"" |&quot;
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |function-command? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn function-command? (name)
+              or (= name |lim) (= name |sin) (= name |cos) (= name |ln)
+          :examples $ []
+        |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn greek-command (name)
+              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
+          :examples $ []
+        |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
+          :code $ quote
+            defn math-command-html (name)
+              let
+                  greek $ greek-command name
+                if (some? greek)
+                  if
+                    or (= name |pm) (= name |neq) (= name |to)
+                    str |<mo> (escape-html greek) |</mo>
+                    str |<mi> (escape-html greek) |</mi>
+                  if (function-command? name)
+                    str |<mi> (escape-html name) |</mi>
+                    case-default name
+                      str |<mi> (escape-html name) |</mi>
+                      |int "|<mo>∫</mo>"
+                      |sum "|<mo>∑</mo>"
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |math-delimiter-html $ %{} :CodeEntry (:doc "|Wraps a single delimiter or operator character in a MathML operator node.")
+          :code $ quote
+            defn math-delimiter-html (cursor)
+              str |<mo> (escape-html cursor) |</mo>
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.")
+          :code $ quote
+            defn math-operator-char? (cursor)
+              or (= cursor |+) (= cursor |-) (= cursor |=) (= cursor "|(") (= cursor "|)") (= cursor |[) (= cursor |]) (= cursor |,) (= cursor |/) (= cursor |:)
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string
+        |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.")
+          :code $ quote
+            defn mathml-markup (source display?)
+              let[] (body rest-line)
+                parse-math-row (normalize-math-source source) nil
+                str |<math><mrow> body |</mrow></math>
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string :dynamic
+        |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.")
+          :code $ quote
+            defn normalize-math-source (source)
+              -> source (split-lines)
+                map $ fn (line) (.trim line)
+                join-str |
+                .trim
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :string
+        |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-command-name (line)
+              let
+                  matched $ .!match line peek-command-name
+                if (some? matched)
+                  let
+                      name $ get1 matched
+                    [] name $ &str:slice line (count name)
+                  [] nil line
+          :examples $ []
+        |parse-math-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-arg (line)
+              if (= | line) ([] |<mrow></mrow> line)
+                if
+                  = (first line) |{
+                  let[] (body rest-line)
+                    parse-math-row (&str:slice line 1) |}
+                    [] (str |<mrow> body |</mrow>)
+                      if (= | rest-line) rest-line $ &str:slice rest-line 1
+                  parse-math-atom line
+          :examples $ []
+        |parse-math-atom $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-atom (line)
+              if (= | line) ([] || line)
+                let
+                    cursor $ first line
+                    left $ &str:slice line 1
+                  cond
+                      = cursor |
+                      parse-math-atom left
+                    (= cursor |{)
+                      let[] (body rest-line) (parse-math-row left |})
+                        let
+                            next-rest $ if (= | rest-line) rest-line (&str:slice rest-line 1)
+                          [] (str |<mrow> body |</mrow>) next-rest
+                    (= cursor |\) (parse-math-command left)
+                    (some? (.!match line peek-number))
+                      let
+                          matched $ .!match line peek-number
+                          content $ get1 matched
+                          next-rest $ &str:slice line (count content)
+                        []
+                          str |<mn> (escape-html content) |</mn>
+                          , next-rest
+                    (= cursor |') ([] "|<mo>′</mo>" left)
+                    (math-operator-char? cursor)
+                      [] (math-delimiter-html cursor) left
+                    true $ []
+                      str |<mi> (escape-html cursor) |</mi>
+                      , left
+          :examples $ []
+        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.")
+          :code $ quote
+            defn parse-math-command (line)
+              let[] (name rest-line) (parse-command-name line)
+                if (some? name)
+                  case-default name
+                    [] (math-command-html name) rest-line
+                    |binom $ let[] (upper rest1) (parse-math-arg rest-line)
+                      let[] (lower rest2) (parse-math-arg rest1)
+                        []
+                          str |<mrow> (math-delimiter-html "|(") upper (math-delimiter-html |,) lower (math-delimiter-html "|)") |</mrow>
+                          , rest2
+                    |frac $ let[] (numerator rest1) (parse-math-arg rest-line)
+                      let[] (denominator rest2) (parse-math-arg rest1)
+                        [] (str |<mfrac> numerator denominator |</mfrac>) rest2
+                    |left $ if (= | rest-line) ([] || rest-line)
+                      []
+                        math-delimiter-html $ first rest-line
+                        &str:slice rest-line 1
+                    |right $ if (= | rest-line) ([] || rest-line)
+                      []
+                        math-delimiter-html $ first rest-line
+                        &str:slice rest-line 1
+                    |sqrt $ let[] (content rest1) (parse-math-arg rest-line)
+                      [] (str |<msqrt> content |</msqrt>) rest1
+                  if (= | rest-line) ([] || rest-line)
+                    if
+                      = |, $ first rest-line
+                      [] |<mspace></mspace> $ &str:slice rest-line 1
+                      []
+                        str |<mo>\\</mo><mi>
+                          escape-html $ first rest-line
+                          , |</mi>
+                        &str:slice rest-line 1
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string
+        |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
+          :code $ quote
+            defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string :dynamic
+        |parse-math-row-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-row-iter (line stop-char acc)
+              if (= | line) ([] acc line)
+                let
+                    cursor $ first line
+                  if
+                    and (some? stop-char) (= cursor stop-char)
+                    [] acc line
+                    let[] (unit-html rest-line) (parse-math-unit line)
+                      recur rest-line stop-char $ str acc unit-html
+          :examples $ []
+        |parse-math-script $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-script (base line)
+              if (= | line) ([] base line)
+                case-default (first line) ([] base line)
+                  |^ $ let[] (sup rest1)
+                    parse-math-arg $ &str:slice line 1
+                    if
+                      and (not= | rest1)
+                        = (first rest1) |_
+                      let[] (sub rest2)
+                        parse-math-arg $ &str:slice rest1 1
+                        [] (str |<msubsup> base sub sup |</msubsup>) rest2
+                      [] (str |<msup> base sup |</msup>) rest1
+                  |_ $ let[] (sub rest1)
+                    parse-math-arg $ &str:slice line 1
+                    if
+                      and (not= | rest1)
+                        = (first rest1) |^
+                      let[] (sup rest2)
+                        parse-math-arg $ &str:slice rest1 1
+                        [] (str |<msubsup> base sub sup |</msubsup>) rest2
+                      [] (str |<msub> base sub |</msub>) rest1
+          :examples $ []
+        |parse-math-unit $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-unit (line)
+              let[] (base rest-line) (parse-math-atom line) (parse-math-script base rest-line)
+          :examples $ []
+        |peek-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            def peek-command-name $ new js/RegExp "|^([A-Za-z]+)"
+          :examples $ []
+        |peek-number $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            def peek-number $ new js/RegExp "|^([0-9]+)"
+          :examples $ []
+      :ns $ %{} :NsEntry (:doc |)
+        :code $ quote
+          ns respo-md.util.math $ :require
+            respo-md.util.core :refer $ get1

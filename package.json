@@ -1,8 +1,8 @@
 {
   "packageManager": "yarn@4.12.0",
   "scripts": {
-    "build": "cr js && node mathml-smoke.mjs && yarn vite build --base=./",
-    "test:mathml": "node mathml-smoke.mjs"
+    "build": "cr js && cr --entry smoke-test js && node test-main.mjs && yarn vite build --base=./",
+    "test:mathml": "cr --entry smoke-test js && node test-main.mjs"
   },
   "dependencies": {
     "@calcit/procs": "^0.12.35",
