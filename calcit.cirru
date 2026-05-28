@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.12)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.13)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/compact.cirru |memof/compact.cirru |lilac/compact.cirru
   :entries $ {}
   :files $ {}
@@ -175,7 +175,7 @@
                         :inner-text $ str-spaced "|🌐" content
                         :target |_blank
           :examples $ []
-        |comp-math-block $ %{} :CodeEntry (:doc "|Renders a block-level math fragment as native MathML inside a styled container.") (:schema :dynamic)
+        |comp-math-block $ %{} :CodeEntry (:doc "|Renders a block-level math fragment as native MathML inside a styled container.")
           :code $ quote
             defcomp comp-math-block (lines)
               div $ {} (:class-name style-math-block)
@@ -241,7 +241,7 @@
                 , & $ -> lines
                   map $ fn (line) (memof1-call comp-line line)
           :examples $ []
-        |escape-html $ %{} :CodeEntry (:doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes.") (:schema :dynamic)
+        |escape-html $ %{} :CodeEntry (:doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes.")
           :code $ quote
             defn escape-html (text)
               if (nil? text) | $ let
@@ -263,7 +263,7 @@
             defn greek-command (name)
               case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
           :examples $ []
-        |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.") (:schema :dynamic)
+        |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
           :code $ quote
             defn math-command-html (name)
               let
@@ -283,7 +283,7 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string
-        |math-delimiter-html $ %{} :CodeEntry (:doc "|Wraps a single delimiter or operator character in a MathML operator node.") (:schema :dynamic)
+        |math-delimiter-html $ %{} :CodeEntry (:doc "|Wraps a single delimiter or operator character in a MathML operator node.")
           :code $ quote
             defn math-delimiter-html (cursor)
               str |<mo> (escape-html cursor) |</mo>
@@ -291,7 +291,7 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string
-        |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.") (:schema :dynamic)
+        |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.")
           :code $ quote
             defn math-operator-char? (cursor)
               or (= cursor |+) (= cursor |-) (= cursor |=) (= cursor "|(") (= cursor "|)") (= cursor |[) (= cursor |]) (= cursor |,) (= cursor |/) (= cursor |:)
@@ -299,7 +299,7 @@
           :schema $ :: :fn
             {} (:return :dynamic)
               :args $ [] :string
-        |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.") (:schema :dynamic)
+        |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.")
           :code $ quote
             defn mathml-markup (source display?)
               let[] (body rest-line)
@@ -309,7 +309,7 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string :dynamic
-        |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.") (:schema :dynamic)
+        |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.")
           :code $ quote
             defn normalize-math-source (source)
               -> source (split-lines)
@@ -374,7 +374,7 @@
                       str |<mi> (escape-html cursor) |</mi>
                       , left
           :examples $ []
-        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.") (:schema :dynamic)
+        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.")
           :code $ quote
             defn parse-math-command (line)
               let[] (name rest-line) (parse-command-name line)
@@ -412,7 +412,7 @@
           :schema $ :: :fn
             {} (:return :dynamic)
               :args $ [] :string
-        |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.") (:schema :dynamic)
+        |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
           :code $ quote
             defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
           :examples $ []
@@ -692,6 +692,52 @@
           :examples $ []
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote (ns respo-md.schema)
+    |respo-md.test $ %{} :FileEntry
+      :defs $ {}
+        |assert= $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn assert= (label expected actual)
+              if (= expected actual)
+                println $ str "|[ok] " label
+                do
+                  println $ str "|[fail] " label
+                  println $ str "|  expected: " expected
+                  println $ str "|  actual:   " actual
+                  raise $ str "|Test failed: " label
+          :examples $ []
+        |test-all! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn test-all! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (println "|All math tests passed.")
+          :examples $ []
+        |test-escape-html! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn test-escape-html! ()
+              assert= "|escape ampersand" |&amp; $ escape-html |&
+              assert= "|escape less-than" |&lt; $ escape-html |<
+              assert= "|escape greater-than" |&gt; $ escape-html |>
+              assert= "|escape nil" | $ escape-html nil
+              println "|test-escape-html! done"
+          :examples $ []
+        |test-mathml-markup! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn test-mathml-markup! ()
+              assert= "|simple number" |<math><mrow><mn>42</mn></mrow></math> $ mathml-markup |42 false
+              assert= "|simple identifier" |<math><mrow><mi>x</mi></mrow></math> $ mathml-markup |x false
+              assert= |superscript |<math><mrow><msup><mi>a</mi><mrow><mn>2</mn></mrow></msup></mrow></math> $ mathml-markup |a^2 false
+              assert= |fraction |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
+              println "|test-mathml-markup! done"
+          :examples $ []
+        |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn test-normalize-math! ()
+              assert= "|trim single line" |a+b $ normalize-math-source "|  a+b  "
+              assert= "|join multiline" "|a b" $ normalize-math-source "|  a \n b  "
+              println "|test-normalize-math! done"
+          :examples $ []
+      :ns $ %{} :NsEntry (:doc |)
+        :code $ quote
+          ns respo-md.test $ :require
+            respo-md.comp.md :refer $ escape-html normalize-math-source mathml-markup
     |respo-md.util.core $ %{} :FileEntry
       :defs $ {}
         |get0 $ %{} :CodeEntry (:doc |) (:schema :dynamic)
