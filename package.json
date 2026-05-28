@@ -1,7 +1,7 @@
 {
   "packageManager": "yarn@4.12.0",
   "scripts": {
-    "build": "cr js && cr --entry smoke-test js && node test-main.mjs && yarn vite build --base=./",
+    "build": "cr --entry smoke-test js && node test-main.mjs && cr js && yarn vite build --base=./",
     "test:mathml": "cr --entry smoke-test js && node test-main.mjs"
   },
   "dependencies": {
