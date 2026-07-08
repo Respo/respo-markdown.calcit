@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.13)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.14)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/compact.cirru |lilac/compact.cirru |memof/
   :entries $ {}
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
@@ -38,7 +38,8 @@
                         :value $ :text state
                         :placeholder "|text inline"
                         :on-input $ fn (e d!)
-                          d! cursor $ assoc state :text (str (:value e))
+                          d! cursor $ assoc state :text
+                            str $ :value e
                     div ({})
                       comp-md $ :text state
                   =< nil 40
@@ -53,7 +54,8 @@
                         :style $ {} (:height |100%) (:width |100%) (:font-size 13)
                         :on-input $ fn (e d!)
                           ; println |Editing: state $ :value e
-                          d! cursor $ assoc state :draft (str (:value e))
+                          d! cursor $ assoc state :draft
+                            str $ :value e
                     div
                       {} (:class-name css/flex)
                         :style $ {} (:padding 8)
