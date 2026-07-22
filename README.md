@@ -116,7 +116,6 @@ Math fragments accept both Gemini-style dollar delimiters and LaTeX-style backsl
 - Block: `$$\n\sum_{i=1}^{n} i\n$$`, `\[\sqrt{x}\]`
 
 To insert raw HTML:
-
 ```text
 #!html <div>TODO</div>
 ```
