@@ -1,7 +1,7 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.14)
-    :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/compact.cirru |lilac/compact.cirru |memof/
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.15)
+    :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
   :entries $ {}
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
       :modules $ []
@@ -511,6 +511,48 @@
               assert= |<math><mrow><mi>x</mi></mrow></math> $ mathml-markup |x false
               assert= |<math><mrow><msup><mi>a</mi><mn>2</mn></msup></mrow></math> $ mathml-markup |a^2 false
               assert= |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
+              assert= "|<math><mrow><mo>→</mo></mrow></math>" $ mathml-markup |\to false
+              assert= "|<math><mrow><mo>→</mo></mrow></math>" $ mathml-markup |\rightarrow false
+              assert= "|<math><mrow><mo>⇒</mo></mrow></math>" $ mathml-markup |\Rightarrow false
+              assert= "|<math><mrow><mo>←</mo></mrow></math>" $ mathml-markup |\leftarrow false
+              assert= "|<math><mrow><mo>⇐</mo></mrow></math>" $ mathml-markup |\Leftarrow false
+              assert= "|<math><mrow><mo>↔</mo></mrow></math>" $ mathml-markup |\leftrightarrow false
+              assert= "|<math><mrow><mo>↦</mo></mrow></math>" $ mathml-markup |\mapsto false
+              assert= "|<math><mrow><mo>←</mo></mrow></math>" $ mathml-markup |\gets false
+              assert= "|<math><mrow><mo>⟵</mo></mrow></math>" $ mathml-markup |\longleftarrow false
+              assert= "|<math><mrow><mo>⟶</mo></mrow></math>" $ mathml-markup |\longrightarrow false
+              assert= "|<math><mrow><mo>↑</mo></mrow></math>" $ mathml-markup |\uparrow false
+              assert= "|<math><mrow><mo>↓</mo></mrow></math>" $ mathml-markup |\downarrow false
+              assert= "|<math><mrow><mo>⟷</mo></mrow></math>" $ mathml-markup |\longleftrightarrow false
+              assert= "|<math><mrow><mo>↗</mo></mrow></math>" $ mathml-markup |\nearrow false
+              assert= "|<math><mrow><mo>↘</mo></mrow></math>" $ mathml-markup |\searrow false
+              assert= "|<math><mrow><mo>↖</mo></mrow></math>" $ mathml-markup |\nwarrow false
+              assert= "|<math><mrow><mo>↙</mo></mrow></math>" $ mathml-markup |\swarrow false
+              assert= "|<math><mrow><mo>↕</mo></mrow></math>" $ mathml-markup |\updownarrow false
+              assert= "|<math><mrow><mo>⟸</mo></mrow></math>" $ mathml-markup |\Longleftarrow false
+              assert= "|<math><mrow><mo>⟹</mo></mrow></math>" $ mathml-markup |\Longrightarrow false
+              assert= "|<math><mrow><mo>⇑</mo></mrow></math>" $ mathml-markup |\Uparrow false
+              assert= "|<math><mrow><mo>⇓</mo></mrow></math>" $ mathml-markup |\Downarrow false
+              assert= "|<math><mrow><mo>⇔</mo></mrow></math>" $ mathml-markup |\Leftrightarrow false
+              assert= "|<math><mrow><mo>⟺</mo></mrow></math>" $ mathml-markup |\Longleftrightarrow false
+              assert= "|<math><mrow><mo>⇕</mo></mrow></math>" $ mathml-markup |\Updownarrow false
+              assert= "|<math><mrow><mo>⟼</mo></mrow></math>" $ mathml-markup |\longmapsto false
+              assert= "|<math><mrow><mo>↪</mo></mrow></math>" $ mathml-markup |\hookrightarrow false
+              assert= "|<math><mrow><mo>↩</mo></mrow></math>" $ mathml-markup |\hookleftarrow false
+              assert= "|<math><mrow><mo>↠</mo></mrow></math>" $ mathml-markup |\twoheadrightarrow false
+              assert= "|<math><mrow><mo>↞</mo></mrow></math>" $ mathml-markup |\twoheadleftarrow false
+              assert= "|<math><mrow><mo>↼</mo></mrow></math>" $ mathml-markup |\leftharpoonup false
+              assert= "|<math><mrow><mo>⇀</mo></mrow></math>" $ mathml-markup |\rightharpoonup false
+              assert= "|<math><mrow><mo>⇌</mo></mrow></math>" $ mathml-markup |\rightleftharpoons false
+              assert= "|<math><mrow><mo>↚</mo></mrow></math>" $ mathml-markup |\nleftarrow false
+              assert= "|<math><mrow><mo>↛</mo></mrow></math>" $ mathml-markup |\nrightarrow false
+              assert= "|<math><mrow><mo>⇍</mo></mrow></math>" $ mathml-markup |\nLeftarrow false
+              assert= "|<math><mrow><mo>⇏</mo></mrow></math>" $ mathml-markup |\nRightarrow false
+              assert= "|<math><mrow><mo>↮</mo></mrow></math>" $ mathml-markup |\nleftrightarrow false
+              assert= "|<math><mrow><mo>⇎</mo></mrow></math>" $ mathml-markup |\nLeftrightarrow false
+              assert= "|<math><mrow><mo>⇒</mo></mrow></math>" $ mathml-markup |\implies false
+              assert= "|<math><mrow><mo>⇔</mo></mrow></math>" $ mathml-markup |\iff false
+              assert= "|<math><mrow><mover><mo>→</mo><mrow><mi>x</mi></mrow></mover></mrow></math>" $ mathml-markup |\xrightarrow{x} false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -958,7 +1000,7 @@
         |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn greek-command (name)
-              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
+              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→") (|implies "|⇒") (|iff "|⇔") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎")
           :examples $ []
         |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
           :code $ quote
@@ -966,8 +1008,7 @@
               let
                   greek $ greek-command name
                 if (some? greek)
-                  if
-                    or (= name |pm) (= name |neq) (= name |to)
+                  if (math-operator-command? name)
                     str |<mo> (escape-html greek) |</mo>
                     str |<mi> (escape-html greek) |</mi>
                   if (function-command? name)
@@ -996,6 +1037,11 @@
           :schema $ :: :fn
             {} (:return :dynamic)
               :args $ [] :string
+        |math-operator-command? $ %{} :CodeEntry (:doc "|Recognizes LaTeX command names that represent operator/relation symbols (arrows, relations) and should render as MathML <mo> nodes rather than <mi> identifiers.") (:schema :dynamic)
+          :code $ quote
+            defn math-operator-command? (name)
+              or (= name |pm) (= name |neq) (= name |to) (= name |implies) (= name |iff) (= name |rightarrow) (= name |Rightarrow) (= name |leftarrow) (= name |Leftarrow) (= name |leftrightarrow) (= name |mapsto) (= name |gets) (= name |longleftarrow) (= name |longrightarrow) (= name |uparrow) (= name |downarrow) (= name |longleftrightarrow) (= name |nearrow) (= name |searrow) (= name |nwarrow) (= name |swarrow) (= name |updownarrow) (= name |Longleftarrow) (= name |Longrightarrow) (= name |Uparrow) (= name |Downarrow) (= name |Leftrightarrow) (= name |Longleftrightarrow) (= name |Updownarrow) (= name |longmapsto) (= name |hookrightarrow) (= name |hookleftarrow) (= name |twoheadrightarrow) (= name |twoheadleftarrow) (= name |leftharpoonup) (= name |rightharpoonup) (= name |rightleftharpoonup) (= name |rightleftharpoons) (= name |nleftarrow) (= name |nrightarrow) (= name |nLeftarrow) (= name |nRightarrow) (= name |nleftrightarrow) (= name |nLeftrightarrow)
+          :examples $ []
         |mathml-markup $ %{} :CodeEntry (:doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering.")
           :code $ quote
             defn mathml-markup (source display?)
@@ -1071,7 +1117,7 @@
                       str |<mi> (escape-html cursor) |</mi>
                       , left
           :examples $ []
-        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.")
+        |parse-math-command $ %{} :CodeEntry (:doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source.") (:schema :dynamic)
           :code $ quote
             defn parse-math-command (line)
               let[] (name rest-line) (parse-command-name line)
@@ -1086,6 +1132,10 @@
                     |frac $ let[] (numerator rest1) (parse-math-arg rest-line)
                       let[] (denominator rest2) (parse-math-arg rest1)
                         [] (str |<mfrac> numerator denominator |</mfrac>) rest2
+                    |xrightarrow $ let[] (upper rest1) (parse-math-arg rest-line)
+                      [] (str "|<mover><mo>→</mo>" upper |</mover>) rest1
+                    |xleftarrow $ let[] (upper rest1) (parse-math-arg rest-line)
+                      [] (str "|<mover><mo>←</mo>" upper |</mover>) rest1
                     |left $ if (= | rest-line) ([] || rest-line)
                       []
                         math-delimiter-html $ first rest-line
@@ -1106,9 +1156,6 @@
                           , |</mi>
                         &str:slice rest-line 1
           :examples $ []
-          :schema $ :: :fn
-            {} (:return :dynamic)
-              :args $ [] :string
         |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
           :code $ quote
             defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)

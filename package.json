@@ -5,7 +5,7 @@
     "test:mathml": "cr --entry smoke-test js && node test-main.mjs"
   },
   "dependencies": {
-    "@calcit/procs": "^0.12.49",
+    "@calcit/procs": "^0.12.50",
     "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.13"
