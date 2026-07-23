@@ -22,10 +22,19 @@ jobs:
           corepack prepare yarn@4.12.0 --activate
           yarn --version
 
-      - name: "compiles to js"
-        run: >
-          caps --ci && yarn install --immutable
-          && cr --entry smoke-test js && node test-main.mjs && cr js && yarn vite build --base=./
+      - name: Install and validate dependencies
+        run: |
+          caps --ci
+          yarn install --immutable
+
+      - name: Run MathML smoke test
+        run: yarn test:mathml
+
+      - name: Run incremental parser benchmark
+        run: yarn test:incremental
+
+      - name: Compile and build site
+        run: cr js && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy

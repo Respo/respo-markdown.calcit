@@ -1,13 +1,19 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.15)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.16)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
   :entries $ {}
+    :perf-test $ {} (:init-fn |respo-md.perf-test/main!) (:reload-fn |respo-md.perf-test/main!) (:version |0.0.0)
+      :modules $ []
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
       :modules $ []
   :files $ {}
     |respo-md.comp.container $ %{} :FileEntry
       :defs $ {}
+        |DemoState $ %{} :CodeEntry (:doc "|Typed state kept outside the VDOM tree for the Markdown demo.") (:schema :dynamic)
+          :code $ quote
+            defstruct DemoState (:draft :string) (:text :string) (:parse-result :dynamic)
+          :examples $ []
         |comp-container $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defcomp comp-container (store highlighter)
@@ -54,18 +60,20 @@
                         :style $ {} (:height |100%) (:width |100%) (:font-size 13)
                         :on-input $ fn (e d!)
                           ; println |Editing: state $ :value e
-                          d! cursor $ assoc state :draft
-                            str $ :value e
+                          let
+                              next-draft $ str (:value e)
+                            d! cursor $ update-draft-state state next-draft
                     div
                       {} (:class-name css/flex)
                         :style $ {} (:padding 8)
                       comp-md-block (:draft state)
                         {} (:highlight highlighter) (:class-name |demo)
+                          :parse-result $ :parse-result state
                   =< nil 200
           :examples $ []
         |initial-state $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
-            def initial-state $ {} (:draft |) (:text |)
+            def initial-state $ %{} DemoState ([] :draft |) ([] :text |) ([] :parse-result nil)
           :examples $ []
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote
@@ -75,6 +83,7 @@
             respo-ui.css :as css
             respo.comp.space :refer $ =<
             respo-md.comp.md :refer $ comp-md comp-md-block
+            respo-md.util.core :refer $ update-draft-state
             respo.core :refer $ defcomp <> div span textarea input a img
     |respo-md.comp.md $ %{} :FileEntry
       :defs $ {}
@@ -199,7 +208,7 @@
           :code $ quote
             defcomp comp-md-block (text ? options)
               let
-                  blocks $ split-block text
+                  blocks $ resolve-blocks text options
                   class-name $ :class-name options
                 list->
                   {}
@@ -267,6 +276,17 @@
                       create-element :i $ {} (:inner-text content)
                     _ $ <> (str |Unknown: chunk) nil
           :examples $ []
+        |resolve-blocks $ %{} :CodeEntry (:doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree.")
+          :code $ quote
+            defn resolve-blocks (text options)
+              if
+                some? $ :parse-result options
+                get (:parse-result options) :blocks
+                split-block text
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string :dynamic
         |style-blockquote $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defstyle style-blockquote $ {}
@@ -469,6 +489,103 @@
             respo-md.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
+    |respo-md.perf-test $ %{} :FileEntry
+      :defs $ {}
+        |assert-perf $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn assert-perf (label condition)
+              if condition
+                println $ str "|[ok] " label
+                raise $ str "|Performance assertion failed: " label
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string :bool
+        |main! $ %{} :CodeEntry (:doc "|Runs append-only Markdown parser benchmark using Calcit code.") (:schema :dynamic)
+          :code $ quote
+            defn main! () $ let
+                base $ make-source 2000 |
+                appended $ str base "|tail\n\n"
+                old-result $ parse-markdown base
+                full-result $ parse-markdown appended
+                incremental $ parse-markdown-incremental base appended old-result
+                demo-state $ update-draft-state
+                  {} (:draft base) (:parse-result old-result)
+                  , appended
+                changed $ str "|changed\n\n" base
+                fallback $ parse-markdown-incremental base changed old-result
+                rendered-blocks $ :blocks incremental
+                stream $ stream-append-iter 80 base old-result 0 0
+                code-old "|```js\nconst x = 1\n"
+                code-new $ str code-old "|const y = 2\n```\n"
+                code-result $ parse-markdown-incremental code-old code-new (parse-markdown code-old)
+              assert-perf |incremental-mode $ :incremental? incremental
+              assert-perf |typed-incremental-mode $ =
+                first $ :mode incremental
+                , :incremental
+              assert-perf |typed-full-mode $ =
+                first $ :mode full-result
+                , :full
+              assert-perf |same-block-output $ =
+                count $ :blocks full-result
+                count $ :blocks incremental
+              assert-perf |reuses-prefix $ > (:reused-blocks incremental) 1900
+              assert-perf |scans-less-than-full $ < (:scanned-lines incremental)
+                count $ split-lines appended
+              assert-perf |fallback-mode $ not (:incremental? fallback)
+              assert-perf |fallback-output $ =
+                count $ :blocks (parse-markdown changed)
+                count $ :blocks fallback
+              assert-perf |component-uses-parser-result $ = (count rendered-blocks)
+                count $ :blocks incremental
+              assert-perf |demo-state-draft $ = (:draft demo-state) appended
+              assert-perf |demo-state-parser $ =
+                count $ :blocks (:parse-result demo-state)
+                count $ :blocks incremental
+              assert-perf |llm-stream-output $ =
+                count $ :blocks (:result stream)
+                count $ :blocks
+                  parse-markdown $ :text stream
+              assert-perf |llm-stream-saves-work $ > (:full-lines stream)
+                * (:incremental-lines stream) 10
+              assert-perf |open-code-fallback $ = false (:incremental? code-result)
+              assert-perf |open-code-output $ =
+                count $ :blocks code-result
+                count $ :blocks (parse-markdown code-new)
+              println $ str |full-lines=
+                count $ split-lines appended
+                , "| incremental-lines=" (:scanned-lines incremental) "| reused-blocks=" (:reused-blocks incremental) "| reparsed-blocks=" (:reparsed-blocks incremental)
+              println $ str |llm-full-lines= (:full-lines stream) "| llm-incremental-lines=" (:incremental-lines stream)
+              println "|Incremental parser performance test passed."
+          :examples $ []
+        |make-source $ %{} :CodeEntry (:doc |)
+          :code $ quote
+            defn make-source (n acc)
+              if (= n 0) acc $ recur (dec n) (str acc "|line\n\n")
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :string)
+              :args $ [] :number :string
+        |stream-append-iter $ %{} :CodeEntry (:doc "|Feeds line-sized chunks like an LLM stream and compares cumulative full/incremental parser work.")
+          :code $ quote
+            defn stream-append-iter (n text result full-lines incremental-lines)
+              if (= n 0)
+                {} (:text text) (:result result) (:full-lines full-lines) (:incremental-lines incremental-lines)
+                let
+                    next-text $ str text "|token\n"
+                    full-result $ parse-markdown next-text
+                    next-result $ parse-markdown-incremental text next-text result
+                  recur (dec n) next-text next-result
+                    + full-lines $ :scanned-lines full-result
+                    + incremental-lines $ :scanned-lines next-result
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :number :string :dynamic :number :number
+      :ns $ %{} :NsEntry (:doc |)
+        :code $ quote
+          ns respo-md.perf-test $ :require
+            respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
     |respo-md.schema $ %{} :FileEntry
       :defs $ {}
         |store $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -568,6 +685,24 @@
             respo-md.util.math :refer $ escape-html normalize-math-source mathml-markup
     |respo-md.util.core $ %{} :FileEntry
       :defs $ {}
+        |ParseMode $ %{} :CodeEntry (:doc "|Describes how a parser result was produced.") (:schema :dynamic)
+          :code $ quote
+            def ParseMode $ defenum ParseMode (:full) (:incremental :number :number) (:fallback)
+          :examples $ []
+        |ParserResult $ %{} :CodeEntry (:doc "|Typed public result shared by the incremental parser and Markdown components.") (:schema :dynamic)
+          :code $ quote
+            defstruct ParserResult (:blocks :list) (:reused-blocks :number) (:reparsed-blocks :number) (:scanned-lines :number) (:incremental? :bool) (:mode :dynamic)
+          :examples $ []
+        |append-blocks $ %{} :CodeEntry (:doc "|Appends parsed blocks without rebuilding the reused prefix.")
+          :code $ quote
+            defn append-blocks (acc blocks)
+              if (empty? blocks) acc $ recur
+                conj acc $ first blocks
+                rest blocks
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :dynamic :dynamic
         |get0 $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn get0 (xs)
@@ -630,6 +765,20 @@
             defn ignore-inline-star? (left)
               if (= left |) true $ = (first left) "| "
           :examples $ []
+        |make-parser-result $ %{} :CodeEntry (:doc "|Converts an internal scan result into the typed parser result.")
+          :code $ quote
+            defn make-parser-result (raw mode)
+              let
+                  blocks $ :blocks raw
+                  reused-blocks $ :reused-blocks raw
+                  reparsed-blocks $ :reparsed-blocks raw
+                  scanned-lines $ :scanned-lines raw
+                  incremental? $ :incremental? raw
+                &%{} ParserResult :blocks blocks :reused-blocks reused-blocks :reparsed-blocks reparsed-blocks :scanned-lines scanned-lines :incremental? incremental? :mode mode
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :record)
+              :args $ [] :dynamic :dynamic
         |math-block-close-content $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn math-block-close-content (line)
@@ -692,6 +841,33 @@
                     &> (count trimmed) 4
                   some? $ .!match trimmed peek-math-block-single-line
           :examples $ []
+        |parse-markdown $ %{} :CodeEntry (:doc "|Creates a parser result suitable for passing to comp-md-block via options :parse-result.")
+          :code $ quote
+            defn parse-markdown (text)
+              let
+                  blocks $ split-block text
+                  raw $ {} (:blocks blocks) (:reused-blocks 0)
+                    :reparsed-blocks $ count blocks
+                    :scanned-lines $ count (split-lines text)
+                    :incremental? false
+                make-parser-result raw $ %:: ParseMode :full
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :record)
+              :args $ [] :string
+        |parse-markdown-incremental $ %{} :CodeEntry (:doc "|Continues a parser result and returns only the changed suffix statistics.")
+          :code $ quote
+            defn parse-markdown-incremental (old-text new-text old-result)
+              let
+                  raw $ split-block-incremental old-text new-text (:blocks old-result)
+                  mode $ if (:incremental? raw)
+                    %:: ParseMode :incremental (:reused-blocks raw) (:reparsed-blocks raw)
+                    %:: ParseMode :fallback
+                make-parser-result raw mode
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :record)
+              :args $ [] :string :string :dynamic
         |pattern-indented-code $ %{} :CodeEntry (:doc |)
           :code $ quote
             def pattern-indented-code $ &raw-code "|/^(\\s+)```/"
@@ -769,6 +945,63 @@
             defn split-block (text)
               split-block-iter (split-lines text) ([]) ([]) :empty
           :examples $ []
+        |split-block-incremental $ %{} :CodeEntry (:doc "|Parses only appended lines when the new source has the old source as a prefix; returns reuse statistics for benchmarks.")
+          :code $ quote
+            defn split-block-incremental (old-text new-text old-blocks)
+              if (starts-with? new-text old-text)
+                let
+                    appended $ &str:slice new-text (count old-text)
+                    appended-lines $ split-lines appended
+                    block-count $ count old-blocks
+                    last-block $ if (> block-count 0)
+                      first $ .slice old-blocks (dec block-count)
+                      , nil
+                  if
+                    and
+                      = false $ ends-with? old-text "|\n\n"
+                      some? last-block
+                      = (first last-block) :text
+                    let
+                        prefix-blocks $ .slice old-blocks 0 (dec block-count)
+                        last-lines $ get last-block 1
+                        tail-text $ if (ends-with? old-text "|\n")
+                          str (join-str last-lines &newline) &newline appended
+                          str (join-str last-lines &newline) appended
+                        next-blocks $ split-block tail-text
+                      {}
+                        :blocks $ append-blocks prefix-blocks next-blocks
+                        :reused-blocks $ dec block-count
+                        :reparsed-blocks $ count next-blocks
+                        :scanned-lines $ count (split-lines tail-text)
+                        :incremental? true
+                    let
+                        next-blocks $ split-block appended
+                      if
+                        and (> block-count 0)
+                          = false $ ends-with? old-text "|\n\n"
+                          = false $ = (first last-block) :text
+                        let
+                            full-blocks $ split-block new-text
+                          {} (:blocks full-blocks) (:reused-blocks 0)
+                            :reparsed-blocks $ count full-blocks
+                            :scanned-lines $ count (split-lines new-text)
+                            :incremental? false
+                        {}
+                          :blocks $ append-blocks old-blocks next-blocks
+                          :reused-blocks $ count old-blocks
+                          :reparsed-blocks $ count next-blocks
+                          :scanned-lines $ count appended-lines
+                          :incremental? true
+                let
+                    next-blocks $ split-block new-text
+                  {} (:blocks next-blocks) (:reused-blocks 0)
+                    :reparsed-blocks $ count next-blocks
+                    :scanned-lines $ count (split-lines new-text)
+                    :incremental? false
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :string :string :dynamic
         |split-block-iter $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn split-block-iter (lines acc buffer mode)
@@ -975,6 +1208,14 @@
             defn table-line? (cursor)
               and (starts-with? cursor ||) (ends-with? cursor ||)
           :examples $ []
+        |update-draft-state $ %{} :CodeEntry (:doc "|Updates the textarea draft and parser result as one state transition.")
+          :code $ quote
+            defn update-draft-state (state next-draft)
+              assoc (assoc state :draft next-draft) :parse-result $ parse-markdown-incremental (:draft state) next-draft (:parse-result state)
+          :examples $ []
+          :schema $ :: :fn
+            {} (:return :dynamic)
+              :args $ [] :dynamic :string
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.util.core $ :require
