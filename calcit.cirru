@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.16)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.18)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
   :entries $ {}
     :perf-test $ {} (:init-fn |respo-md.perf-test/main!) (:reload-fn |respo-md.perf-test/main!) (:version |0.0.0)
@@ -670,6 +670,12 @@
               assert= "|<math><mrow><mo>⇒</mo></mrow></math>" $ mathml-markup |\implies false
               assert= "|<math><mrow><mo>⇔</mo></mrow></math>" $ mathml-markup |\iff false
               assert= "|<math><mrow><mover><mo>→</mo><mrow><mi>x</mi></mrow></mover></mrow></math>" $ mathml-markup |\xrightarrow{x} false
+              assert= |<math><mrow><msqrt><mrow><mi>x</mi></mrow></msqrt></mrow></math> $ mathml-markup |\sqrt{x} false
+              assert= |<math><mrow><mroot><mrow><mi>x</mi></mrow><mn>3</mn></mroot></mrow></math> $ mathml-markup |\sqrt[3]{x} false
+              assert= "|<math><mrow><mi>u</mi><mo>⋅</mo><mi>v</mi><mo>+</mo><mi>u</mi><mo>∧</mo><mi>v</mi></mrow></math>" $ mathml-markup "|u\\cdot v + u\\wedge v" false
+              assert= "|<math><mrow><msup><mi>γ</mi><mi>μ</mi></msup><msup><mi>γ</mi><mi>ν</mi></msup><mo>+</mo><msup><mi>γ</mi><mi>ν</mi></msup><msup><mi>γ</mi><mi>μ</mi></msup><mo>=</mo><mn>2</mn><msup><mi>η</mi><mrow><mi>μ</mi><mi>ν</mi></mrow></msup><mi>I</mi></mrow></math>" $ mathml-markup "|\\gamma^\\mu\\gamma^\\nu + \\gamma^\\nu\\gamma^\\mu = 2\\eta^{\\mu\\nu}I" false
+              assert= "|<math><mrow><mstyle mathvariant=\"bold\"><mi>a</mi></mstyle><mstyle mathvariant=\"bold\"><mrow><mi>b</mi></mrow></mstyle></mrow></math>" $ mathml-markup "|\\mathbf a\\mathbf{b}" false
+              assert= "|<math><mrow><mstyle mathvariant=\"double-struck\"><mi>R</mi></mstyle><mo>→</mo><mstyle mathvariant=\"double-struck\"><mrow><mi>C</mi></mrow></mstyle></mrow></math>" $ mathml-markup "|\\mathbb R \\to \\mathbb{C}" false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -1241,23 +1247,28 @@
         |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn greek-command (name)
-              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→") (|implies "|⇒") (|iff "|⇔") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎")
+              case-default name nil (|alpha "|α") (|beta "|β") (|gamma "|γ") (|delta "|δ") (|epsilon "|ε") (|varepsilon "|ϵ") (|zeta "|ζ") (|eta "|η") (|theta "|θ") (|vartheta "|ϑ") (|iota "|ι") (|kappa "|κ") (|lambda "|λ") (|mu "|μ") (|nu "|ν") (|xi "|ξ") (|omicron "|ο") (|pi "|π") (|varpi "|ϖ") (|rho "|ρ") (|varrho "|ϱ") (|sigma "|σ") (|varsigma "|ς") (|tau "|τ") (|upsilon "|υ") (|phi "|φ") (|varphi "|ϕ") (|chi "|χ") (|psi "|ψ") (|omega "|ω") (|Gamma "|Γ") (|Delta "|Δ") (|Theta "|Θ") (|Lambda "|Λ") (|Xi "|Ξ") (|Pi "|Π") (|Sigma "|Σ") (|Upsilon "|Υ") (|Phi "|Φ") (|Psi "|Ψ") (|Omega "|Ω")
           :examples $ []
         |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
           :code $ quote
             defn math-command-html (name)
               let
                   greek $ greek-command name
+                  operator $ operator-command name
                 if (some? greek)
-                  if (math-operator-command? name)
-                    str |<mo> (escape-html greek) |</mo>
-                    str |<mi> (escape-html greek) |</mi>
-                  if (function-command? name)
-                    str |<mi> (escape-html name) |</mi>
-                    case-default name
-                      str |<mi> (escape-html name) |</mi>
-                      |int "|<mo>∫</mo>"
-                      |sum "|<mo>∑</mo>"
+                  str |<mi> (escape-html greek) |</mi>
+                  if (some? operator)
+                    str |<mo> (escape-html operator) |</mo>
+                    if (function-command? name)
+                      str "|<mi mathvariant=\"normal\">" (escape-html name) |</mi>
+                      case-default name
+                        str |<mi> (escape-html name) |</mi>
+                        |int "|<mo>∫</mo>"
+                        |iint "|<mo>∬</mo>"
+                        |iiint "|<mo>∭</mo>"
+                        |oint "|<mo>∮</mo>"
+                        |sum "|<mo>∑</mo>"
+                        |prod "|<mo>∏</mo>"
           :examples $ []
           :schema $ :: :fn
             {} (:return :string)
@@ -1304,6 +1315,11 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string
+        |operator-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn operator-command (name)
+              case-default name nil (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|implies "|⇒") (|iff "|⇔") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗")
+          :examples $ []
         |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn parse-command-name (line)
@@ -1335,7 +1351,7 @@
                     cursor $ first line
                     left $ &str:slice line 1
                   cond
-                      = cursor |
+                      = cursor "| "
                       parse-math-atom left
                     (= cursor |{)
                       let[] (body rest-line) (parse-math-row left |})
@@ -1365,6 +1381,14 @@
                 if (some? name)
                   case-default name
                     [] (math-command-html name) rest-line
+                    |mathbf $ parse-math-styled-arg rest-line |bold
+                    |mathbb $ parse-math-styled-arg rest-line |double-struck
+                    |mathrm $ parse-math-styled-arg rest-line |normal
+                    |mathit $ parse-math-styled-arg rest-line |italic
+                    |mathsf $ parse-math-styled-arg rest-line |sans-serif
+                    |mathtt $ parse-math-styled-arg rest-line |monospace
+                    |mathcal $ parse-math-styled-arg rest-line |script
+                    |mathfrak $ parse-math-styled-arg rest-line |fraktur
                     |binom $ let[] (upper rest1) (parse-math-arg rest-line)
                       let[] (lower rest2) (parse-math-arg rest1)
                         []
@@ -1385,8 +1409,11 @@
                       []
                         math-delimiter-html $ first rest-line
                         &str:slice rest-line 1
-                    |sqrt $ let[] (content rest1) (parse-math-arg rest-line)
-                      [] (str |<msqrt> content |</msqrt>) rest1
+                    |sqrt $ let[] (index-html rest0) (parse-math-root-index rest-line)
+                      let[] (content rest1) (parse-math-arg rest0)
+                        []
+                          if (some? index-html) (str |<mroot> content index-html |</mroot>) (str |<msqrt> content |</msqrt>)
+                          , rest1
                   if (= | rest-line) ([] || rest-line)
                     if
                       = |, $ first rest-line
@@ -1396,6 +1423,17 @@
                           escape-html $ first rest-line
                           , |</mi>
                         &str:slice rest-line 1
+          :examples $ []
+        |parse-math-root-index $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-root-index (line)
+              if
+                and (not= | line)
+                  = |[ $ first line
+                let[] (body rest-line)
+                  parse-math-row (&str:slice line 1) |]
+                  [] body $ if (= | rest-line) rest-line (&str:slice rest-line 1)
+                [] nil line
           :examples $ []
         |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
           :code $ quote
@@ -1439,6 +1477,12 @@
                         parse-math-arg $ &str:slice rest1 1
                         [] (str |<msubsup> base sub sup |</msubsup>) rest2
                       [] (str |<msub> base sub |</msub>) rest1
+          :examples $ []
+        |parse-math-styled-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-styled-arg (line variant)
+              let[] (content rest-line) (parse-math-arg line)
+                [] (str "|<mstyle mathvariant=\"" variant "|\">" content |</mstyle>) rest-line
           :examples $ []
         |parse-math-unit $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
