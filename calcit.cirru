@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.16)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.17)
     :modules $ [] |respo.calcit/calcit.cirru |lilac/compact.cirru |memof/ |respo-ui.calcit/calcit.cirru
   :entries $ {}
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
