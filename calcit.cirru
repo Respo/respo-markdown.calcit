@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.18)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.19)
     :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
   :entries $ {}
     :perf-test $ {} (:init-fn |respo-md.perf-test/main!) (:reload-fn |respo-md.perf-test/main!) (:version |0.0.0)
@@ -676,6 +676,8 @@
               assert= "|<math><mrow><msup><mi>γ</mi><mi>μ</mi></msup><msup><mi>γ</mi><mi>ν</mi></msup><mo>+</mo><msup><mi>γ</mi><mi>ν</mi></msup><msup><mi>γ</mi><mi>μ</mi></msup><mo>=</mo><mn>2</mn><msup><mi>η</mi><mrow><mi>μ</mi><mi>ν</mi></mrow></msup><mi>I</mi></mrow></math>" $ mathml-markup "|\\gamma^\\mu\\gamma^\\nu + \\gamma^\\nu\\gamma^\\mu = 2\\eta^{\\mu\\nu}I" false
               assert= "|<math><mrow><mstyle mathvariant=\"bold\"><mi>a</mi></mstyle><mstyle mathvariant=\"bold\"><mrow><mi>b</mi></mrow></mstyle></mrow></math>" $ mathml-markup "|\\mathbf a\\mathbf{b}" false
               assert= "|<math><mrow><mstyle mathvariant=\"double-struck\"><mi>R</mi></mstyle><mo>→</mo><mstyle mathvariant=\"double-struck\"><mrow><mi>C</mi></mrow></mstyle></mrow></math>" $ mathml-markup "|\\mathbb R \\to \\mathbb{C}" false
+              assert= "|<math><mrow><mi mathvariant=\"normal\">Slerp</mi><mo>(</mo><mi>q</mi><mo>)</mo><mo>+</mo><mover accent=\"true\"><mrow><mi>q</mi></mrow><mo>¯</mo></mover><mo>+</mo><mi mathvariant=\"normal\">cosh</mi><mi>φ</mi><mspace width=\"1em\"></mspace><mo>⟨</mo><mi>x</mi><mo>⟩</mo></mrow></math>" $ mathml-markup "|\\operatorname{Slerp}(q)+\\bar{q}+\\cosh\\phi\\quad\\langle x\\rangle" false
+              assert= "|<math><mrow><mrow><mo>(</mo><mtable><mtr><mtd><mrow><mi>a</mi></mrow></mtd><mtd><mrow><mi>b</mi></mrow></mtd></mtr><mtr><mtd><mrow><mi>c</mi></mrow></mtd><mtd><mrow><mi>d</mi></mrow></mtd></mtr></mtable><mo>)</mo></mrow></mrow></math>" $ mathml-markup |\begin{pmatrix}a&b\\c&d\end{pmatrix} false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -1242,7 +1244,7 @@
         |function-command? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn function-command? (name)
-              or (= name |lim) (= name |sin) (= name |cos) (= name |ln)
+              or (= name |lim) (= name |sin) (= name |cos) (= name |tan) (= name |sinh) (= name |cosh) (= name |tanh) (= name |ln) (= name |log) (= name |exp) (= name |det) (= name |gcd) (= name |min) (= name |max)
           :examples $ []
         |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
@@ -1281,6 +1283,21 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string
+        |math-environment-html $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn math-environment-html (name source)
+              if (matrix-environment? name)
+                let
+                    rows $ split source |\\
+                    delimiters $ matrix-environment-delimiters name
+                    open-html $ get delimiters 0
+                    close-html $ get delimiters 1
+                    table-html $ str |<mtable>
+                      join-str (map rows render-math-matrix-row) |
+                      , |</mtable>
+                  str |<mrow> (or open-html |) table-html (or close-html |) |</mrow>
+                str |<mrow><mi>begin</mi><mi> (escape-html name) |</mi></mrow>
+          :examples $ []
         |math-operator-char? $ %{} :CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.")
           :code $ quote
             defn math-operator-char? (cursor)
@@ -1304,6 +1321,22 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string :dynamic
+        |matrix-environment-delimiters $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn matrix-environment-delimiters (name)
+              case-default name ([] nil nil)
+                |pmatrix $ [] "|<mo>(</mo>" "|<mo>)</mo>"
+                |bmatrix $ [] |<mo>[</mo> |<mo>]</mo>
+                |Bmatrix $ [] |<mo>{</mo> |<mo>}</mo>
+                |vmatrix $ [] |<mo>|</mo> |<mo>|</mo>
+                |Vmatrix $ [] "|<mo>‖</mo>" "|<mo>‖</mo>"
+                |cases $ [] |<mo>{</mo> nil
+          :examples $ []
+        |matrix-environment? $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn matrix-environment? (name)
+              or (= name |matrix) (= name |pmatrix) (= name |bmatrix) (= name |Bmatrix) (= name |vmatrix) (= name |Vmatrix) (= name |smallmatrix) (= name |aligned) (= name |cases)
+          :examples $ []
         |normalize-math-source $ %{} :CodeEntry (:doc "|Normalizes multi-line math input into a single trimmed line before tokenization.")
           :code $ quote
             defn normalize-math-source (source)
@@ -1318,7 +1351,7 @@
         |operator-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn operator-command (name)
-              case-default name nil (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|implies "|⇒") (|iff "|⇔") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗")
+              case-default name nil (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|implies "|⇒") (|iff "|⇔") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗") (|langle "|⟨") (|rangle "|⟩") (|cong "|≅") (|sim "|∼") (|simeq "|≃") (|mid "|∣") (|vert ||) (|Vert "|‖") (|ldots "|…") (|cdots "|⋯")
           :examples $ []
         |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
@@ -1389,6 +1422,16 @@
                     |mathtt $ parse-math-styled-arg rest-line |monospace
                     |mathcal $ parse-math-styled-arg rest-line |script
                     |mathfrak $ parse-math-styled-arg rest-line |fraktur
+                    |qquad $ [] "|<mspace width=\"2em\"></mspace>" rest-line
+                    |quad $ [] "|<mspace width=\"1em\"></mspace>" rest-line
+                    |underline $ parse-math-under-arg rest-line |_
+                    |tilde $ parse-math-over-arg rest-line |~
+                    |hat $ parse-math-over-arg rest-line |^
+                    |overline $ parse-math-over-arg rest-line "|¯"
+                    |bar $ parse-math-over-arg rest-line "|¯"
+                    |text $ parse-math-text-arg rest-line false
+                    |operatorname $ parse-math-text-arg rest-line true
+                    |begin $ parse-math-environment rest-line
                     |binom $ let[] (upper rest1) (parse-math-arg rest-line)
                       let[] (lower rest2) (parse-math-arg rest1)
                         []
@@ -1423,6 +1466,43 @@
                           escape-html $ first rest-line
                           , |</mi>
                         &str:slice rest-line 1
+          :examples $ []
+        |parse-math-environment $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-environment (line)
+              let[] (name rest-line) (parse-math-raw-group line)
+                if (some? name)
+                  let
+                      closing $ str |\end{ name |}
+                      end-index $ &str:find-index rest-line closing
+                    if (some? end-index)
+                      let
+                          source $ &str:slice rest-line 0 end-index
+                          next-rest $ &str:slice rest-line
+                            + end-index $ count closing
+                        [] (math-environment-html name source) next-rest
+                      [] (math-environment-html name rest-line) |
+                  [] |<mi>begin</mi> line
+          :examples $ []
+        |parse-math-over-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-over-arg (line mark)
+              let[] (content rest-line) (parse-math-arg line)
+                [] (str "|<mover accent=\"true\">" content |<mo> mark |</mo></mover>) rest-line
+          :examples $ []
+        |parse-math-raw-group $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-raw-group (line)
+              if
+                or (= | line)
+                  not= |{ $ first line
+                [] nil line
+                let
+                    end-index $ &str:find-index line |}
+                  if (some? end-index)
+                    [] (&str:slice line 1 end-index)
+                      &str:slice line $ + end-index 1
+                    [] nil line
           :examples $ []
         |parse-math-root-index $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
@@ -1484,6 +1564,24 @@
               let[] (content rest-line) (parse-math-arg line)
                 [] (str "|<mstyle mathvariant=\"" variant "|\">" content |</mstyle>) rest-line
           :examples $ []
+        |parse-math-text-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-text-arg (line operator?)
+              let[] (content rest-line) (parse-math-raw-group line)
+                if (some? content)
+                  []
+                    if operator?
+                      str "|<mi mathvariant=\"normal\">" (escape-html content) |</mi>
+                      str |<mtext> (escape-html content) |</mtext>
+                    , rest-line
+                  parse-math-styled-arg line |normal
+          :examples $ []
+        |parse-math-under-arg $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-under-arg (line mark)
+              let[] (content rest-line) (parse-math-arg line)
+                [] (str "|<munder accentunder=\"true\">" content |<mo> mark |</mo></munder>) rest-line
+          :examples $ []
         |parse-math-unit $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn parse-math-unit (line)
@@ -1505,6 +1603,20 @@
             {} (:return :dynamic)
               :args $ []
               :features $ #{} :js-ffi
+        |render-math-matrix-row $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn render-math-matrix-row (source)
+              let
+                  cells $ split source |&
+                str |<mtr>
+                  join-str
+                    map cells $ fn (cell)
+                      let
+                          parsed $ parse-math-row cell nil
+                        str |<mtd><mrow> (first parsed) |</mrow></mtd>
+                    , |
+                  , |</mtr>
+          :examples $ []
       :ns $ %{} :NsEntry (:doc |)
         :code $ quote
           ns respo-md.util.math $ :require
