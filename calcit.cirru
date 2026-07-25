@@ -1,6 +1,6 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.15)
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.16)
     :modules $ [] |respo.calcit/calcit.cirru |lilac/compact.cirru |memof/ |respo-ui.calcit/calcit.cirru
   :entries $ {}
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
@@ -513,6 +513,8 @@
               assert= |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
               assert= |<math><mrow><msqrt><mrow><mi>x</mi></mrow></msqrt></mrow></math> $ mathml-markup |\sqrt{x} false
               assert= |<math><mrow><mroot><mrow><mi>x</mi></mrow><mn>3</mn></mroot></mrow></math> $ mathml-markup |\sqrt[3]{x} false
+              assert= "|<math><mrow><mi>u</mi><mo>⋅</mo><mi>v</mi><mo>+</mo><mi>u</mi><mo>∧</mo><mi>v</mi></mrow></math>" $ mathml-markup "|u\\cdot v + u\\wedge v" false
+              assert= "|<math><mrow><msup><mi>γ</mi><mi>μ</mi></msup><msup><mi>γ</mi><mi>ν</mi></msup><mo>+</mo><msup><mi>γ</mi><mi>ν</mi></msup><msup><mi>γ</mi><mi>μ</mi></msup><mo>=</mo><mn>2</mn><msup><mi>η</mi><mrow><mi>μ</mi><mi>ν</mi></mrow></msup><mi>I</mi></mrow></math>" $ mathml-markup "|\\gamma^\\mu\\gamma^\\nu + \\gamma^\\nu\\gamma^\\mu = 2\\eta^{\\mu\\nu}I" false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -960,24 +962,28 @@
         |greek-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn greek-command (name)
-              case-default name nil (|Delta "|Δ") (|infty "|∞") (|mu "|μ") (|neq "|≠") (|pi "|π") (|pm "|±") (|sigma "|σ") (|theta "|θ") (|to "|→")
+              case-default name nil (|alpha "|α") (|beta "|β") (|gamma "|γ") (|delta "|δ") (|epsilon "|ε") (|varepsilon "|ϵ") (|zeta "|ζ") (|eta "|η") (|theta "|θ") (|vartheta "|ϑ") (|iota "|ι") (|kappa "|κ") (|lambda "|λ") (|mu "|μ") (|nu "|ν") (|xi "|ξ") (|omicron "|ο") (|pi "|π") (|varpi "|ϖ") (|rho "|ρ") (|varrho "|ϱ") (|sigma "|σ") (|varsigma "|ς") (|tau "|τ") (|upsilon "|υ") (|phi "|φ") (|varphi "|ϕ") (|chi "|χ") (|psi "|ψ") (|omega "|ω") (|Gamma "|Γ") (|Delta "|Δ") (|Theta "|Θ") (|Lambda "|Λ") (|Xi "|Ξ") (|Pi "|Π") (|Sigma "|Σ") (|Upsilon "|Υ") (|Phi "|Φ") (|Psi "|Ψ") (|Omega "|Ω")
           :examples $ []
         |math-command-html $ %{} :CodeEntry (:doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers.")
           :code $ quote
             defn math-command-html (name)
               let
                   greek $ greek-command name
+                  operator $ operator-command name
                 if (some? greek)
-                  if
-                    or (= name |pm) (= name |neq) (= name |to)
-                    str |<mo> (escape-html greek) |</mo>
-                    str |<mi> (escape-html greek) |</mi>
-                  if (function-command? name)
-                    str |<mi> (escape-html name) |</mi>
-                    case-default name
-                      str |<mi> (escape-html name) |</mi>
-                      |int "|<mo>∫</mo>"
-                      |sum "|<mo>∑</mo>"
+                  str |<mi> (escape-html greek) |</mi>
+                  if (some? operator)
+                    str |<mo> (escape-html operator) |</mo>
+                    if (function-command? name)
+                      str "|<mi mathvariant=\"normal\">" (escape-html name) |</mi>
+                      case-default name
+                        str |<mi> (escape-html name) |</mi>
+                        |int "|<mo>∫</mo>"
+                        |iint "|<mo>∬</mo>"
+                        |iiint "|<mo>∭</mo>"
+                        |oint "|<mo>∮</mo>"
+                        |sum "|<mo>∑</mo>"
+                        |prod "|<mo>∏</mo>"
           :examples $ []
           :schema $ :: :fn
             {} (:return :string)
@@ -1019,6 +1025,11 @@
           :schema $ :: :fn
             {} (:return :string)
               :args $ [] :string
+        |operator-command $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn operator-command (name)
+              case-default name nil (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|leftarrow "|←") (|leftrightarrow "|↔") (|mapsto "|↦") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗")
+          :examples $ []
         |parse-command-name $ %{} :CodeEntry (:doc |) (:schema :dynamic)
           :code $ quote
             defn parse-command-name (line)
@@ -1050,7 +1061,7 @@
                     cursor $ first line
                     left $ &str:slice line 1
                   cond
-                      = cursor |
+                      = cursor "| "
                       parse-math-atom left
                     (= cursor |{)
                       let[] (body rest-line) (parse-math-row left |})
