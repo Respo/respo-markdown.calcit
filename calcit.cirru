@@ -1,7 +1,7 @@
 
 {} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.14)
-    :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/compact.cirru |lilac/compact.cirru |memof/
+  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.15)
+    :modules $ [] |respo.calcit/calcit.cirru |lilac/compact.cirru |memof/ |respo-ui.calcit/calcit.cirru
   :entries $ {}
     :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
       :modules $ []
@@ -511,6 +511,8 @@
               assert= |<math><mrow><mi>x</mi></mrow></math> $ mathml-markup |x false
               assert= |<math><mrow><msup><mi>a</mi><mn>2</mn></msup></mrow></math> $ mathml-markup |a^2 false
               assert= |<math><mrow><mfrac><mrow><mn>1</mn></mrow><mrow><mn>2</mn></mrow></mfrac></mrow></math> $ mathml-markup |\frac{1}{2} false
+              assert= |<math><mrow><msqrt><mrow><mi>x</mi></mrow></msqrt></mrow></math> $ mathml-markup |\sqrt{x} false
+              assert= |<math><mrow><mroot><mrow><mi>x</mi></mrow><mn>3</mn></mroot></mrow></math> $ mathml-markup |\sqrt[3]{x} false
               println "|test-mathml-markup! done"
           :examples $ []
         |test-normalize-math! $ %{} :CodeEntry (:doc |) (:schema :dynamic)
@@ -1094,8 +1096,11 @@
                       []
                         math-delimiter-html $ first rest-line
                         &str:slice rest-line 1
-                    |sqrt $ let[] (content rest1) (parse-math-arg rest-line)
-                      [] (str |<msqrt> content |</msqrt>) rest1
+                    |sqrt $ let[] (index-html rest0) (parse-math-root-index rest-line)
+                      let[] (content rest1) (parse-math-arg rest0)
+                        []
+                          if (some? index-html) (str |<mroot> content index-html |</mroot>) (str |<msqrt> content |</msqrt>)
+                          , rest1
                   if (= | rest-line) ([] || rest-line)
                     if
                       = |, $ first rest-line
@@ -1109,6 +1114,21 @@
           :schema $ :: :fn
             {} (:return :dynamic)
               :args $ [] :string
+        |parse-math-root-index $ %{} :CodeEntry (:doc |) (:schema :dynamic)
+          :code $ quote
+            defn parse-math-root-index (line)
+              if
+                and (not= | line)
+                  = |[ $ first line
+                let[] (index-html rest-line)
+                  parse-math-row (&str:slice line 1) |]
+                  if
+                    and (not= | rest-line)
+                      = |] $ first rest-line
+                    [] index-html $ &str:slice rest-line 1
+                    [] nil line
+                [] nil line
+          :examples $ []
         |parse-math-row $ %{} :CodeEntry (:doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached.")
           :code $ quote
             defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
