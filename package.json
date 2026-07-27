@@ -1,12 +1,18 @@
 {
-  "version": "0.4.11",
+  "packageManager": "yarn@4.12.0",
+  "scripts": {
+    "build": "cr --entry smoke-test js && node test-main.mjs && cr js && yarn vite build --base=./",
+    "test:mathml": "cr --entry smoke-test js && node test-main.mjs",
+    "test:incremental": "cr --entry perf-test js && node perf-test-main.mjs"
+  },
   "dependencies": {
-    "@calcit/procs": "^0.9.20",
+    "@calcit/procs": "^0.12.51",
     "cirru-color": "^0.2.4",
-    "copy-text-to-clipboard": "^3.2.2"
+    "copy-text-to-clipboard": "^3.2.2",
+    "dayjs": "^1.11.13"
   },
   "devDependencies": {
     "bottom-tip": "^0.1.5",
-    "vite": "^7.1.9"
+    "vite": "^8.0.14"
   }
 }

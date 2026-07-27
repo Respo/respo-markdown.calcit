@@ -10,6 +10,7 @@ Supported features:
 - Quoteblock
 - Unordered list
 - Inline code
+- Inline and block math rendered as native MathML
 - Inline emphasis / italic
 - URL auto-link
 - Inline link
@@ -109,11 +110,50 @@ Write your own CSS to style HTML output:
 
 ### Custom Syntax
 
-To insert raw HTML:
+Math fragments accept both Gemini-style dollar delimiters and LaTeX-style backslash delimiters:
 
+- Inline: `$a^2 + b^2 = c^2$`, `\(\frac{1}{2}\)`
+- Block: `$$\n\sum_{i=1}^{n} i\n$$`, `\[\sqrt{x}\]`
+
+To insert raw HTML:
 ```text
 #!html <div>TODO</div>
 ```
+
+### Incremental Parsing
+
+For editors or streaming text that append to an existing document, keep the parser result outside the Respo VDOM and pass it back through `:parse-result`:
+
+```cirru
+let
+    previous $ parse-markdown old-text
+    next $ parse-markdown-incremental old-text new-text previous
+  comp-md-block new-text $ {} (:parse-result next)
+```
+
+The incremental parser reuses completed blocks and reparses only the appended suffix. Non-prefix edits automatically fall back to a full parse.
+
+`parse-markdown` and `parse-markdown-incremental` return a typed `ParserResult` struct with `:blocks`, reuse counters, scanned-line counts, `:incremental?`, and an enum `:mode` (`:full`, `:incremental`, or `:fallback`). Keep this value in application state rather than rebuilding it inside the VDOM tree.
+
+For LLM-style streaming, line-sized or text-only chunks can be appended repeatedly while keeping the previous parser result. An unfinished ordinary text block is reparsed from its beginning; unfinished code or math blocks use a full-parse fallback until their delimiters are known, preserving output correctness.
+
+The Calcit performance entry exercises these cases:
+
+```bash
+yarn test:incremental
+```
+
+To run the same checks used by CI:
+
+```bash
+yarn install --immutable
+yarn test:mathml
+yarn test:incremental
+cr js
+yarn vite build --base=./
+```
+
+The performance benchmark is intentionally a Calcit entry point, so it validates the parser state and generated JavaScript path without introducing a separate JavaScript benchmark implementation.
 
 ### Tips
 
@@ -124,6 +164,15 @@ To insert raw HTML:
 ### Workflow
 
 https://github.com/calcit-lang/respo-calcit-workflow
+
+### Smoke Test
+
+After recompiling the snapshot, run the lightweight MathML smoke test:
+
+```bash
+cr js
+node mathml-smoke.mjs
+```
 
 ### License
 
