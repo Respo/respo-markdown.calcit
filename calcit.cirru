@@ -1,12 +1,15 @@
 
-{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
-  :configs $ {} (:init-fn |respo-md.main/main!) (:reload-fn |respo-md.main/reload!) (:version |0.4.19)
-    :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md) (:version |0.4.20)
   :entries $ {}
-    :perf-test $ {} (:init-fn |respo-md.perf-test/main!) (:reload-fn |respo-md.perf-test/main!) (:version |0.0.0)
+    :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :native) (:reload-fn 'respo-md.main/reload!)
+      :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |lilac/compact.cirru |memof/
+      :type-slots $ {}
+    :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :native) (:reload-fn 'respo-md.perf-test/main!)
       :modules $ []
-    :smoke-test $ {} (:init-fn |respo-md.test/main!) (:reload-fn |respo-md.test/main!) (:version |0.0.0)
+      :type-slots $ {}
+    :smoke-test $ {} (:description |) (:init-fn 'respo-md.test/main!) (:mode :native) (:reload-fn 'respo-md.test/main!)
       :modules $ []
+      :type-slots $ {}
   :files $ {}
     |respo-md.comp.container $ %{} :FileEntry
       :defs $ {}
@@ -388,7 +391,6 @@
             respo.util.format :refer $ hsl
             respo-ui.core :as ui
             respo-ui.css :as css
-            respo.core :refer $ create-element
             respo.comp.space :refer $ =<
             respo-md.util.core :refer $ split-block split-line get1
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li create-element
