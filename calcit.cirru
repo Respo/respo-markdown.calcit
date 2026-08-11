@@ -766,12 +766,17 @@
           :code $ quote
             defn append-blocks (acc blocks)
               if (empty? blocks) acc $ recur
-                conj acc $ first blocks
+                conj acc $ option:unwrap (first blocks)
                 rest blocks
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Dynamic)
               :args $ [] 'Dynamic 'Dynamic
+          :tests $ []
+            %{} 'TestEntry (:name |appends-values)
+              :code $ quote
+                assert= ([] 1 2)
+                  append-blocks ([] 1) ([] 2)
         |get0 $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn get0 (xs)
@@ -1041,18 +1046,20 @@
                     appended-lines $ split-lines appended
                     block-count $ count old-blocks
                     last-block $ if (> block-count 0)
-                      first $ .slice old-blocks (dec block-count)
+                      option:unwrap-or
+                        first $ .slice old-blocks (dec block-count)
+                        , nil
                       , nil
                   if
                     and
                       = false $ ends-with? old-text "|\n\n"
-                      some? last-block
+                      not $ nil? last-block
                       =
                         option:unwrap-or (first last-block) nil
                         , :text
                     let
                         prefix-blocks $ .slice old-blocks 0 (dec block-count)
-                        last-lines $ get last-block 1
+                        last-lines $ option:unwrap-or (get last-block 1) []
                         tail-text $ if (ends-with? old-text "|\n")
                           str (join-str last-lines &newline) &newline appended
                           str (join-str last-lines &newline) appended
@@ -1099,7 +1106,7 @@
               if (empty? lines)
                 if (empty? buffer) acc $ conj acc (:: mode buffer)
                 let
-                    cursor $ first lines
+                    cursor $ option:unwrap (first lines)
                     left $ rest lines
                   case-default mode
                     raise $ str "|Strange splitting mode: " mode
@@ -1214,7 +1221,7 @@
               if (= | line)
                 if (= | buffer) acc $ conj acc (:: mode buffer)
                 let
-                    cursor $ first line
+                    cursor $ option:unwrap (first line)
                     left $ &str:slice line 1
                   case-default mode
                     raise $ str "|Unknown mode:" mode
@@ -1248,7 +1255,7 @@
                             recur
                               conj
                                 if (= | buffer) acc $ conj acc (:: :text buffer)
-                                :: :url $ first pieces
+                                :: :url $ option:unwrap (first pieces)
                               str "| " $ join-str (rest pieces) "| "
                               , | :text
                           recur acc left (str buffer |h) :text
