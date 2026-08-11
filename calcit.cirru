@@ -1322,16 +1322,16 @@
             defn escape-html (text)
               if (nil? text) | $ let
                   text1 $ unsafe-coerce
-                    .!replace (unsafe-coerce text 'JsObject) |& |&amp
+                    .!replace (unsafe-coerce text 'JsObject) |& |&amp;
                     , 'String
                   text2 $ unsafe-coerce
-                    .!replace (unsafe-coerce text1 'JsObject) |< |&lt
+                    .!replace (unsafe-coerce text1 'JsObject) |< |&lt;
                     , 'String
                   text3 $ unsafe-coerce
-                    .!replace (unsafe-coerce text2 'JsObject) |> |&gt
+                    .!replace (unsafe-coerce text2 'JsObject) |> |&gt;
                     , 'String
                 unsafe-coerce
-                  .!replace (unsafe-coerce text3 'JsObject) "|\"" |&quot
+                  .!replace (unsafe-coerce text3 'JsObject) "|\"" |&quot;
                   , 'String
           :examples $ []
           :schema $ :: 'Fn
@@ -1388,8 +1388,8 @@
                 let
                     rows $ split source |\\
                     delimiters $ matrix-environment-delimiters name
-                    open-html $ get delimiters 0
-                    close-html $ get delimiters 1
+                    open-html $ option:unwrap-or (get delimiters 0) |
+                    close-html $ option:unwrap-or (get delimiters 1) |
                     table-html $ str |<mtable>
                       join-str (map rows render-math-matrix-row) |
                       , |</mtable>
@@ -1405,6 +1405,10 @@
           :schema $ :: 'Fn
             {} (:return 'Dynamic)
               :args $ [] 'String
+          :tests $ []
+            %{} 'TestEntry (:name |recognizes-plus)
+              :code $ quote
+                assert= true $ math-operator-char? |+
         |math-operator-command? $ %{} 'CodeEntry (:doc "|Recognizes LaTeX command names that represent operator/relation symbols (arrows, relations) and should render as MathML <mo> nodes rather than <mi> identifiers.")
           :code $ quote
             defn math-operator-command? (name)
@@ -1488,7 +1492,7 @@
             defn parse-math-atom (line)
               if (= | line) ([] || line)
                 let
-                    cursor $ first line
+                    cursor $ option:unwrap (first line)
                     left $ &str:slice line 1
                   cond
                       = cursor "| "
@@ -1606,7 +1610,7 @@
             defn parse-math-raw-group (line)
               if
                 or (= | line)
-                  not= |{ $ first line
+                  not= |{ $ option:unwrap (first line)
                 [] nil line
                 let
                     end-index $ &str:find-index line |}
@@ -1640,7 +1644,7 @@
             defn parse-math-row-iter (line stop-char acc)
               if (= | line) ([] acc line)
                 let
-                    cursor $ first line
+                    cursor $ option:unwrap (first line)
                   if
                     and (some? stop-char) (= cursor stop-char)
                     [] acc line
@@ -1652,7 +1656,9 @@
           :code $ quote
             defn parse-math-script (base line)
               if (= | line) ([] base line)
-                case-default (first line) ([] base line)
+                case-default
+                  option:unwrap $ first line
+                  [] base line
                   |^ $ let[] (sup rest1)
                     parse-math-arg $ &str:slice line 1
                     if
@@ -1736,7 +1742,9 @@
                     map cells $ fn (cell)
                       let
                           parsed $ parse-math-row cell nil
-                        str |<mtd><mrow> (first parsed) |</mrow></mtd>
+                        str |<mtd><mrow>
+                          option:unwrap $ first parsed
+                          , |</mrow></mtd>
                     , |
                   , |</mtr>
           :examples $ []
