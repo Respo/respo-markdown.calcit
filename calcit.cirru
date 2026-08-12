@@ -15,7 +15,7 @@
       :defs $ {}
         |DemoState $ %{} 'CodeEntry (:doc "|Typed state kept outside the VDOM tree for the Markdown demo.")
           :code $ quote
-            defstruct DemoState (:draft :string) (:text :string) (:parse-result :dynamic)
+            defstruct DemoState (:draft 'String) (:text 'String) (:parse-result 'Dynamic)
           :examples $ []
           :schema $ :: 'Dynamic
         |comp-container $ %{} 'CodeEntry (:doc |)
@@ -754,12 +754,12 @@
       :defs $ {}
         |ParseMode $ %{} 'CodeEntry (:doc "|Describes how a parser result was produced.")
           :code $ quote
-            def ParseMode $ defenum ParseMode (:full) (:incremental :number :number) (:fallback)
+            def ParseMode $ defenum ParseMode (:full) (:incremental 'Number 'Number) (:fallback)
           :examples $ []
           :schema $ :: 'Dynamic
         |ParserResult $ %{} 'CodeEntry (:doc "|Typed public result shared by the incremental parser and Markdown components.")
           :code $ quote
-            defstruct ParserResult (:blocks :list) (:reused-blocks :number) (:reparsed-blocks :number) (:scanned-lines :number) (:incremental? :bool) (:mode :dynamic)
+            defstruct ParserResult (:blocks 'List) (:reused-blocks 'Number) (:reparsed-blocks 'Number) (:scanned-lines 'Number) (:incremental? 'Bool) (:mode 'Dynamic)
           :examples $ []
           :schema $ :: 'Dynamic
         |append-blocks $ %{} 'CodeEntry (:doc "|Appends parsed blocks without rebuilding the reused prefix.")
