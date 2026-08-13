@@ -177,3 +177,24 @@ node mathml-smoke.mjs
 ### License
 
 MIT
+## Calcit 0.13.15
+
+The project now uses Calcit 0.13.15 and the current Respo runtime modules.
+The canonical `calcit.cirru` snapshot is the source of truth; generated
+`js-out/` files are disposable and must be regenerated before bundling.
+
+Validation commands used by CI:
+
+```bash
+caps --ci
+yarn install --immutable
+yarn test:mathml
+yarn test:incremental
+yarn check:deprecated
+cr calcit.cirru --check-only
+cr calcit.cirru js
+yarn vite build --base=./
+```
+
+The parser's open data boundary remains intentionally Dynamic while the
+incremental parser and MathML output are covered by executable smoke tests.
