@@ -33,8 +33,14 @@ jobs:
       - name: Run incremental parser benchmark
         run: yarn test:incremental
 
+      - name: Check deprecated APIs
+        run: yarn check:deprecated
+
+      - name: Check Calcit snapshot
+        run: cr calcit.cirru --check-only
+
       - name: Compile and build site
-        run: cr js && yarn vite build --base=./
+        run: cr calcit.cirru js && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy
