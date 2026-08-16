@@ -75,12 +75,14 @@
                           :parse-result $ respo-md.schema/read-field state :parse-result
                   =< nil 200
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'respo.schema/Component)
+              :args $ [] 'Dynamic 'Dynamic
         |initial-state $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def initial-state $ %{} DemoState ([] :draft |) ([] :text |) ([] :parse-result nil)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote
           ns respo-md.comp.container $ :require
@@ -234,7 +236,9 @@
                         (:math lines) (comp-math-block lines)
                         (:table lines) (comp-table-block lines)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'respo.schema/Component)
+              :args $ [] 'String 'Map
         |comp-table-block $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn comp-table-block (lines)
@@ -431,7 +435,7 @@
         |dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote (def dev? true)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
         |site $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def site $ {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/respo-markdown/) (:title |Markdown) (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |respo-markdown)
@@ -455,7 +459,9 @@
                     _ $ do (eprintln "|unknown op:" op) @*store
                 reset! *store next-store
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ [] 'Dynamic
         |highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn highligher (code lang) (js/console.warn "|highligher not ready") (str |<code> code |</code>)
@@ -487,7 +493,7 @@
           :code $ quote
             def mount-target $ js/document.querySelector |.app
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'String
         |persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! ()
@@ -507,12 +513,16 @@
                 hud! |ok~ |Ok
               hud! |error build-errors
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ []
         |render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn render-app! () $ render! mount-target (comp-container @*store highligher) dispatch!
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ []
         |ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote
             def ssr? $ js-present? (js/document.querySelector |meta.respo-ssr)
@@ -646,7 +656,7 @@
             def store $ {}
               :states $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Map
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote (ns respo-md.schema)
     |respo-md.test $ %{} 'FileEntry
