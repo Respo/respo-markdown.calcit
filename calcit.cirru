@@ -1,13 +1,16 @@
 
-{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md) (:version |0.4.22)
+{} (:about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `cr query` to inspect and `cr edit`/`cr tree` to modify. Run `cr docs agents --full` first. Manual edits must follow format and schema conventions, then run `cr edit format`.") (:package |respo-md)
   :entries $ {}
     :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :native) (:reload-fn 'respo-md.main/reload!)
-      :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru
+      :feature-policy $ {}
+      :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
       :type-slots $ {}
     :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :native) (:reload-fn 'respo-md.perf-test/main!)
+      :feature-policy $ {}
       :modules $ []
       :type-slots $ {}
     :smoke-test $ {} (:description |) (:init-fn 'respo-md.test/main!) (:mode :native) (:reload-fn 'respo-md.test/main!)
+      :feature-policy $ {}
       :modules $ []
       :type-slots $ {}
   :files $ {}
@@ -17,7 +20,7 @@
           :code $ quote
             defstruct DemoState (:draft 'String) (:text 'String) (:parse-result 'Dynamic)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Enum
         |comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-container (store highlighter)
@@ -771,7 +774,7 @@
           :code $ quote
             defstruct ParserResult (:blocks 'List) (:reused-blocks 'Number) (:reparsed-blocks 'Number) (:scanned-lines 'Number) (:incremental? 'Bool) (:mode 'Dynamic)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Enum
         |append-blocks $ %{} 'CodeEntry (:doc "|Appends parsed blocks without rebuilding the reused prefix.")
           :code $ quote
             defn append-blocks (acc blocks)
