@@ -14,7 +14,9 @@ jobs:
         with:
           node-version: 24
 
-      - uses: calcit-lang/setup-cr@0.0.9
+      - uses: calcit-lang/setup-calcit@v1
+        with:
+          tools: calcit,caps
 
       - name: Enable Corepack
         run: |
@@ -37,20 +39,20 @@ jobs:
         run: yarn check:deprecated
 
       - name: Check Calcit snapshot
-        run: cr calcit.cirru --check-only
+        run: calcit calcit.cirru --check-only
 
       - name: Validate Calcit type baseline
         run: |
-          cr calcit.cirru edit format
+          calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           mkdir -p .calcit
-          cr calcit.cirru analyze check-types --summary-only --format json > .calcit/check-types.json
-          cr calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic,code-nil --intent unresolved,declared-optional --summary-only --format json > .calcit/weak-types.json
-          cr calcit.cirru analyze deprecated --summary-only --format json > .calcit/deprecated.json
+          calcit calcit.cirru analyze check-types --summary-only --format json > .calcit/check-types.json
+          calcit calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic,code-nil --intent unresolved,declared-optional --summary-only --format json > .calcit/weak-types.json
+          calcit calcit.cirru analyze deprecated --summary-only --format json > .calcit/deprecated.json
           node scripts/check-calcit-upgrade-baseline.mjs
 
       - name: Compile and build site
-        run: cr calcit.cirru js && yarn vite build --base=./
+        run: calcit calcit.cirru js && yarn vite build --base=./
 
       - name: Deploy to server
         id: deploy

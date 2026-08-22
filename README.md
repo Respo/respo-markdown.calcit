@@ -62,7 +62,7 @@ let
 let
     comp-md $ fn (source)
       [] source
-    text "|Use `cr docs read` for quick lookup, and **pin** important sections."
+    text "|Use `calcit docs read` for quick lookup, and **pin** important sections."
   comp-md text
 ```
 
@@ -149,7 +149,7 @@ To run the same checks used by CI:
 yarn install --immutable
 yarn test:mathml
 yarn test:incremental
-cr js
+calcit js
 yarn vite build --base=./
 ```
 
@@ -170,7 +170,7 @@ https://github.com/calcit-lang/respo-calcit-workflow
 After recompiling the snapshot, run the lightweight MathML smoke test:
 
 ```bash
-cr js
+calcit js
 node mathml-smoke.mjs
 ```
 
@@ -191,8 +191,8 @@ yarn install --immutable
 yarn test:mathml
 yarn test:incremental
 yarn check:deprecated
-cr calcit.cirru --check-only
-cr calcit.cirru js
+calcit calcit.cirru --check-only
+calcit calcit.cirru js
 yarn vite build --base=./
 ```
 
