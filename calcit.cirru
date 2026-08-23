@@ -678,7 +678,7 @@
           :schema $ :: 'Dynamic
         |main! $ %{} 'CodeEntry (:doc |)
           :code $ quote
-            defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (println "|All math tests passed.")
+            defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (test-inline-non-string!) (println "|All math tests passed.")
           :examples $ []
           :schema $ :: 'Dynamic
         |test-escape-html! $ %{} 'CodeEntry (:doc |)
@@ -689,6 +689,15 @@
               assert= |&gt; $ escape-html |>
               assert= | $ escape-html |
               println "|test-escape-html! done"
+          :examples $ []
+          :schema $ :: 'Dynamic
+        |test-inline-non-string! $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn test-inline-non-string! () $ let
+                foreign-value $ js-object (:message |unexpected)
+                actual $ split-line foreign-value
+              assert= ([]) actual
+              println "|test-inline-non-string! done"
           :examples $ []
           :schema $ :: 'Dynamic
         |test-mathml-markup! $ %{} 'CodeEntry (:doc |)
@@ -763,6 +772,7 @@
         :code $ quote
           ns respo-md.test $ :require
             respo-md.util.math :refer $ escape-html normalize-math-source mathml-markup
+            respo-md.util.core :refer $ split-line
     |respo-md.util.core $ %{} 'FileEntry
       :defs $ {}
         |ParseMode $ %{} 'CodeEntry (:doc "|Describes how a parser result was produced.")
@@ -1225,7 +1235,9 @@
         |split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn split-line (line)
-              split-line-iter ([]) line | :text
+              if (string? line)
+                split-line-iter ([]) line | :text
+                do (js/console.warn "|respo-markdown: ignored non-string inline Markdown") ([])
           :examples $ []
           :schema $ :: 'Dynamic
         |split-line-iter $ %{} 'CodeEntry (:doc |)
