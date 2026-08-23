@@ -699,7 +699,10 @@
               assert= ([]) actual
               println "|test-inline-non-string! done"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn
+            {} (:return 'Unit)
+              :args $ []
+              :features $ #{} :js-ffi
         |test-mathml-markup! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn test-mathml-markup! ()
