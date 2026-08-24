@@ -246,7 +246,7 @@
           :code $ quote
             defn comp-table-block (lines)
               let
-                  header-line $ first lines
+                  header-line $ option:unwrap-or (first lines) []
                   body-lines $ let
                       p0 $ option:unwrap-or
                         get
