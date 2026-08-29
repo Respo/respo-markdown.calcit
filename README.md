@@ -161,6 +161,16 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 - Prefer `comp-md` for text fragments inside buttons/cards/tooltips.
 - Keep code fences language tags (`js`, `bash`, `cirru`) so highlighter can work correctly.
 
+### Dependency boundary
+
+Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
+back on Markdown, so the package graph stays acyclic and stable releases can be
+validated with `caps --strict --ci`.
+
+Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
+该单向边界保持依赖图无环，使稳定 release 可以通过 `caps --strict --ci`
+验证。
+
 ### Workflow
 
 https://github.com/calcit-lang/respo-calcit-workflow
@@ -177,16 +187,16 @@ node mathml-smoke.mjs
 ### License
 
 MIT
-## Calcit 0.13.15
+## Calcit 0.13.63
 
-The project now uses Calcit 0.13.15 and the current Respo runtime modules.
+The project now uses Calcit 0.13.63 and the current Respo runtime modules.
 The canonical `calcit.cirru` snapshot is the source of truth; generated
 `js-out/` files are disposable and must be regenerated before bundling.
 
 Validation commands used by CI:
 
 ```bash
-caps --ci
+caps --strict --ci
 yarn install --immutable
 yarn test:mathml
 yarn test:incremental
