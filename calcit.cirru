@@ -113,7 +113,11 @@
                   indentation $ if indented
                     .join-str (repeat "| " indented) |
                     , |
-                  lang $ first lines
+                  lang $ let
+                      raw-lang $
+                        first lines
+                        , .unwrap-or |
+                    if (string? raw-lang) raw-lang |
                   content $ -> (rest lines)
                     map $ fn (line) (.strip-prefix line indentation)
                     join-str &newline
@@ -479,7 +483,9 @@
               add-watch *store :changes $ fn (store prev) (render-app!)
               js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
               js/window.addEventListener |visibilitychange $ fn (event)
-                if (= |hidden js/document.visibilityState) (persist-storage!)
+                if
+                  = |hidden $ unsafe-coerce js/document.visibilityState 'String
+                  persist-storage!
               flipped js/setInterval 60000 persist-storage!
               let
                   raw $ js/localStorage.getItem (respo-md.schema/read-field config/site :storage-key)
