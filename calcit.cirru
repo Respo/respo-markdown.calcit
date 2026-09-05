@@ -1087,7 +1087,7 @@
                       = false $ ends-with? old-text "|\n\n"
                       not $ nil? last-block
                       =
-                        option:unwrap-or (first last-block) nil
+                        option:unwrap-or (first last-block) :unknown
                         , :text
                     let
                         prefix-blocks $ .slice old-blocks 0 (dec block-count)
@@ -1108,7 +1108,7 @@
                         and (> block-count 0)
                           = false $ ends-with? old-text "|\n\n"
                           = false $ =
-                            option:unwrap-or (first last-block) nil
+                            option:unwrap-or (first last-block) :unknown
                             , :text
                         let
                             full-blocks $ split-block new-text
