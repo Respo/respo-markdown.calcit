@@ -581,12 +581,12 @@
               assert-perf |typed-incremental-mode $ =
                 option:unwrap-or
                   first $ respo-md.schema/read-field incremental :mode
-                  , nil
+                  , :unknown
                 , :incremental
               assert-perf |typed-full-mode $ =
                 option:unwrap-or
                   first $ respo-md.schema/read-field full-result :mode
-                  , nil
+                  , :unknown
                 , :full
               assert-perf |same-block-output $ =
                 count $ respo-md.schema/read-field full-result :blocks
