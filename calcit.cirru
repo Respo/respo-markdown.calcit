@@ -237,11 +237,13 @@
         'comp-md $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defcomp comp-md (text options)
-              let
-                  inner $ respo.core/memo-value-by text render-inline text
-                div
-                  {} $ :class-name (&map:get options :class-name)
-                  , assert-type inner Struct
+              assert-type
+                let
+                    inner $ respo.core/memo-value-by text render-inline text
+                  div
+                    {} $ :class-name (&map:get options :class-name)
+                    , inner
+                , Struct
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'respo.schema/Component)
@@ -271,18 +273,18 @@
           :code $ quote
             defn comp-table-block (lines)
               let
-                  header-line $ respo-md.util.core/unwrap-or (&list:first lines) []
+                  header-line $ respo-md.util.core/coalesce (&list:first lines) []
                   body-lines $ let
                       p0 $ respo-md.util.core/unwrap-or
                         get
-                          respo-md.util.core/unwrap-or (&list:nth lines 1) ([])
+                          respo-md.util.core/coalesce (&list:nth lines 1) ([])
                           , 0
                         , nil
                     if
                       and (some? p0)
                         or (starts-with? p0 |:-) (starts-with? p0 |--)
-                      &str:slice lines 2
-                      &str:slice lines 1
+                      &list:slice lines 2 $ count lines
+                      &list:slice lines 1 $ count lines
                 create-element :table
                   {} $ :class-name style-md-table
                   create-element :thead ({})
@@ -493,12 +495,7 @@
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn dispatch! (op)
-              let
-                  next-store $ match op
-                    (:states cursor s) (update-states @*store cursor s)
-                    (:hydrate-storage s) s
-                    _ $ do (eprintln "|unknown op:" op) @*store
-                reset! *store next-store
+              reset! *store $ next-store-of op
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Unit)
@@ -543,6 +540,18 @@
             {} (:return 'Dynamic)
               :args $ []
               :features $ #{} :js-ffi
+        'next-store-of $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn next-store-of (op)
+              match op
+                (:states cursor s) (update-states @*store cursor s)
+                (:hydrate-storage s) s
+                _ $ do (eprintln "|unknown op:" op) @*store
+          :examples $ []
+          :schema $ :: 'Fn
+            {}
+              :args $ [] 'Enum
+              :return $ :: 'Map 'Dynamic 'Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn persist-storage! ()
@@ -859,7 +868,7 @@
           :code $ quote
             defn append-blocks (acc blocks)
               if (empty? blocks) acc $ recur
-                &list:append acc $ respo-md.util.core/unwrap-option (&list:first blocks)
+                &list:append acc $ &list:first blocks
                 &list:rest blocks
           :examples $ []
           :schema $ :: 'Fn
@@ -870,6 +879,14 @@
               :code $ quote
                 assert= ([] 1 2)
                   append-blocks ([] 1) ([] 2)
+        'coalesce $ %{} 'CodeEntry (:doc |)
+          :code $ quote
+            defn coalesce (a b)
+              if (nil? a) b a
+          :examples $ []
+          :schema $ :: 'Fn
+            {} (:return 'Dynamic)
+              :args $ [] 'Dynamic 'Dynamic
         'get0 $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn get0 (xs)
@@ -922,7 +939,7 @@
             defn handle-inline-star (left)
               if (ignore-inline-star? left) ([] :literal nil nil)
                 if
-                  = |* $ respo-md.util.core/unwrap-or (&list:first left) |
+                  = |* $ respo-md.util.core/coalesce (&str:first left) |
                   let
                       next-left $ &str:slice left 1
                       matched $ .!match next-left peek-emphasis
@@ -951,7 +968,7 @@
           :code $ quote
             defn ignore-inline-star? (left)
               if (&= left |) true $ =
-                respo-md.util.core/unwrap-or (&list:first left) |
+                respo-md.util.core/coalesce (&str:first left) |
                 , "| "
           :examples $ []
           :schema $ :: 'Fn
@@ -1191,21 +1208,17 @@
                     appended $ &str:slice new-text (count old-text)
                     appended-lines $ split-lines appended
                     block-count $ count old-blocks
-                    last-block $ if (> block-count 0)
-                      respo-md.util.core/unwrap-or
-                        first $ &list:slice old-blocks (dec block-count)
-                        , nil
-                      , nil
+                    last-block $ if (> block-count 0) (&list:last old-blocks) nil
                   if
                     and
                       = false $ ends-with? old-text "|\n\n"
                       not $ nil? last-block
                       =
-                        respo-md.util.core/unwrap-or (&list:first last-block) :unknown
+                        respo-md.util.core/coalesce (&enum:nth last-block 0) :unknown
                         , :text
                     let
                         prefix-blocks $ &list:slice old-blocks 0 (dec block-count)
-                        last-lines $ respo-md.util.core/unwrap-or (&list:nth last-block 1) []
+                        last-lines $ respo-md.util.core/unwrap-or (get last-block 1) []
                         tail-text $ if (ends-with? old-text "|\n")
                           str (join-str last-lines &newline) &newline appended
                           str (join-str last-lines &newline) appended
@@ -1222,7 +1235,7 @@
                         and (> block-count 0)
                           = false $ ends-with? old-text "|\n\n"
                           = false $ =
-                            respo-md.util.core/unwrap-or (&list:first last-block) :unknown
+                            respo-md.util.core/coalesce (&enum:nth last-block 0) :unknown
                             , :text
                         let
                             full-blocks $ split-block new-text
@@ -1252,7 +1265,7 @@
               if (empty? lines)
                 if (empty? buffer) acc $ &list:append acc (:: mode buffer)
                 let
-                    cursor $ respo-md.util.core/unwrap-option (&list:first lines)
+                    cursor $ assert-type (&list:first lines) String
                     left $ &list:rest lines
                   case-default mode
                     raise $ str "|Strange splitting mode: " mode
@@ -1362,20 +1375,23 @@
           :code $ quote
             defn split-line (line)
               if (string? line)
-                split-line-iter ([]) line | :text
+                assert-type
+                  split-line-iter ([]) line | :text
+                  :: 'List 'Dynamic
                 do (js/console.warn "|respo-markdown: ignored non-string inline Markdown") ([])
           :examples $ []
           :schema $ :: 'Fn
-            {} (:return 'Dynamic)
+            {}
               :args $ [] 'Dynamic
               :features $ #{} :js-ffi
+              :return $ :: 'List 'Dynamic
         'split-line-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn split-line-iter (acc line buffer mode)
               if (&= | line)
                 if (&= | buffer) acc $ &list:append acc (:: mode buffer)
                 let
-                    cursor $ respo-md.util.core/unwrap-option (&list:first line)
+                    cursor $ assert-type (&str:first line) String
                     left $ &str:slice line 1
                   case-default mode
                     raise $ str "|Unknown mode:" mode
@@ -1409,7 +1425,7 @@
                             recur
                               conj
                                 if (&= | buffer) acc $ &list:append acc (:: :text buffer)
-                                :: :url $ respo-md.util.core/unwrap-option (&list:first pieces)
+                                :: :url $ &list:first pieces
                               str "| " $ join-str (&list:rest pieces) "| "
                               , | :text
                           recur acc left (str buffer |h) :text
@@ -1438,12 +1454,16 @@
                             recur acc left (str buffer |*) :text
                             :literal $ recur acc left (str buffer |*) :text
                             :emphasis $ recur
-                              &list:append acc (:: :text buffer) (:: :emphasis content)
+                              &list:append
+                                &list:append acc $ :: :text buffer
+                                :: :emphasis content
                               , rest-line | :text
                             :italic $ recur
-                              &list:append acc (:: :text buffer) (:: :italic content)
+                              &list:append
+                                &list:append acc $ :: :text buffer
+                                :: :italic content
                               , rest-line | :text
-                    :code $ if (&&= cursor "|`")
+                    :code $ if (&= cursor "|`")
                       recur
                         &list:append acc $ :: :code buffer
                         , left | :text
@@ -1481,7 +1501,7 @@
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Dynamic)
-              :args $ [] (:: 'Option 'Dynamic)
+              :args $ [] 'Dynamic
         'unwrap-or $ %{} 'CodeEntry (:doc |)
           :code $ quote
             defn unwrap-or (o d)
@@ -1489,7 +1509,7 @@
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Dynamic)
-              :args $ [] (:: 'Option 'Dynamic) 'Dynamic
+              :args $ [] 'Dynamic 'Dynamic
         'update-draft-state $ %{} 'CodeEntry (:doc "|Updates the textarea draft and parser result as one state transition.")
           :code $ quote
             defn update-draft-state (state next-draft)
@@ -1588,8 +1608,8 @@
                 let
                     rows $ split source |\\
                     delimiters $ matrix-environment-delimiters name
-                    open-html $ respo-md.util.core/unwrap-or (&list:nth delimiters 0) |
-                    close-html $ respo-md.util.core/unwrap-or (&list:nth delimiters 1) |
+                    open-html $ respo-md.util.core/coalesce (&list:nth delimiters 0) |
+                    close-html $ respo-md.util.core/coalesce (&list:nth delimiters 1) |
                     table-html $ str |<mtable>
                       join-str (map rows render-math-matrix-row) |
                       , |</mtable>
@@ -1603,7 +1623,7 @@
         'math-operator-char? $ %{} 'CodeEntry (:doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes.")
           :code $ quote
             defn math-operator-char? (cursor)
-              or (&&= cursor |+) (&&= cursor |-) (&&= cursor |=) (&&= cursor "|(") (&&= cursor "|)") (&&= cursor |[) (&&= cursor |]) (&&= cursor |,) (&&= cursor |/) (&&= cursor |:)
+              or (&= cursor |+) (&= cursor |-) (&= cursor |=) (&= cursor "|(") (&= cursor "|)") (&= cursor |[) (&= cursor |]) (&= cursor |,) (&= cursor |/) (&= cursor |:)
           :examples $ []
           :schema $ :: 'Fn
             {} (:return 'Dynamic)
@@ -1696,7 +1716,7 @@
               if (&= | line) ([] |<mrow></mrow> line)
                 if
                   =
-                    respo-md.util.core/unwrap-or (&list:first line) |
+                    respo-md.util.core/coalesce (&str:first line) |
                     , |{
                   let[] (body rest-line)
                     parse-math-row (&str:slice line 1) |}
@@ -1713,17 +1733,17 @@
             defn parse-math-atom (line)
               if (&= | line) ([] || line)
                 let
-                    cursor $ respo-md.util.core/unwrap-option (&list:first line)
+                    cursor $ assert-type (&str:first line) String
                     left $ &str:slice line 1
                   cond
                       &= cursor "| "
                       parse-math-atom left
-                    (&&= cursor |{)
+                    (&= cursor |{)
                       let[] (body rest-line) (parse-math-row left |})
                         let
                             next-rest $ if (&= | rest-line) rest-line (&str:slice rest-line 1)
                           [] (str |<mrow> body |</mrow>) next-rest
-                    (&&= cursor |\) (parse-math-command left)
+                    (&= cursor |\) (parse-math-command left)
                     (js-present? (.!match line peek-number))
                       let
                           matched $ .!match line peek-number
@@ -1732,7 +1752,7 @@
                         []
                           str |<mn> (escape-html content) |</mn>
                           , next-rest
-                    (&&= cursor |') ([] "|<mo>′</mo>" left)
+                    (&= cursor |') ([] "|<mo>′</mo>" left)
                     (math-operator-char? cursor)
                       [] (math-delimiter-html cursor) left
                     true $ []
@@ -1782,11 +1802,11 @@
                       [] (str "|<mover><mo>←</mo>" upper |</mover>) rest1
                     |left $ if (&= | rest-line) ([] || rest-line)
                       []
-                        math-delimiter-html $ respo-md.util.core/unwrap-or (&list:first rest-line) |
+                        math-delimiter-html $ respo-md.util.core/coalesce (&str:first rest-line) |
                         &str:slice rest-line 1
                     |right $ if (&= | rest-line) ([] || rest-line)
                       []
-                        math-delimiter-html $ respo-md.util.core/unwrap-or (&list:first rest-line) |
+                        math-delimiter-html $ respo-md.util.core/coalesce (&str:first rest-line) |
                         &str:slice rest-line 1
                     |sqrt $ let[] (index-html rest0) (parse-math-root-index rest-line)
                       let[] (content rest1) (parse-math-arg rest0)
@@ -1795,11 +1815,11 @@
                           , rest1
                   if (&= | rest-line) ([] || rest-line)
                     if
-                      = |, $ respo-md.util.core/unwrap-or (&list:first rest-line) |
+                      = |, $ respo-md.util.core/coalesce (&str:first rest-line) |
                       [] |<mspace></mspace> $ &str:slice rest-line 1
                       []
                         str |<mo>\\</mo><mi>
-                          escape-html $ respo-md.util.core/unwrap-or (&list:first rest-line) |
+                          escape-html $ respo-md.util.core/coalesce (&str:first rest-line) |
                           , |</mi>
                         &str:slice rest-line 1
           :examples $ []
@@ -1843,8 +1863,7 @@
             defn parse-math-raw-group (line)
               if
                 or (&= | line)
-                  not $ &= |{
-                    respo-md.util.core/unwrap-option $ &list:first line
+                  not $ &= |{ (&str:first line)
                 [] nil line
                 let
                     end-index $ &str:find-index line |}
@@ -1863,7 +1882,7 @@
               if
                 and
                   not $ &= | line
-                  = |[ $ respo-md.util.core/unwrap-or (&list:first line) |
+                  = |[ $ respo-md.util.core/coalesce (&str:first line) |
                 let[] (body rest-line)
                   parse-math-row (&str:slice line 1) |]
                   [] body $ if (&= | rest-line) rest-line (&str:slice rest-line 1)
@@ -1885,9 +1904,9 @@
             defn parse-math-row-iter (line stop-char acc)
               if (&= | line) ([] acc line)
                 let
-                    cursor $ respo-md.util.core/unwrap-option (&list:first line)
+                    cursor $ assert-type (&str:first line) String
                   if
-                    and (some? stop-char) (&&= cursor stop-char)
+                    and (some? stop-char) (&= cursor stop-char)
                     [] acc line
                     let[] (unit-html rest-line) (parse-math-unit line)
                       recur rest-line stop-char $ str acc unit-html
@@ -1909,7 +1928,7 @@
                       and
                         not $ &= | rest1
                         =
-                          respo-md.util.core/unwrap-or (&list:first rest1) |
+                          respo-md.util.core/coalesce (&str:first rest1) |
                           , |_
                       let[] (sub rest2)
                         parse-math-arg $ &str:slice rest1 1
@@ -1921,7 +1940,7 @@
                       and
                         not $ &= | rest1
                         =
-                          respo-md.util.core/unwrap-or (&list:first rest1) |
+                          respo-md.util.core/coalesce (&str:first rest1) |
                           , |^
                       let[] (sup rest2)
                         parse-math-arg $ &str:slice rest1 1
