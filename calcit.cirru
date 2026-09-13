@@ -132,7 +132,7 @@
                 lines $ if (number? peek) (&list:rest indented-lines) indented-lines
                 indented $ if (number? peek) (&list:first indented-lines) 0
                 indentation $ if indented
-                  join-str (repeat "| " indented) |
+                  respo-md.util.core/join-strings-dynamic (repeat "| " indented) |
                   , |
                 lang $ let
                     raw-lang $
@@ -144,7 +144,7 @@
                     if (starts-with? line indentation)
                       &str:slice line $ count indentation
                       , line
-                  join-str &newline
+                  respo-md.util.core/join-strings-dynamic &newline
                 highlight-fn $ either
                   respo-md.schema/read-field options :highlight
                   fn (x & l) x
@@ -238,7 +238,9 @@
           :doc "|Renders a block-level math fragment as native MathML inside a styled container."
           :code $ quote $ defcomp comp-math-block (lines)
             div $ {} (:class-name style-math-block)
-              :innerHTML $ mathml-markup (join-str lines &newline) true
+              :innerHTML $ mathml-markup
+                respo-md.util.core/join-strings-dynamic lines &newline
+                , true
           :examples $ []
           :schema $ :: 'Fn $ {}
             :return 'respo.schema/Component
@@ -960,6 +962,18 @@
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic
             :features $ #{} :js-ffi
+        'join-strings-dynamic $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn join-strings-dynamic (xs sep)
+            if (empty? xs) | $ let
+                n $ &list:count xs
+              loop
+                  i 1
+                  acc $ &list:nth xs 0
+                if (>= i n) acc $ recur (inc i)
+                  str acc sep $ &list:nth xs i
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'Dynamic 'String
         'make-parser-result $ %{} 'CodeEntry
           :doc "|Converts an internal scan result into the typed parser result."
           :code $ quote $ defn make-parser-result (raw mode)
@@ -1171,8 +1185,12 @@
                       prefix-blocks $ &list:slice old-blocks 0 $ dec block-count
                       last-lines $ respo-md.util.core/unwrap-or (get last-block 1) []
                       tail-text $ if (ends-with? old-text "|\n")
-                        str (join-str last-lines &newline) &newline appended
-                        str (join-str last-lines &newline) appended
+                        str
+                          respo-md.util.core/join-strings-dynamic last-lines &newline
+                          , &newline appended
+                        str
+                          respo-md.util.core/join-strings-dynamic last-lines &newline
+                          , appended
                       next-blocks $ split-block tail-text
                     {}
                       :blocks $ append-blocks prefix-blocks next-blocks
@@ -1376,7 +1394,7 @@
                             conj
                               if (&= | buffer) acc $ &list:append acc $ :: :text buffer
                               :: :url $ &list:first pieces
-                            str "| " $ join-str (&list:rest pieces) "| "
+                            str "| " $ respo-md.util.core/join-strings-dynamic (&list:rest pieces) "| "
                             , | :text
                         recur acc left (str buffer |h) :text
                       |[ $ let
@@ -1442,13 +1460,17 @@
             :features $ #{} :js-ffi
         'unwrap-option $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-option (o)
-            if (option:some? o) (&enum:nth o 1) (raise "|unexpected none")
+            match o
+              (:some x) x
+              (:none) (raise "|unexpected none")
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic
         'unwrap-or $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-or (o d)
-            if (option:some? o) (&enum:nth o 1) d
+            match o
+              (:some x) x
+              (:none) d
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Dynamic
@@ -1546,7 +1568,7 @@
                   open-html $ respo-md.util.core/coalesce (&list:nth delimiters 0) |
                   close-html $ respo-md.util.core/coalesce (&list:nth delimiters 1) |
                   table-html $ str |<mtable>
-                    join-str
+                    respo-md.util.core/join-strings-dynamic
                       map rows render-math-matrix-row
                       , |
                     , |</mtable>
@@ -1638,7 +1660,7 @@
           :code $ quote $ defn normalize-math-source (source)
             -> source (split-lines)
               map $ fn (line) (trim line)
-              join-str |
+              respo-md.util.core/join-strings-dynamic |
               trim
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
@@ -2022,7 +2044,7 @@
             let
                 cells $ split source |&
               str |<mtr>
-                join-str
+                respo-md.util.core/join-strings-dynamic
                   map cells $ fn (cell)
                     let
                         parsed $ parse-math-row cell nil
