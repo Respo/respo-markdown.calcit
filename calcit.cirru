@@ -923,14 +923,22 @@
                 acc $ []
               if
                 >= i $ &list:count xs
-                acc
-                recur (inc i)
+                , acc $ recur (inc i)
                   &list:append acc $ f i $ &list:nth xs i
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic $ :: 'Fn
               {} (:return 'Dynamic)
                 :args $ [] 'Number 'Dynamic
+          :tests $ [] $ %{} 'TestEntry (:name |returns-accumulated-list)
+            :code $ quote $ do
+              is $ = 0 $ count
+                map-indexed-dynamic ([])
+                  fn (idx item) ([] idx item)
+              is $ = 2 $ count
+                map-indexed-dynamic ([] |a |b)
+                  fn (idx item) ([] idx item)
+            :tags $ #{} :regression :unit
         'math-block-close-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-close-content (line)
             let
@@ -1396,7 +1404,8 @@
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'String
       :ns $ %{} 'NsEntry (:doc |)
-        :code $ quote $ ns respo-md.util.core (:require)
+        :code $ quote $ ns respo-md.util.core
+          :require $ calcit.test :refer $ [] is
     'respo-md.util.math $ %{} 'FileEntry
       :defs $ {}
         'StringHost $ %{} 'CodeEntry (:doc |)
