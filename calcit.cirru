@@ -495,11 +495,11 @@
             :args $ []
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn mount-target () (js/document.querySelector |.app)
+          :code $ quote $ defn mount-target ()
+            option:unwrap $ query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
             :args $ []
-            :features $ #{} :js-ffi
         'next-store-of $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn next-store-of (op)
             match op
@@ -537,9 +537,9 @@
             :args $ []
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            js-present? $ js/document.querySelector |meta.respo-ssr
+            option:some? $ query-selector |meta.respo-ssr
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Bool
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.main
           :require
@@ -550,6 +550,7 @@
             respo-md.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
+            js-ffi.browser :refer $ [] query-selector
     'respo-md.perf-test $ %{} 'FileEntry
       :defs $ {}
         'assert-perf $ %{} 'CodeEntry (:doc |)
