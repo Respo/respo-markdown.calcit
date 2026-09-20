@@ -455,12 +455,6 @@
           :code $ quote $ defatom *store schema/store
           :examples $ []
           :schema $ :: 'Dynamic
-        'DateHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait DateHost
-            .toISOString $ :: 'Fn $ {} (:args []) (:return 'String)
-          :examples $ []
-          :ffi $ {} (:backend :js) (:kind :external-object)
-          :schema $ :: 'Trait
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             reset! *store $ next-store-of op
@@ -468,7 +462,7 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic
         'highligher $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn highligher (code lang) (js/console.warn "|highligher not ready") (str |<code> code |</code>)
+          :code $ quote $ defn highligher (code lang) (shared/console-warn! "|highligher not ready") (str |<code> code |</code>)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Dynamic
@@ -479,16 +473,20 @@
             if config/dev? $ load-console-formatter!
             render-app!
             add-watch *store :changes $ fn (store prev) (render-app!)
-            js/window.addEventListener |beforeunload $ fn (event) (persist-storage!)
-            js/window.addEventListener |visibilitychange $ fn (event)
-              if
-                = |hidden $ unsafe-coerce js/document.visibilityState 'String
-                persist-storage!
-            flipped js/setInterval 60000 persist-storage!
+            browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
+            browser/add-event-listener! |visibilitychange $ fn (event)
+              match (browser/visibility-state)
+                (:hidden) (persist-storage!)
+                _ &unit
+            browser/set-interval!
+              fn () $ persist-storage!
+              , 60000
             let
-                raw $ js/localStorage.getItem $ respo-md.schema/read-field config/site :storage-key
-              when (js-present? raw)
-                dispatch! $ :: :hydrate-storage $ parse-cirru-edn (unsafe-coerce raw 'String)
+                raw $ browser/storage-get $ respo-md.schema/read-field config/site :storage-key
+              match raw
+                (:some value)
+                  dispatch! $ :: :hydrate-storage $ parse-cirru-edn value
+                (:none) &unit
             println "|App started!"
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
@@ -496,7 +494,7 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
-            option:unwrap $ query-selector |.app
+            option:unwrap $ browser/query-selector |.app
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
             :args $ []
@@ -512,8 +510,8 @@
             :return $ :: 'Map 'Dynamic 'Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
-            println "|Saved at" $ .!toISOString $ unsafe-coerce (new js/Date) DateHost
-            js/localStorage.setItem (respo-md.schema/read-field config/site :storage-key) (format-cirru-edn @*store)
+            println "|Saved at" $ :iso $ shared/date-now-snapshot
+            browser/storage-set! (respo-md.schema/read-field config/site :storage-key) (format-cirru-edn @*store)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ []
@@ -550,7 +548,8 @@
             respo-md.config :as config
             |./calcit.build-errors :default build-errors
             |bottom-tip :default hud!
-            js-ffi.browser :refer $ [] query-selector
+            js-ffi.browser :as browser
+            js-ffi.shared :as shared
     'respo-md.perf-test $ %{} 'FileEntry
       :defs $ {}
         'assert-perf $ %{} 'CodeEntry (:doc |)
@@ -1408,28 +1407,14 @@
           :require $ calcit.test :refer $ [] is
     'respo-md.util.math $ %{} 'FileEntry
       :defs $ {}
-        'StringHost $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ deftrait StringHost
-            .replace $ :: 'Fn $ {} (:args [] 'String 'String) (:return 'String)
-          :examples $ []
-          :ffi $ {} (:backend :js) (:kind :external-object)
-          :schema $ :: 'Trait
         'escape-html $ %{} 'CodeEntry
           :doc "|Escapes the subset of HTML-sensitive characters that may appear in generated MathML text nodes."
           :code $ quote $ defn escape-html (text)
             if (nil? text) | $ let
-                text1 $ unsafe-coerce
-                  .!replace (unsafe-coerce text StringHost) |& |&amp;
-                  , 'String
-                text2 $ unsafe-coerce
-                  .!replace (unsafe-coerce text1 StringHost) |< |&lt;
-                  , 'String
-                text3 $ unsafe-coerce
-                  .!replace (unsafe-coerce text2 StringHost) |> |&gt;
-                  , 'String
-              unsafe-coerce
-                .!replace (unsafe-coerce text3 StringHost) "|\"" |&quot;
-                , 'String
+                text1 $ &str:replace text |& |&amp;
+                text2 $ &str:replace text1 |< |&lt;
+                text3 $ &str:replace text2 |> |&gt;
+              &str:replace text3 "|\"" |&quot;
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
             :args $ [] 'String
