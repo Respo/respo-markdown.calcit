@@ -535,7 +535,7 @@
             :args $ []
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            option:some? $ query-selector |meta.respo-ssr
+            option:some? $ browser/query-selector |meta.respo-ssr
           :examples $ []
           :schema $ :: 'Bool
       :ns $ %{} 'NsEntry (:doc |)

@@ -7,7 +7,7 @@
     "test:incremental": "calcit --entry perf-test js && node perf-test-main.mjs"
   },
   "dependencies": {
-    "@calcit/procs": "0.17.1",
+    "@calcit/procs": "0.18.1",
     "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.13"
@@ -16,5 +16,5 @@
     "bottom-tip": "^0.1.5",
     "vite": "^8.0.14"
   },
-  "version": "0.4.42"
+  "version": "0.4.43"
 }
