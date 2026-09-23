@@ -144,7 +144,8 @@
                   , code-block
                 , code-block
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] (:: 'List 'Dynamic) (:: 'Map 'Dynamic 'Dynamic)
         'comp-image $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-image (chunk)
             let
@@ -288,7 +289,8 @@
               , & $ -> lines $ map
                 fn (line) (respo.core/memo-comp-by line comp-line line)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
+            :args $ [] $ :: 'List 'String
         'render-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-inline (text)
             -> (split-line text)
