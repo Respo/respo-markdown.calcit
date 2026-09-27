@@ -111,7 +111,7 @@
             let
                 peek $ first indented-lines
                 lines $ if (number? peek) (&list:rest indented-lines) indented-lines
-                indented $ if (number? peek) (&list:first indented-lines) 0
+                indented $ if (number? peek) peek 0
                 indentation $ if indented
                   respo-md.util.core/join-strings-dynamic (repeat "| " indented) |
                   , |
