@@ -109,9 +109,14 @@
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
-                peek $ first indented-lines
-                lines $ if (number? peek) (&list:rest indented-lines) indented-lines
-                indented $ if (number? peek) peek 0
+                indent-option $ assert-type
+                  match (first indented-lines)
+                    (:none) (Option :none)
+                    (:some value)
+                      if (number? value) (Option :some value) (Option :none)
+                  :: 'Option 'Number
+                lines $ if (indent-option .some?) (&list:rest indented-lines) indented-lines
+                indented $ indent-option .unwrap-or 0
                 indentation $ if indented
                   respo-md.util.core/join-strings-dynamic (repeat "| " indented) |
                   , |
