@@ -187,11 +187,17 @@ node mathml-smoke.mjs
 ### License
 
 MIT
-## Calcit 0.13.63
+## Calcit 0.27.0
 
-The project now uses Calcit 0.13.63 and the current Respo runtime modules.
+The project uses Calcit / @calcit/procs 0.27.0, Node 24, Yarn 4.18.0 and Vite 8.3.1.
+Release 0.4.47 aligns the strict Respo graph with UI alpha.3 and js-ffi alpha.4.
+The browser APIs used here are present in alpha.4; the additional Canvas,
+Document and Node APIs in alpha.10 are not required by Markdown.
 The canonical `calcit.cirru` snapshot is the source of truth; generated
 `js-out/` files are disposable and must be regenerated before bundling.
+Only `calcit.cirru` and `deps.cirru` are canonical project files; CI rejects
+retired compact/package snapshots. COS uploads frontend `dist` only, with
+Action v1.1.1 public validation. Original server deployment paths are unchanged.
 
 Validation commands used by CI:
 
