@@ -92,6 +92,7 @@ jobs:
           echo "prefix=${asset_prefix}" >> "$GITHUB_OUTPUT"
           echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
           calcit calcit.cirru js
+          node --test scripts/inline-render.test.mjs
           yarn vite build --base="$VITE_BASE_URL"
 
       - name: Upload static assets to COS

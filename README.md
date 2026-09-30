@@ -209,6 +209,7 @@ yarn test:incremental
 yarn check:deprecated
 calcit calcit.cirru --check-only
 calcit calcit.cirru js
+node --test scripts/inline-render.test.mjs
 yarn vite build --base=./
 ```
 

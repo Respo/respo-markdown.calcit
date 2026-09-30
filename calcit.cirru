@@ -234,7 +234,7 @@
                   inner $ respo.core/memo-value-by text render-inline text
                 div
                   {} $ :class-name $ &map:get options :class-name
-                  , inner
+                  , & inner
               , Struct
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
