@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: cos-${{ github.repository }}-${{ github.event_name == 'pull_request' && 'pr' || github.ref }}
+  group: cos-${{ github.repository }}-${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && 'pr' || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -42,6 +42,7 @@ jobs:
           test ! -e package.cirru
           caps --strict --ci
           yarn install --immutable
+          caps verify --toolchain
 
       - name: Run MathML smoke test
         run: yarn test:mathml
@@ -55,6 +56,7 @@ jobs:
       - name: Check Calcit snapshot
         run: |
           set -euo pipefail
+          calcit calcit.cirru fix --workflow strict --verify --format edn
           calcit calcit.cirru --check-only
           calcit calcit.cirru --entry smoke-test --check-only
           calcit calcit.cirru --entry perf-test --check-only

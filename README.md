@@ -204,9 +204,11 @@ Validation commands used by CI:
 ```bash
 caps --strict --ci
 yarn install --immutable
+caps verify --toolchain
 yarn test:mathml
 yarn test:incremental
 yarn check:deprecated
+calcit calcit.cirru fix --workflow strict --verify --format edn
 calcit calcit.cirru --check-only
 calcit calcit.cirru js
 node --test scripts/inline-render.test.mjs
