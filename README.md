@@ -187,24 +187,36 @@ node mathml-smoke.mjs
 ### License
 
 MIT
-## Calcit 0.13.63
+## Calcit 0.27.0
 
-The project now uses Calcit 0.13.63 and the current Respo runtime modules.
-The canonical `calcit.cirru` snapshot is the source of truth; generated
-`js-out/` files are disposable and must be regenerated before bundling.
+项目使用 Calcit / @calcit/procs 0.27.0、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
+0.4.47 的严格依赖图与 UI alpha.3、js-ffi alpha.4 对齐；当前浏览器调用均已在
+alpha.4 提供，Markdown 不需要 alpha.10 新增的 Canvas、Document 和 Node API。
+`calcit.cirru` 是源码快照；生成的 `js-out/` 可以删除，打包前须重新编译。
+规范项目文件为 `calcit.cirru` 和 `deps.cirru`，CI 拒绝旧 compact/package 快照。
 
-Validation commands used by CI:
+校验与构建在独立的 `test` job 中执行，不加入 COS 上传并发组。
+构建通过后，以当前 workflow 运行的 `client-dist` artifact 将 `dist/` 传给
+独立的上传 job；artifact 保留七天，上传失败可重跑上传 job。
+只有同仓库 PR 和 push 运行可以上传，fork PR 仍执行全部校验与构建。
+上传 job 按目标前缀串行执行，并保留 Action v1.1.1 的公开访问验证。
+共享 PR 预览组可能替换等待中的上传 job，但不会取消对应的校验 job。
+COS 只上传前端 `dist`；main 的服务器部署路径保持原样。
+
+CI 使用的校验命令：
 
 ```bash
 caps --strict --ci
 yarn install --immutable
+caps verify --toolchain
 yarn test:mathml
 yarn test:incremental
 yarn check:deprecated
+calcit calcit.cirru fix --workflow strict --verify --format edn
 calcit calcit.cirru --check-only
 calcit calcit.cirru js
+node --test scripts/inline-render.test.mjs
 yarn vite build --base=./
 ```
 
-The parser's open data boundary remains intentionally Dynamic while the
-incremental parser and MathML output are covered by executable smoke tests.
+解析器的开放数据边界仍显式使用 Dynamic；增量解析和 MathML 输出由可执行测试覆盖。

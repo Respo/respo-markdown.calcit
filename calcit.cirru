@@ -3,7 +3,7 @@
   :about "|Machine-generated snapshot. Do not edit directly — changes will be overwritten. Use `calcit query` to inspect and `calcit edit`/`calcit tree` to modify. Run `calcit docs agents --contract` before mutations; use `--full` for first orientation or changed contract digest. Manual edits must follow format and schema conventions, then run `calcit edit format`."
   :package |respo-md
   :entries $ {}
-    :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :native) (:reload-fn 'respo-md.main/reload!)
+    :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :native) (:reload-fn 'respo-md.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
       :type-slots $ {}
@@ -234,7 +234,7 @@
                   inner $ respo.core/memo-value-by text render-inline text
                 div
                   {} $ :class-name $ &map:get options :class-name
-                  , inner
+                  , & inner
               , Struct
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
