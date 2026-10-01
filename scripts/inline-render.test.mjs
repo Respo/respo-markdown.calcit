@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as c from "../js-out/calcit.core.mjs";
-import { comp_md } from "../js-out/respo-md.comp.md.mjs";
+import { comp_md, comp_md_block } from "../js-out/respo-md.comp.md.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
 const t = c.init_tags(["class-name"]);
 const render = (text, options = c._$n__$M_()) => make_string(comp_md(text, options));
@@ -26,4 +26,21 @@ test("repeated cached rendering preserves Unicode text and valid children", () =
   const first = render(source);
   assert.ok(first.includes("笔记"));
   assert.equal(render(source), first);
+});
+
+test("fenced code uses typed presentation options for both snippet components", () => {
+  for (const source of ["```bash\nprintf hello\n```", "```cirru\nprintln |hello\n```"]) {
+    const html = make_string(comp_md_block(source, c._$n__$M_()));
+    assert.ok(html.includes("hello"));
+    assert.ok(html.includes("md-code-block"));
+    assert.ok(html.includes("<pre"));
+  }
+});
+
+test("headings, inline code and fenced code coexist in a homepage document", () => {
+  const source = "# 安装\n\nUse `calcit` and **types**.\n\n```bash\ncalcit --check-only\n```";
+  const html = make_string(comp_md_block(source, c._$n__$M_()));
+  assert.ok(html.includes("安装"));
+  assert.ok(html.includes("--check-only"));
+  assert.ok(html.includes("<code"));
 });

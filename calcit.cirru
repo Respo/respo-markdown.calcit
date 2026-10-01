@@ -135,12 +135,10 @@
                   fn (x & l) x
                 indented? $ &> indented 0
                 code-block $ if (&= lang |cirru)
-                  respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ {} $ :class-name
-                    str-spaced |md-code-block style-code-block $ if indented? css/expand
-                  respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ {}
-                    :class-name $ str-spaced |md-code-block style-code-block $ if indented? css/expand
-                    :highlighter highlight-fn
-                    :lang lang
+                  respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                    Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                  respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                    Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
               if indented?
                 div
                   {} $ :class-name css/row
