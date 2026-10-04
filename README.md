@@ -226,5 +226,9 @@ yarn vite build --base=./
 `respo-md.util.core/ParserResult`。组件复用 `read-field` 读取 Map 或 Struct 的
 `:blocks`，避免把解析器返回的 Struct 当作 Map。原增量测试的
 `component-uses-parser-result` 断言现在调用实际 `resolve-blocks`，不增加测试脚本。
-本次保留 Calcit/procs 0.27.0 发布图；共享模块与 RegExp 初始化的 0.28 迁移
-尚未全部通过，不以局部修复代替完整升级验收。
+RegExp 实例声明为 `JsObject`，统一通过 `(String, String) -> JsObject` 的
+`make-regexp` 构造，保留原模式与 flags；DemoState 初始值使用具体 Struct 合同。
+表格行使用嵌套 String List 合同和 Option 读取，watch 回调明确 Map 输入与 Unit 返回。
+现有类型预算收紧到实际结果：typeNotFull 90、schemaDynamic 63、unresolved 93。
+本次保留 Calcit/procs 0.27.0 发布图；正式 0.28 检查仍受到已发布 Respo 模块
+阻塞，不以局部修复代替完整升级验收，也不追随 0.29 alpha。
