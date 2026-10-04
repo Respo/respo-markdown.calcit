@@ -10,6 +10,7 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     outputs:
       asset-prefix: ${{ steps.asset-path.outputs.prefix }}
       asset-base-url: ${{ steps.asset-path.outputs.base-url }}
@@ -27,6 +28,7 @@ jobs:
         with:
           tools: calcit,caps
           caps-version: "0.1.1"
+          deps-file: deps.cirru
 
       - name: Enable Corepack
         run: |
@@ -80,7 +82,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            asset_prefix="${GITHUB_REPOSITORY}/pr/"
+            asset_prefix="${GITHUB_REPOSITORY}/pr/${{ github.event.pull_request.number }}/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/"
           elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             asset_prefix="${GITHUB_REPOSITORY}/"
           else
@@ -108,9 +110,11 @@ jobs:
     needs: test
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     concurrency:
-      group: cos-${{ github.repository }}-${{ github.event_name == 'pull_request' && 'pr' || github.ref }}
+      group: cos-${{ github.repository }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
       cancel-in-progress: false
+      queue: max
     steps:
       - name: 下载本次运行的前端构建
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -119,7 +123,8 @@ jobs:
           path: dist/
 
       - name: Upload static assets to COS
-        uses: worktools/cos-upload-action@17e6d213fe9f6772a6090a13c8ba044cd6cbcb09 # v1.1.1
+        timeout-minutes: 10
+        uses: worktools/cos-upload-action@v1.2.0
         with:
           source-dir: dist
           bucket: ${{ secrets.COS_BUCKET }}

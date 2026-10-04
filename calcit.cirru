@@ -323,7 +323,7 @@
           :code $ quote $ defn resolve-blocks (text options)
             if
               some? $ respo-md.schema/read-field options :parse-result
-              &map:get (respo-md.schema/read-field options :parse-result) :blocks
+              respo-md.schema/read-field (respo-md.schema/read-field options :parse-result) :blocks
               split-block text
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
@@ -579,7 +579,7 @@
                   , appended
                 changed $ str "|changed\n\n" base
                 fallback $ parse-markdown-incremental base changed old-result
-                rendered-blocks $ respo-md.schema/read-field incremental :blocks
+                rendered-blocks $ resolve-blocks appended $ {} (:parse-result incremental)
                 stream $ stream-append-iter 80 base old-result 0 0
                 code-old "|```js\nconst x = 1\n"
                 code-new $ str code-old "|const y = 2\n```\n"
@@ -654,7 +654,9 @@
             :args $ [] 'Number 'String 'Dynamic 'Number 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.perf-test
-          :require $ respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
+          :require
+            respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
+            respo-md.comp.md :refer $ resolve-blocks
     'respo-md.schema $ %{} 'FileEntry
       :defs $ {}
         'read-field $ %{} 'CodeEntry (:doc |)
@@ -918,7 +920,7 @@
                 incremental? $ respo-md.schema/read-field raw :incremental?
               &%{} ParserResult :blocks blocks :reused-blocks reused-blocks :reparsed-blocks reparsed-blocks :scanned-lines scanned-lines :incremental? incremental? :mode mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'Dynamic 'Dynamic
         'map-indexed-dynamic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn map-indexed-dynamic (xs f)
@@ -1026,7 +1028,7 @@
                   :incremental? false
               make-parser-result raw $ %:: ParseMode :full
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'String
         'parse-markdown-incremental $ %{} 'CodeEntry
           :doc "|Continues a parser result and returns only the changed suffix statistics."
@@ -1038,7 +1040,7 @@
                   %:: ParseMode :fallback
               make-parser-result raw mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'String 'String 'Dynamic
         'pattern-indented-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-indented-code (&raw-code "|/^(\\s+)```/")
