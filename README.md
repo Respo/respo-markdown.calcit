@@ -199,8 +199,9 @@ alpha.4 提供，Markdown 不需要 alpha.10 新增的 Canvas、Document 和 Nod
 构建通过后，以当前 workflow 运行的 `client-dist` artifact 将 `dist/` 传给
 独立的上传 job；artifact 保留七天，上传失败可重跑上传 job。
 只有同仓库 PR 和 push 运行可以上传，fork PR 仍执行全部校验与构建。
-上传 job 按目标前缀串行执行，并保留 Action v1.1.1 的公开访问验证。
-共享 PR 预览组可能替换等待中的上传 job，但不会取消对应的校验 job。
+上传 job 按 PR/生产分支分组串行执行，使用正式 Action v1.2.0 内置逐文件公开校验，
+不另加上传验证脚本。PR CDN 前缀按 PR/run/attempt 隔离；等待队列使用 `queue: max`，
+不会取消执行中的上传，也不会把不同 PR 的预览写到同一个目录。
 COS 只上传前端 `dist`；main 的服务器部署路径保持原样。
 
 CI 使用的校验命令：
@@ -220,3 +221,14 @@ yarn vite build --base=./
 ```
 
 解析器的开放数据边界仍显式使用 Dynamic；增量解析和 MathML 输出由可执行测试覆盖。
+
+`parse-markdown`、`parse-markdown-incremental` 与内部构造器的返回合同明确为
+`respo-md.util.core/ParserResult`。组件复用 `read-field` 读取 Map 或 Struct 的
+`:blocks`，避免把解析器返回的 Struct 当作 Map。原增量测试的
+`component-uses-parser-result` 断言现在调用实际 `resolve-blocks`，不增加测试脚本。
+RegExp 实例声明为 `JsObject`，统一通过 `(String, String) -> JsObject` 的
+`make-regexp` 构造，保留原模式与 flags；DemoState 初始值使用具体 Struct 合同。
+表格行使用嵌套 String List 合同和 Option 读取，watch 回调明确 Map 输入与 Unit 返回。
+现有类型预算收紧到实际结果：typeNotFull 90、schemaDynamic 63、unresolved 93。
+本次保留 Calcit/procs 0.27.0 发布图；正式 0.28 检查仍受到已发布 Respo 模块
+阻塞，不以局部修复代替完整升级验收，也不追随 0.29 alpha。

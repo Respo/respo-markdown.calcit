@@ -87,7 +87,7 @@
           :code $ quote $ def initial-state
             %{} DemoState ([] :draft |) ([] :text |) ([] :parse-result nil)
           :examples $ []
-          :schema $ :: 'Map
+          :schema $ :: 'respo-md.comp.container/DemoState
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.comp.container
           :require
@@ -258,7 +258,7 @@
         'comp-table-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-table-block (lines)
             let
-                header-line $ respo-md.util.core/coalesce (&list:first lines) []
+                header-line $ .unwrap-or (.first lines) ([])
                 body-lines $ let
                     p0 $ respo-md.util.core/unwrap-or
                       get
@@ -283,7 +283,7 @@
                         create-element :td ({}) & $ render-inline x
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
+            :args $ [] $ :: 'List (:: 'List 'String)
             :features $ #{} :js-ffi
         'comp-text-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-text-block (lines)
@@ -323,7 +323,7 @@
           :code $ quote $ defn resolve-blocks (text options)
             if
               some? $ respo-md.schema/read-field options :parse-result
-              &map:get (respo-md.schema/read-field options :parse-result) :blocks
+              respo-md.schema/read-field (respo-md.schema/read-field options :parse-result) :blocks
               split-block text
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
@@ -478,6 +478,8 @@
             if config/dev? $ load-console-formatter!
             render-app!
             add-watch *store :changes $ fn (store prev) (render-app!)
+              hint-fn $ {} (:kind :fn) (:return 'Unit)
+                :args $ [] 'Map 'Map
             browser/add-event-listener! |beforeunload $ fn (event) (persist-storage!)
             browser/add-event-listener! |visibilitychange $ fn (event)
               match (browser/visibility-state)
@@ -526,6 +528,8 @@
             if (nil? build-errors)
               do (remove-watch *store :changes) (clear-cache!)
                 add-watch *store :changes $ fn (reel prev) (render-app!)
+                  hint-fn $ {} (:kind :fn) (:return 'Unit)
+                    :args $ [] 'Map 'Map
                 render-app!
                 hud! |ok~ |Ok
               hud! |error build-errors
@@ -579,7 +583,7 @@
                   , appended
                 changed $ str "|changed\n\n" base
                 fallback $ parse-markdown-incremental base changed old-result
-                rendered-blocks $ respo-md.schema/read-field incremental :blocks
+                rendered-blocks $ resolve-blocks appended $ {} (:parse-result incremental)
                 stream $ stream-append-iter 80 base old-result 0 0
                 code-old "|```js\nconst x = 1\n"
                 code-new $ str code-old "|const y = 2\n```\n"
@@ -654,7 +658,9 @@
             :args $ [] 'Number 'String 'Dynamic 'Number 'Number
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.perf-test
-          :require $ respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
+          :require
+            respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
+            respo-md.comp.md :refer $ resolve-blocks
     'respo-md.schema $ %{} 'FileEntry
       :defs $ {}
         'read-field $ %{} 'CodeEntry (:doc |)
@@ -918,8 +924,14 @@
                 incremental? $ respo-md.schema/read-field raw :incremental?
               &%{} ParserResult :blocks blocks :reused-blocks reused-blocks :reparsed-blocks reparsed-blocks :scanned-lines scanned-lines :incremental? incremental? :mode mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'Dynamic 'Dynamic
+        'make-regexp $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn make-regexp (pattern flags) (new js/RegExp pattern flags)
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'JsObject)
+            :args $ [] 'String 'String
+            :features $ #{} :js-ffi
         'map-indexed-dynamic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn map-indexed-dynamic (xs f)
             loop
@@ -1026,7 +1038,7 @@
                   :incremental? false
               make-parser-result raw $ %:: ParseMode :full
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'String
         'parse-markdown-incremental $ %{} 'CodeEntry
           :doc "|Continues a parser result and returns only the changed suffix statistics."
@@ -1038,62 +1050,44 @@
                   %:: ParseMode :fallback
               make-parser-result raw mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Struct)
+          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'String 'String 'Dynamic
         'pattern-indented-code $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def pattern-indented-code (&raw-code "|/^(\\s+)```/")
+          :code $ quote $ def pattern-indented-code (respo-md.util.core/make-regexp "|^(\\s+)```" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'pattern-math-block-close $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def pattern-math-block-close (new js/RegExp |\\\]$)
+          :code $ quote $ def pattern-math-block-close (respo-md.util.core/make-regexp |\\\]$ |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'pattern-math-block-open $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def pattern-math-block-open (new js/RegExp |^\\\[)
+          :code $ quote $ def pattern-math-block-open (respo-md.util.core/make-regexp |^\\\[ |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-emphasis $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-emphasis (new js/RegExp "|^(.+)\\*\\*")
+          :code $ quote $ def peek-emphasis (respo-md.util.core/make-regexp "|^(.+)\\*\\*" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-image $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-image (new js/RegExp "|^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" |g)
+          :code $ quote $ def peek-image (respo-md.util.core/make-regexp "|^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" |g)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-inline-math $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-inline-math (new js/RegExp "|^\\\\\\((.+?)\\\\\\)")
+          :code $ quote $ def peek-inline-math (respo-md.util.core/make-regexp "|^\\\\\\((.+?)\\\\\\)" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-italic $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-italic (new js/RegExp "|^([^*/]+)\\*")
+          :code $ quote $ def peek-italic (respo-md.util.core/make-regexp "|^([^*/]+)\\*" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-link $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-link (new js/RegExp "|^\\[[^\\]]+\\]\\([^\\)]+\\)")
+          :code $ quote $ def peek-link (respo-md.util.core/make-regexp "|^\\[[^\\]]+\\]\\([^\\)]+\\)" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-math-block-single-line $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-math-block-single-line (new js/RegExp "|^\\\\\\[(.*)\\\\\\]$")
+          :code $ quote $ def peek-math-block-single-line (respo-md.util.core/make-regexp "|^\\\\\\[(.*)\\\\\\]$" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'split-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-block (text)
             split-block-iter (split-lines text) ([]) ([]) :empty
@@ -1374,9 +1368,9 @@
               split ||
               map $ fn (x) (trim x)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ :: 'Fn $ {}
+            :args $ [] 'String
+            :return $ :: 'List 'String
         'table-line? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn table-line? (cursor)
             and (starts-with? cursor ||) (ends-with? cursor ||)
@@ -1821,17 +1815,13 @@
             :args $ [] 'Dynamic
             :features $ #{} :js-ffi
         'peek-command-name $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-command-name (new js/RegExp "|^([A-Za-z]+)")
+          :code $ quote $ def peek-command-name (respo-md.util.core/make-regexp "|^([A-Za-z]+)" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'peek-number $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ def peek-number (new js/RegExp "|^([0-9]+)")
+          :code $ quote $ def peek-number (respo-md.util.core/make-regexp "|^([0-9]+)" |)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ :: 'JsObject
         'render-math-matrix-row $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-math-matrix-row (source)
             let
