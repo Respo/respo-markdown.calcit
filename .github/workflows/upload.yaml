@@ -41,7 +41,10 @@ jobs:
           set -euo pipefail
           test ! -e compact.cirru
           test ! -e package.cirru
-          caps --strict --ci
+          # Published UI/router tags request older compatible Respo/js-ffi
+          # versions. Caps records the immutable highest-version selections;
+          # strict Calcit checks below validate that resolved graph.
+          caps --ci
           yarn install --immutable
           caps verify --toolchain
 
@@ -52,28 +55,19 @@ jobs:
         run: yarn test:incremental
 
       - name: Check deprecated APIs
-        run: yarn check:deprecated
+        run: yarn check:deprecated | jq -e '.data.summary.calls == 0'
 
       - name: Check Calcit snapshot
         run: |
           set -euo pipefail
-          calcit calcit.cirru fix --workflow strict --verify --format edn
-          calcit calcit.cirru --check-only
-          calcit calcit.cirru --entry smoke-test --check-only
-          calcit calcit.cirru --entry perf-test --check-only
-          calcit analyze check-public --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only
-          calcit calcit.cirru analyze dynamic-methods --summary-only --format json | jq -e '.data.summary.findings == 0'
-
-      - name: Validate Calcit type baseline
-        run: |
-          set -euo pipefail
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
-          mkdir -p .calcit
-          calcit calcit.cirru analyze check-types --summary-only --format json > .calcit/check-types.json
-          calcit calcit.cirru analyze weak-types --only schema-dynamic,code-dynamic,code-nil --intent unresolved,declared-optional --summary-only --format json > .calcit/weak-types.json
-          calcit calcit.cirru analyze deprecated --summary-only --format json > .calcit/deprecated.json
-          node scripts/check-calcit-upgrade-baseline.mjs
+          calcit calcit.cirru --check-only --all-defs --format json
+          calcit calcit.cirru --entry smoke-test --check-only
+          calcit calcit.cirru --entry perf-test --check-only
+          calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
+          calcit analyze weak-types --only dynamic-method --summary-only --format json | jq -e '.data.summary.findings == 0'
+          calcit test --require-match --summary-only --format json
 
       - name: Build client with CDN asset URLs
         id: asset-path

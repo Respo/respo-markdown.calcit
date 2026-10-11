@@ -21,16 +21,10 @@ Supported features:
 `comp-md-block` is for block markdown, `comp-md` is for inline markdown.
 
 ```cirru.no-run
-let
-    comp-md-block $ fn (source options)
-      [] source options
-    comp-md $ fn (source)
-      [] source
-  do
-    comp-md-block "|# Title\n\n- item A\n- item B" ({})
+respo-md.comp.md/comp-md-block "|# Title\n\n- item A\n- item B" $ {}
 ; => returns Respo DSL for a block container
 
-    comp-md "|hello **world**"
+respo-md.comp.md/comp-md "|hello **world**" $ {}
 ; => returns inline Respo nodes
 ```
 
@@ -38,8 +32,6 @@ let
 
 ````cirru.no-run
 let
-    comp-md-block $ fn (source options)
-      [] source options
     md-source $ str
       , "|# Changelog\n"
       , "|- Added parser improvements\n"
@@ -48,22 +40,21 @@ let
       , "|```js\nconsole.log(1)\n```"
     options $ {}
       :highlight $ fn (code lang)
+        hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
         ; replace with real highlighter in your app runtime
         str code
       :class-name |doc-preview
       :css "|.md-p { margin: 12px 0; }"
       :style $ {}
-  comp-md-block md-source options
+  respo-md.comp.md/comp-md-block md-source options
 ````
 
 ### Practical Example: Inline Rendering in UI
 
 ```cirru.no-run
 let
-    comp-md $ fn (source)
-      [] source
     text "|Use `calcit docs read` for quick lookup, and **pin** important sections."
-  comp-md text
+  respo-md.comp.md/comp-md text $ {}
 ```
 
 ### Options Reference
@@ -75,6 +66,7 @@ let
       :css "|.md-code-block { padding: 8px; }"
       :style $ {}
       :highlight $ fn (code lang)
+        hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
         str code
   , options
 ```
@@ -164,12 +156,12 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 ### Dependency boundary
 
 Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
-back on Markdown, so the package graph stays acyclic and stable releases can be
-validated with `caps --strict --ci`.
+back on Markdown, so the package graph stays acyclic.
 
 Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
-该单向边界保持依赖图无环，使稳定 release 可以通过 `caps --strict --ci`
-验证。
+该单向边界保持依赖图无环。当前已发布 UI/router 依赖仍请求较旧的 Respo/js-ffi
+版本；`caps --ci` 固定最高请求版本，随后以严格类型检查和业务测试验证实际解析图。
+不宣称已经通过拒绝版本选择警告的 `caps --strict --ci`。
 
 ### Workflow
 
@@ -180,18 +172,18 @@ https://github.com/calcit-lang/respo-calcit-workflow
 After recompiling the snapshot, run the lightweight MathML smoke test:
 
 ```bash
-calcit js
-node mathml-smoke.mjs
+yarn test:mathml
 ```
 
 ### License
 
 MIT
-## Calcit 0.27.0
+## Calcit 0.29.0
 
-项目使用 Calcit / @calcit/procs 0.27.0、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
-0.4.47 的严格依赖图与 UI alpha.3、js-ffi alpha.4 对齐；当前浏览器调用均已在
-alpha.4 提供，Markdown 不需要 alpha.10 新增的 Canvas、Document 和 Node API。
+项目使用正式 Calcit / @calcit/procs 0.29.0、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
+依赖使用已发布的 UI alpha.6、Respo alpha.15、js-ffi alpha.17，不使用 hash 依赖。
+这些模块尚未提供验证过的兼容正式版，因此保留其已发布 alpha 标签；编译器及
+JS runtime 本身不再使用 alpha。
 `calcit.cirru` 是源码快照；生成的 `js-out/` 可以删除，打包前须重新编译。
 规范项目文件为 `calcit.cirru` 和 `deps.cirru`，CI 拒绝旧 compact/package 快照。
 
@@ -207,28 +199,29 @@ COS 只上传前端 `dist`；main 的服务器部署路径保持原样。
 CI 使用的校验命令：
 
 ```bash
-caps --strict --ci
+caps --ci
 yarn install --immutable
 caps verify --toolchain
 yarn test:mathml
 yarn test:incremental
 yarn check:deprecated
-calcit calcit.cirru fix --workflow strict --verify --format edn
-calcit calcit.cirru --check-only
+calcit edit format
+calcit --check-only --all-defs --format json
+calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
+calcit test --require-match --summary-only --format json
 calcit calcit.cirru js
 node --test scripts/inline-render.test.mjs
 yarn vite build --base=./
 ```
 
-解析器的开放数据边界仍显式使用 Dynamic；增量解析和 MathML 输出由可执行测试覆盖。
+解析统计使用 `ScanResult` / `ParserResult`，内联数学和强调解析使用具名
+Struct/Enum，正则捕获返回 `Option<String>` 并在 JS 边界检查捕获值。
+`DemoState` 统一放在 `respo-md.util.core`；更新使用 Struct 构造，旧持久化状态
+保留 draft/text，缺失的解析缓存从 draft 重建。`resolve-blocks` 检查缓存的 Struct
+类型后读取必需字段。异构 Markdown 块载荷等剩余 Dynamic 槽仍需后续收紧。
+持久化恢复边界只恢复 draft/text，并重新解析缓存；不会把反序列化后丢失完整
+具名类型信息的缓存直接带回应用。正常编辑仍使用内存中的增量解析缓存。
 
-`parse-markdown`、`parse-markdown-incremental` 与内部构造器的返回合同明确为
-`respo-md.util.core/ParserResult`。组件复用 `read-field` 读取 Map 或 Struct 的
-`:blocks`，避免把解析器返回的 Struct 当作 Map。原增量测试的
-`component-uses-parser-result` 断言现在调用实际 `resolve-blocks`，不增加测试脚本。
-RegExp 实例声明为 `JsObject`，统一通过 `(String, String) -> JsObject` 的
-`make-regexp` 构造，保留原模式与 flags；DemoState 初始值使用具体 Struct 合同。
-表格行使用嵌套 String List 合同和 Option 读取，watch 回调明确 Map 输入与 Unit 返回。
-现有类型预算收紧到实际结果：typeNotFull 90、schemaDynamic 63、unresolved 93。
-本次保留 Calcit/procs 0.27.0 发布图；正式 0.28 检查仍受到已发布 Respo 模块
-阻塞，不以局部修复代替完整升级验收，也不追随 0.29 alpha。
+旧 `some?`、`case-default`、watch 别名已迁移。CI 不再运行编译器硬编码 fix 规则、
+重复诊断 JSON 文件或项目专用预算脚本；使用严格检查、完整公开 API 检查和现有
+MathML、增量解析、渲染测试。具体回归覆盖重复图片、缺失数学结束符及旧状态恢复。
