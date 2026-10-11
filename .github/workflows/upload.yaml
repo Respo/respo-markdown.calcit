@@ -41,10 +41,7 @@ jobs:
           set -euo pipefail
           test ! -e compact.cirru
           test ! -e package.cirru
-          # Published UI/router tags request older compatible Respo/js-ffi
-          # versions. Caps records the immutable highest-version selections;
-          # strict Calcit checks below validate that resolved graph.
-          caps --ci
+          caps --strict --ci
           yarn install --immutable
           caps verify --toolchain
 
