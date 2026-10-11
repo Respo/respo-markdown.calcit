@@ -2,12 +2,12 @@
   "packageManager": "yarn@4.18.0",
   "scripts": {
     "build": "calcit --entry smoke-test js && node test-main.mjs && calcit js && yarn vite build --base=./",
-    "check:deprecated": "calcit calcit.cirru analyze deprecated --summary-only --format json",
+    "check:deprecated": "calcit analyze weak-types --ns-prefix respo-md --only deprecated-call --summary-only --format json",
     "test:mathml": "calcit --entry smoke-test js && node test-main.mjs",
     "test:incremental": "calcit --entry perf-test js && node perf-test-main.mjs"
   },
   "dependencies": {
-    "@calcit/procs": "0.27.0",
+    "@calcit/procs": "0.29.0",
     "cirru-color": "^0.2.4",
     "copy-text-to-clipboard": "^3.2.2",
     "dayjs": "^1.11.13"
