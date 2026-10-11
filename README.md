@@ -116,11 +116,17 @@ To insert raw HTML:
 
 For editors or streaming text that append to an existing document, keep the parser result outside the Respo VDOM and pass it back through `:parse-result`:
 
-```cirru
+The parser uses JavaScript regular expressions. Run this example in a JS target;
+`calcit docs check-md` evaluates native snippets and cannot execute this parser.
+The same incremental path is exercised by `yarn test:incremental` below.
+
+```cirru.no-run
 let
-    previous $ parse-markdown old-text
-    next $ parse-markdown-incremental old-text new-text previous
-  comp-md-block new-text $ {} (:parse-result next)
+    old-text "|# Notes\n\nFirst paragraph.\n\n"
+    new-text $ str old-text "|Second paragraph."
+    previous $ respo-md.util.core/parse-markdown old-text
+    next $ respo-md.util.core/parse-markdown-incremental old-text new-text previous
+  respo-md.comp.md/comp-md-block new-text $ {} (:parse-result next)
 ```
 
 The incremental parser reuses completed blocks and reparses only the appended suffix. Non-prefix edits automatically fall back to a full parse.
@@ -159,9 +165,8 @@ Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
 back on Markdown, so the package graph stays acyclic.
 
 Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
-该单向边界保持依赖图无环。当前已发布 UI/router 依赖仍请求较旧的 Respo/js-ffi
-版本；`caps --ci` 固定最高请求版本，随后以严格类型检查和业务测试验证实际解析图。
-不宣称已经通过拒绝版本选择警告的 `caps --strict --ci`。
+该单向边界保持依赖图无环。当前候选使用全稳定版 UI/Respo/js-ffi 依赖，
+CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和业务测试。
 
 ### Workflow
 
@@ -181,9 +186,10 @@ MIT
 ## Calcit 0.29.0
 
 项目使用正式 Calcit / @calcit/procs 0.29.0、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
-依赖使用已发布的 UI alpha.6、Respo alpha.15、js-ffi alpha.17，不使用 hash 依赖。
-这些模块尚未提供验证过的兼容正式版，因此保留其已发布 alpha 标签；编译器及
-JS runtime 本身不再使用 alpha。
+0.4.48 候选使用已发布 UI 0.7.32、Respo 0.16.114、js-ffi 0.2.1，
+传递 Router 为 0.8.28，不使用 alpha 或 hash 模块依赖；发布状态以 Release 为准。
+默认 demo 入口为 JS/browser；`smoke-test` 和 `perf-test` 为 JS/node，
+与现有 Node 测试驱动一致，不再将它们标记为 native 入口。
 `calcit.cirru` 是源码快照；生成的 `js-out/` 可以删除，打包前须重新编译。
 规范项目文件为 `calcit.cirru` 和 `deps.cirru`，CI 拒绝旧 compact/package 快照。
 
@@ -199,7 +205,7 @@ COS 只上传前端 `dist`；main 的服务器部署路径保持原样。
 CI 使用的校验命令：
 
 ```bash
-caps --ci
+caps --strict --ci
 yarn install --immutable
 caps verify --toolchain
 yarn test:mathml
@@ -225,3 +231,5 @@ Struct/Enum，正则捕获返回 `Option<String>` 并在 JS 边界检查捕获�
 旧 `some?`、`case-default`、watch 别名已迁移。CI 不再运行编译器硬编码 fix 规则、
 重复诊断 JSON 文件或项目专用预算脚本；使用严格检查、完整公开 API 检查和现有
 MathML、增量解析、渲染测试。具体回归覆盖重复图片、缺失数学结束符及旧状态恢复。
+当前稳定依赖图通过严格检查、116 个公开定义检查、3 个附加测试和 8 个 Node
+渲染测试；53 处未解析类型槽（34 个本地定义）仍保留为后续类型迁移债务。

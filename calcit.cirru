@@ -7,11 +7,11 @@
       :feature-policy $ {}
       :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
       :type-slots $ {}
-    :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :native) (:reload-fn 'respo-md.perf-test/main!)
+    :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :js) (:reload-fn 'respo-md.perf-test/main!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |js-ffi/
       :type-slots $ {}
-    :smoke-test $ {} (:description |) (:init-fn 'respo-md.test/main!) (:mode :native) (:reload-fn 'respo-md.test/main!)
+    :smoke-test $ {} (:description |) (:init-fn 'respo-md.test/main!) (:mode :js) (:reload-fn 'respo-md.test/main!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |js-ffi/
       :type-slots $ {}
