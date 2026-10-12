@@ -183,11 +183,11 @@ yarn test:mathml
 ### License
 
 MIT
-## Calcit 0.29.0
+## Calcit 0.29.1
 
-项目使用正式 Calcit / @calcit/procs 0.29.0、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
-0.4.49 候选使用已发布 UI 0.7.33、Respo 0.16.114、js-ffi 0.2.1，
-传递 Router 为 0.8.28，不使用 alpha 或 hash 模块依赖；发布状态以 Release 为准。
+项目使用正式 Calcit / @calcit/procs 0.29.1、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
+0.4.50 候选使用已发布 UI 0.7.35、Respo 0.16.116、js-ffi 0.2.1，
+传递 Router 为 0.8.30，不使用 alpha 或 hash 模块依赖；发布状态以 Release 为准。
 默认 demo 入口为 JS/browser；`smoke-test` 和 `perf-test` 为 JS/node，
 与现有 Node 测试驱动一致，不再将它们标记为 native 入口。
 `calcit.cirru` 是源码快照；生成的 `js-out/` 可以删除，打包前须重新编译。
