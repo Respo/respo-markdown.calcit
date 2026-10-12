@@ -183,6 +183,7 @@ yarn test:mathml
 ### License
 
 MIT
+
 ## Calcit 0.29.1
 
 项目使用正式 Calcit / @calcit/procs 0.29.1、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
