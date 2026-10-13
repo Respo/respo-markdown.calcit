@@ -186,8 +186,8 @@ MIT
 
 ## Calcit 0.29.3 候选
 
-0.4.51 候选使用正式 Calcit / @calcit/procs 0.29.3、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
-依赖为已发布的 UI 0.7.36、Respo 0.16.117、js-ffi 0.2.2，传递 Router 为 0.8.31。
+0.4.52 候选使用正式 Calcit / @calcit/procs 0.29.3、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
+依赖为已发布的 UI 0.7.37、Respo 0.16.118、js-ffi 0.2.2，传递 Router 为 0.8.32。
 本项目在这些正式 tag 上执行完整验收；不使用 alpha、hash 或分支模块依赖。
 发布状态以 Release 为准，版本声明不代替迁移验收。
 默认 demo 入口为 JS/browser；`smoke-test` 和 `perf-test` 为 JS/node，
@@ -215,6 +215,7 @@ yarn test:incremental
 yarn check:deprecated
 calcit edit format
 calcit --check-only --all-defs --format json
+calcit fix --workflow strict --verify --format json
 calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
 calcit test --require-match --summary-only --format json
 calcit calcit.cirru js
@@ -230,12 +231,12 @@ Struct/Enum，正则捕获返回 `Option<String>` 并在 JS 边界检查捕获�
 持久化恢复边界只恢复 draft/text，并重新解析缓存；不会把反序列化后丢失完整
 具名类型信息的缓存直接带回应用。正常编辑仍使用内存中的增量解析缓存。
 
-旧 `some?`、`case-default`、watch 别名已迁移。CI 不再运行编译器硬编码 fix 规则、
+旧 `some?`、`case-default`、watch 别名已迁移。CI 不再应用编译器硬编码 fix 规则、
 重复诊断 JSON 文件或项目专用预算脚本；使用严格检查、完整公开 API 检查和现有
 MathML、增量解析、渲染测试。具体回归覆盖重复图片、缺失数学结束符及旧状态恢复。
 此前 0.4.50 稳定依赖图通过严格检查、116 个公开定义检查、3 个附加测试和 8 个 Node
 渲染测试；53 处未解析类型槽（34 个本地定义）仍保留为后续类型迁移债务。
-这些历史结果不代替 0.4.51 候选在新正式依赖上的检查、构建与运行验收。
+这些历史结果不代替 0.4.52 候选在新正式依赖上的检查、构建与运行验收。
 
 0.4.51 在渲染分支校验文本的 `List<String>`、表格的 `List<List<String>>`
 及代码块 List 容器，保留原匿名块格式和代码缩进 Number 前缀。逐字输入表格时，
@@ -243,3 +244,9 @@ MathML、增量解析、渲染测试。具体回归覆盖重复图片、缺失�
 跳过标题和分隔行。不通过强转、载荷填充或新增 helper 绕过这些边界。
 表格函数的返回合同明确为 `respo.schema/Element`，不再以 Dynamic 隐藏实际返回类型；
 这不代表其余解析载荷或依赖框架内部的开放字段已经全部闭合。
+
+0.4.52 进一步检查数学解析的 String 输入和非空 pair 的 `List<String>` 返回，
+保留可空 pair、匿名块和代码缩进的原格式。解析状态、存储、宿主文本和 viewport
+边界使用已有检查函数；memo 的内联渲染返回先检查 List 再展开，不用断言冒充校验。
+完整 strict 工作流仅作为只读门禁运行，不自动应用规则，也不增加迁移脚本或类型预算。
+UI 的 Tabs 输入改为具名 `TabRoute`；本库没有 Tabs 调用，不引入旧输入兼容层。
