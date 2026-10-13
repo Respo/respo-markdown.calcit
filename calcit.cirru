@@ -291,7 +291,7 @@
                       fn (x)
                         create-element :td ({}) & $ render-inline x
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
             :args $ [] $ :: 'List (:: 'List 'String)
             :features $ #{} :js-ffi
         'comp-text-block $ %{} 'CodeEntry (:doc |)
