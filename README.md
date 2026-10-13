@@ -42,7 +42,7 @@ let
       :highlight $ fn (code lang)
         hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
         ; replace with real highlighter in your app runtime
-        str code
+        respo-md.util.math/escape-html code
       :class-name |doc-preview
       :css "|.md-p { margin: 12px 0; }"
       :style $ {}
@@ -67,7 +67,7 @@ let
       :style $ {}
       :highlight $ fn (code lang)
         hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
-        str code
+        respo-md.util.math/escape-html code
   , options
 ```
 
@@ -77,6 +77,23 @@ Key options:
 - `:style` - inline style map for root block
 - `:css` - extra CSS text injected by wrapper logic
 - `:class-name` - class on root markdown block
+
+### 自定义代码高亮的边界
+
+`:highlight` 缺失或为 nil 时，普通 fenced code 仍按纯文本显示，Cirru 仍使用
+原语法着色组件；两者保留复制原始代码的控件。有回调时，模块以原代码正文和
+语言标签调用 `(code lang)`，检查返回值为 String，再将该字符串作为 HTML 渲染。
+自定义 Cirru 高亮也遵守同一回调合同。
+
+回调返回的 HTML 是调用者提供的信任边界，模块不替它做清洗；处理不可信代码时，
+高亮器必须转义源码；上面的最小示例复用现有 HTML 转义函数，不直接返回原 code。
+缺失回调不会将默认源码作为 HTML 执行。非函数选项或非 String 返回值会明确报错，
+回调自身的异常原样传播。
+
+自定义回调路径不缓存渲染结果，每次构建代码块都会执行一次；不会把不同语言或
+不同渲染器的同一正文错误复用。复制按钮始终复制原始代码，而非高亮 HTML。
+定义内 `:tests` 覆盖调用次数、参数、空值、Unicode、结果和异常；现有渲染测试
+验证真实 HTML、默认转义、语言切换和复制控件。
 
 Write your own CSS to style HTML output:
 

@@ -132,14 +132,23 @@
                       &str:slice line $ count indentation
                       , line
                   respo-md.util.core/join-strings-dynamic &newline
-                highlight-fn $ either (respo-md.schema/read-field options :highlight)
-                  fn (x & l) x
+                highlight-fn $ respo-md.schema/read-field options :highlight
                 indented? $ &> indented 0
-                code-block $ if (&= lang |cirru)
-                  respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                    Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
-                  respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                    Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                code-block $ if (nil? highlight-fn)
+                  if (&= lang |cirru)
+                    respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                    respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                  if (fn? highlight-fn)
+                    div
+                      {} $ :class-name $ str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block (if indented? css/expand)
+                      pre $ {} (:class-name css/expand)
+                        :innerHTML $ highlight-code content lang highlight-fn
+                      span
+                        {} $ :class-name respo-ui.comp/style-copy-wrapper
+                        respo-ui.comp/comp-copy content $ Option :none
+                    raise |Markdown-:highlight-must-be-a-function-or-nil
               if indented?
                 div
                   {} $ :class-name css/row
@@ -307,6 +316,93 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] $ :: 'List 'String
+        'highlight-code $ %{} 'CodeEntry
+          :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
+          :code $ quote $ defn highlight-code (content lang highlight-fn)
+            let
+                html $ highlight-fn content lang
+              if (string? html) html $ raise |Markdown-:highlight-must-return-a-String
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'String 'String 'Fn
+          :tests $ []
+            %{} 'TestEntry
+              :name |highlight-callback-invoked-with-code-and-language
+              :code $ quote $ let
+                  calls $ ref 0
+                  callback $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'String
+                    assert= "|🐈正文" code
+                    assert= |unknown-language lang
+                    reset! calls $ inc $ deref calls
+                    , |<mark>highlight-sentinel</mark>
+                  html $ highlight-code "|🐈正文" |unknown-language callback
+                assert= 1 $ deref calls
+                assert= |<mark>highlight-sentinel</mark> html
+              :tags $ #{} :highlight :unit
+            %{} 'TestEntry (:name |highlight-empty-code-and-language)
+              :code $ quote $ let
+                  callback $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'String
+                    assert= | code
+                    assert= | lang
+                    , |<b>empty-sentinel</b>
+                assert= |<b>empty-sentinel</b> $ highlight-code | | callback
+              :tags $ #{} :highlight :unit
+            %{} 'TestEntry
+              :name |highlight-does-not-reuse-language-or-renderer-result
+              :code $ quote $ let
+                  calls $ ref 0
+                  callback $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'String
+                    reset! calls $ inc $ deref calls
+                    str |<i> lang |</i>
+                  other $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'String
+                    , |<b>other-renderer</b>
+                assert= |<i>js</i> $ highlight-code |same |js callback
+                assert= |<i>bash</i> $ highlight-code |same |bash callback
+                assert= |<b>other-renderer</b> $ highlight-code |same |js other
+                assert= 2 $ deref calls
+              :tags $ #{} :highlight :unit
+            %{} 'TestEntry (:name |highlight-rejects-non-string-result)
+              :code $ quote $ let
+                  callback $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'Number
+                    , 42
+                assert= true $ try
+                  do (highlight-code |code |js callback) false
+                  fn (message)
+                    hint-fn $ {}
+                      :args $ [] 'String
+                      :return 'Bool
+                    .includes? message |highlight
+              :tags $ #{} :highlight :unit
+            %{} 'TestEntry (:name |highlight-preserves-callback-failure)
+              :code $ quote $ let
+                  callback $ fn (code lang)
+                    hint-fn $ {}
+                      :args $ [] 'String 'String
+                      :return 'String
+                    raise |highlighter-sentinel-failure
+                assert= true $ try
+                  do (highlight-code |code |js callback) false
+                  fn (message)
+                    hint-fn $ {}
+                      :args $ [] 'String
+                      :return 'Bool
+                    &= message |highlighter-sentinel-failure
+              :tags $ #{} :highlight :unit
         'render-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-inline (text)
             -> (split-line text)
@@ -493,10 +589,11 @@
           :schema $ :: 'Fn $ {} (:return 'Unit)
             :args $ [] 'Dynamic
         'highligher $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn highligher (code lang) (shared/console-warn! "|highligher not ready") (str |<code> code |</code>)
+          :code $ quote $ defn highligher (code lang)
+            str |<code> (respo-md.util.math/escape-html code) |</code>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic
+          :schema $ :: 'Fn $ {} (:return 'String)
+            :args $ [] 'String 'String
             :features $ #{} :js-ffi
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
