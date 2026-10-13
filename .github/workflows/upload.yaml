@@ -60,6 +60,7 @@ jobs:
           calcit calcit.cirru edit format
           git diff --exit-code -- calcit.cirru
           calcit calcit.cirru --check-only --all-defs --format json
+          calcit fix --workflow strict --verify --format json | jq '{validation:.data.validation,suggestions:.data.suggestions,diagnostics:.diagnostics}'
           calcit calcit.cirru --entry smoke-test --check-only
           calcit calcit.cirru --entry perf-test --check-only
           calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
