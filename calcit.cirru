@@ -247,11 +247,20 @@
                     :args $ [] 'Number 'Dynamic
                     :return $ :: 'List 'Dynamic
                   [] idx $ match block
-                    (:text lines) (comp-text-block lines)
-                    (:code lines) (comp-code-block lines options)
+                    (:text lines)
+                      match
+                        try-decode-map-as lines $ :: 'List 'String
+                        (:ok text-lines) (comp-text-block text-lines)
+                        (:err error) (raise error)
+                    (:code lines)
+                      if (list? lines) (comp-code-block lines options) (raise |Invalid-Markdown-code-block-lines)
                     (:math lines)
                       if (list? lines) (comp-math-block lines) (raise "|Invalid Markdown math block lines")
-                    (:table lines) (comp-table-block lines)
+                    (:table lines)
+                      match
+                        try-decode-map-as lines $ :: 'List $ :: 'List 'String
+                        (:ok table-lines) (comp-table-block table-lines)
+                        (:err error) (raise error)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
@@ -262,14 +271,14 @@
                 body-lines $ let
                     p0 $ respo-md.util.core/unwrap-or
                       get
-                        respo-md.util.core/coalesce (&list:nth lines 1) ([])
+                        .unwrap-or (.get lines 1) ([])
                         , 0
                       , nil
                   if
                     and (non-nil? p0)
                       or (starts-with? p0 |:-) (starts-with? p0 |--)
-                    &list:slice lines 2 $ count lines
-                    &list:slice lines 1 $ count lines
+                    .drop lines 2
+                    if (empty? lines) ([]) (.drop lines 1)
               create-element :table
                 {} $ :class-name style-md-table
                 create-element :thead ({})
