@@ -178,6 +178,11 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 
 ### Dependency boundary
 
+当前依赖图使用已发布的 UI 0.7.39、Respo 0.16.120 和 JS FFI 0.2.3，
+与现有消费者的严格选版对齐。Calcit CLI/runtime 保持正式 0.29.3 配对；
+本次不修改 Markdown 源码、API、高亮、MathML 或增量解析语义。
+下游须在正式模块发布后更新 pin，不能将本地依赖调整当作已发布版本。
+
 Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
 back on Markdown, so the package graph stays acyclic.
 
