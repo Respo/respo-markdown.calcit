@@ -11,10 +11,11 @@ test("persisted demo text survives reload with a rebuilt nominal parser cache", 
   const tags = c.init_tags(["draft", "text", "parse-result", "states", "data", "blocks"]);
   const original = c._$n__PCT__$M_(DemoState, tags.draft, "# restored", tags.text, "inline restored", tags["parse-result"], parse_markdown("# restored"));
   const wire = c.parse_cirru_edn(c.format_cirru_edn(c._$n__$M_(tags.states, c._$n__$M_(tags.data, original))));
-  const restored = c._$n_map_$o_get(c._$n_map_$o_get(hydrate_demo_store(wire), tags.states), tags.data);
+  const states = c.option_$o_unwrap(c.get(hydrate_demo_store(wire), tags.states));
+  const restored = c.option_$o_unwrap(c.get(states, tags.data));
   assert.equal(restored.get(tags.draft), "# restored");
   assert.equal(restored.get(tags.text), "inline restored");
-  assert.equal(c._$n_struct_$o_definition(restored.get(tags["parse-result"])), ParserResult);
+  assert.equal(c.option_$o_unwrap(c.struct_definition(restored.get(tags["parse-result"]))), ParserResult);
 });
 test("public inline component spreads rendered nodes instead of passing a List as one child", () => {
   assert.ok(render("Fixture paragraph").includes("Fixture paragraph"));
