@@ -242,7 +242,7 @@
                   (:ok children) children
                   (:err message) (raise message)
               div
-                {} $ :class-name $ &map:get options :class-name
+                {} $ :class-name $ .unwrap-or (get options :class-name) nil
                 , & inner
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
@@ -814,8 +814,11 @@
           :code $ quote $ defn read-field (value field)
             cond
                 struct? value
-                &map:get (&struct:to-map value) field
-              (map? value) (&map:get value field)
+                .unwrap-or
+                  get (&struct:to-map value) field
+                  , nil
+              (map? value)
+                .unwrap-or (get value field) nil
               true $ raise "|[Markdown] expected Struct or Map"
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
@@ -994,7 +997,7 @@
           :doc "|Appends parsed blocks without rebuilding the reused prefix."
           :code $ quote $ defn append-blocks (acc blocks)
             if (empty? blocks) acc $ recur
-              &list:append acc $ &list:first blocks
+              &list:append acc $ .unwrap-or (first blocks) nil
               &list:rest blocks
           :examples $ []
           :schema $ :: 'Fn $ {}
@@ -1070,7 +1073,7 @@
           :code $ quote $ defn handle-inline-star (left)
             if (ignore-inline-star? left) (InlineStar :literal)
               if
-                = |* $ respo-md.util.core/coalesce (&str:first left) |
+                = |* $ .unwrap-or (first left) |
                 let
                     next-left $ &str:slice left 1
                     matched $ .!match next-left peek-emphasis
@@ -1111,7 +1114,7 @@
         'ignore-inline-star? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ignore-inline-star? (left)
             if (&= left |) true $ =
-              respo-md.util.core/coalesce (&str:first left) |
+              .unwrap-or (first left) |
               , "| "
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Bool)
@@ -1343,7 +1346,9 @@
                   appended $ &str:slice new-text $ count old-text
                   appended-lines $ split-lines appended
                   block-count $ count old-blocks
-                  last-block $ if (> block-count 0) (&list:last old-blocks) nil
+                  last-block $ if (> block-count 0)
+                    .unwrap-or (last old-blocks) nil
+                    , nil
                   last-mode $ cond
                       enum? last-block
                       &enum:nth last-block 0
@@ -1551,7 +1556,7 @@
                           recur
                             conj
                               if (&= | buffer) acc $ &list:append acc $ :: :text buffer
-                              :: :url $ &list:first pieces
+                              :: :url $ .unwrap $ first pieces
                             str "| " $ respo-md.util.core/join-strings-dynamic (&list:rest pieces) "| "
                             , | :text
                         recur acc left (str buffer |h) :text
@@ -1649,7 +1654,7 @@
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.util.core
           :require
-            calcit.test :refer $ [] is
+            calcit.test :refer $ is
             js-ffi.contract :as contract
     'respo-md.util.math $ %{} 'FileEntry
       :defs $ {}
@@ -1949,7 +1954,7 @@
           :code $ quote $ defn parse-math-raw-group (line)
             if
               or (&= | line)
-                not $ &= |{ $ &str:first line
+                not $ &= |{ $ .unwrap (first line)
               [] nil line
               let
                   end-index $ &str:find-index line |}

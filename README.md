@@ -178,9 +178,16 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 
 ### Dependency boundary
 
+本轮为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
+的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
+已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
+CLI/runtime 暂时保持正式 0.29.3 配对验证；这不代表尚未发布的 0.30.1 已验收。
+新正式配对与 Respo/UI 依赖图完成验收前，不合并本轮迁移或发版。
+不新增测试脚本、类型断言或 COS 校验流程，现有部署路径保持不变。
+
 当前依赖图使用已发布的 UI 0.7.39、Respo 0.16.120 和 JS FFI 0.2.3，
 与现有消费者的严格选版对齐。Calcit CLI/runtime 保持正式 0.29.3 配对；
-本次不修改 Markdown 源码、API、高亮、MathML 或增量解析语义。
+本轮不改变 Markdown API、高亮、MathML 或增量解析语义。
 下游须在正式模块发布后更新 pin，不能将本地依赖调整当作已发布版本。
 
 Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
