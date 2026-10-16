@@ -181,12 +181,13 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 本轮为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
 的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
 已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
-这些缺失值修改已在 #78 合并；下面的 0.4.55 候选进一步对齐正式工具链和依赖图，
-不重复改写源码。这不代表尚未发布的 0.30.1 已验收。
+已有缺失值修改保留；下面的 0.4.56 候选进一步对齐已发布工具链和依赖图，
+不重复改写源码。这不代表 Calcit 0.30.1 已稳定发布。
 不新增测试脚本、类型断言或 COS 校验流程，现有部署路径保持不变。
 
-0.4.55 候选使用已发布的 UI 0.7.40、Respo 0.16.120 和 JS FFI 0.2.3，
-传递 Router 为 0.8.35；Calcit CLI/runtime 配对正式 0.30.0。
+0.4.56 候选使用已发布的 UI 0.7.41、Respo 0.16.122 和 JS FFI 0.2.3，
+传递 Router 为 0.8.36；Calcit CLI/runtime 成对固定为已发布的 0.30.1-alpha.4。
+编译器仍为预发布版本，模块版本声明不代替发布与消费者验收。
 下游其他模块也需协调 UI/Router 的精确版本，不要放宽 Caps strict 来绕过冲突。
 本轮不改变 Markdown API、高亮、MathML 或增量解析语义。
 下游须在正式模块发布后更新 pin，不能将本地依赖调整当作已发布版本。
@@ -195,19 +196,19 @@ Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
 back on Markdown, so the package graph stays acyclic.
 
 Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
-该单向边界保持依赖图无环。当前候选使用全稳定版 UI/Respo/js-ffi 依赖，
+该单向边界保持依赖图无环。当前候选使用已发布的 UI/Respo/js-ffi 依赖，
 CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和业务测试。
 
-本次 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。0.29.3 原基线及
-0.30.0 候选均通过完整 strict/preflight、原 8 项附带测试、MathML、增量解析和
-14 项 Node 渲染回归；候选 all-defs 294/294、完整公开检查 117/117，生产构建通过。
-仍有 52 处 schema Dynamic（33 个定义），不宣称类型债务清零；没有新增脚本或预算豁免。
+本次 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。原 0.30.0 配对基线及
+新的 alpha.4 候选均通过原 8 项附带测试、MathML、增量解析、14 项 Node 渲染回归和构建；
+新配对另通过完整 strict、all-defs 294/294、完整公开检查 117/117，以及全部 named entry 检查。
+真实浏览器验证 Unicode、表格、数学公式、代码块、刷新恢复和恢复后追加编辑，控制台无 warning/error。
+没有新增 Option→nil 回流、Dynamic、unsafe、脚本或预算豁免；既有开放解析载荷仍待收窄，
+不宣称类型债务清零。
 CI 使用完整内置 strict，并显式要求 workflow passed 和空 diagnostics。
-本地只读源码链接不能代替 fresh Caps 正式依赖图验收；后者由 PR CI 执行。
-
-0.30.1-alpha.4 的只读前向检查仍受正式 Respo 0.16.120 的 `defstyle` 缺失值用法影响；
-跟踪已有 [Respo #270](https://github.com/Respo/respo.calcit/issues/270)，不重复添加下游兼容层，
-不把本模块的正式 CLI/runtime 固定到 alpha。原 8 项附带测试在该只读探测中仍通过。
+完整依赖图通过正常 Caps strict 安装与工具链精确配对，不替换模块缓存或修改生成文件。
+显式 absence 迁移预览无建议；最新 HEAD 的 CI/review 与精确 main 部署通过后才发布模块。
+其他消费者和 Calcit 稳定版验收仍需独立完成。
 
 ### Workflow
 
@@ -225,11 +226,9 @@ yarn test:mathml
 
 MIT
 
-## 历史：Calcit 0.29.3 候选
+## 验证入口与兼容边界
 
-0.4.52 候选使用正式 Calcit / @calcit/procs 0.29.3、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
-依赖为已发布的 UI 0.7.37、Respo 0.16.118、js-ffi 0.2.2，传递 Router 为 0.8.32。
-本项目在这些正式 tag 上执行完整验收；不使用 alpha、hash 或分支模块依赖。
+Node 24、Yarn 4.18.0 与 Vite 8.3.1 保持原配置；工具链与模块版本见上文依赖边界。
 发布状态以 Release 为准，版本声明不代替迁移验收。
 默认 demo 入口为 JS/browser；`smoke-test` 和 `perf-test` 为 JS/node，
 与现有 Node 测试驱动一致，不再将它们标记为 native 入口。
@@ -275,9 +274,6 @@ Struct/Enum，正则捕获返回 `Option<String>` 并在 JS 边界检查捕获�
 旧 `some?`、`case-default`、watch 别名已迁移。CI 不再应用编译器硬编码 fix 规则、
 重复诊断 JSON 文件或项目专用预算脚本；使用严格检查、完整公开 API 检查和现有
 MathML、增量解析、渲染测试。具体回归覆盖重复图片、缺失数学结束符及旧状态恢复。
-此前 0.4.50 稳定依赖图通过严格检查、116 个公开定义检查、3 个附加测试和 8 个 Node
-渲染测试；53 处未解析类型槽（34 个本地定义）仍保留为后续类型迁移债务。
-这些历史结果不代替 0.4.52 候选在新正式依赖上的检查、构建与运行验收。
 
 0.4.51 在渲染分支校验文本的 `List<String>`、表格的 `List<List<String>>`
 及代码块 List 容器，保留原匿名块格式和代码缩进 Number 前缀。逐字输入表格时，
