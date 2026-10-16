@@ -181,12 +181,13 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 本轮为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
 的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
 已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
-CLI/runtime 暂时保持正式 0.29.3 配对验证；这不代表尚未发布的 0.30.1 已验收。
-新正式配对与 Respo/UI 依赖图完成验收前，不合并本轮迁移或发版。
+这些缺失值修改已在 #78 合并；下面的 0.4.55 候选进一步对齐正式工具链和依赖图，
+不重复改写源码。这不代表尚未发布的 0.30.1 已验收。
 不新增测试脚本、类型断言或 COS 校验流程，现有部署路径保持不变。
 
-当前依赖图使用已发布的 UI 0.7.39、Respo 0.16.120 和 JS FFI 0.2.3，
-与现有消费者的严格选版对齐。Calcit CLI/runtime 保持正式 0.29.3 配对；
+0.4.55 候选使用已发布的 UI 0.7.40、Respo 0.16.120 和 JS FFI 0.2.3，
+传递 Router 为 0.8.35；Calcit CLI/runtime 配对正式 0.30.0。
+下游其他模块也需协调 UI/Router 的精确版本，不要放宽 Caps strict 来绕过冲突。
 本轮不改变 Markdown API、高亮、MathML 或增量解析语义。
 下游须在正式模块发布后更新 pin，不能将本地依赖调整当作已发布版本。
 
@@ -196,6 +197,17 @@ back on Markdown, so the package graph stays acyclic.
 Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
 该单向边界保持依赖图无环。当前候选使用全稳定版 UI/Respo/js-ffi 依赖，
 CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和业务测试。
+
+本次 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。0.29.3 原基线及
+0.30.0 候选均通过完整 strict/preflight、原 8 项附带测试、MathML、增量解析和
+14 项 Node 渲染回归；候选 all-defs 294/294、完整公开检查 117/117，生产构建通过。
+仍有 52 处 schema Dynamic（33 个定义），不宣称类型债务清零；没有新增脚本或预算豁免。
+CI 使用完整内置 strict，并显式要求 workflow passed 和空 diagnostics。
+本地只读源码链接不能代替 fresh Caps 正式依赖图验收；后者由 PR CI 执行。
+
+0.30.1-alpha.4 的只读前向检查仍受正式 Respo 0.16.120 的 `defstyle` 缺失值用法影响；
+跟踪已有 [Respo #270](https://github.com/Respo/respo.calcit/issues/270)，不重复添加下游兼容层，
+不把本模块的正式 CLI/runtime 固定到 alpha。原 8 项附带测试在该只读探测中仍通过。
 
 ### Workflow
 
@@ -213,7 +225,7 @@ yarn test:mathml
 
 MIT
 
-## Calcit 0.29.3 候选
+## 历史：Calcit 0.29.3 候选
 
 0.4.52 候选使用正式 Calcit / @calcit/procs 0.29.3、Node 24、Yarn 4.18.0 和 Vite 8.3.1。
 依赖为已发布的 UI 0.7.37、Respo 0.16.118、js-ffi 0.2.2，传递 Router 为 0.8.32。
