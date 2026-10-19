@@ -46,6 +46,17 @@ test("repeated links and images consume only the matched prefix", () => {
   assert.equal((html.match(/src="https:\/\/example\.com\/a\.png"/g) || []).length, 2);
 });
 
+test("empty image alt preserves URLs and adjacent content", () => {
+  const html = render("before ![](https://example.com/empty.png) [中文🐈](https://example.com/link) ![中文🐈](https://example.com/named.png) after");
+  assert.ok(html.includes('src="https://example.com/empty.png"'));
+  assert.ok(html.includes('alt=""'));
+  assert.ok(html.includes('href="https://example.com/link"'));
+  assert.ok(html.includes('alt="中文🐈"'));
+  assert.equal((html.match(/<img/g) || []).length, 2);
+  assert.ok(html.includes("before"));
+  assert.ok(html.includes("after"));
+});
+
 test("fenced code uses typed presentation options for both snippet components", () => {
   for (const source of ["```bash\nprintf hello\n```", "```cirru\nprintln |hello\n```"]) {
     const html = make_string(comp_md_block(source, c._$n__$M_()));

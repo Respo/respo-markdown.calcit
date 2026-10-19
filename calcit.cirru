@@ -159,12 +159,15 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
             :args $ [] (:: 'List 'Dynamic) (:: 'Map 'Dynamic 'Dynamic)
-        'comp-image $ %{} 'CodeEntry (:doc |)
+        'comp-image $ %{} 'CodeEntry
+          :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
             let
                 useful $ &str:slice chunk 2 $ - (count chunk) 1
-              let[] (content url) (split useful "|](")
-                img $ {} (:src url) (:class-name style-image) (:alt content)
+                index $ .unwrap $ str-find-index useful "|]("
+                content $ &str:slice useful 0 index
+                url $ &str:slice useful $ + index 2
+              img $ {} (:src url) (:class-name style-image) (:alt content)
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
             :args $ [] 'String

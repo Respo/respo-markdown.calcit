@@ -3,6 +3,15 @@
 > Render Markdown subset to Respo DSL. Ported from [Respo/respo-markdown](https://github.com/Respo/respo-markdown).
 
 Demo http://repo.respo-mvc.org/respo-markdown/
+
+### 0.4.57 修复候选：空 alt 图片
+
+保留合法 `![](url)` 的空 alt，不再因分割结果少一项而使页面渲染失败。
+图片内容按首个 `](` 的 Unicode 标量位置读取，保留完整 URL；普通 alt、
+Unicode、相邻链接和文本行为不变。不改变 `split` 的既有语义或 Markdown 解析语法。
+本修复配对已发布 Calcit/procs `0.30.1-alpha.5`，模块仍使用下文精确正式 tag。
+版本声明不是已发布证明；仍需 PR、实际消费者和精确 main CI 验收后发布。
+
 Supported features:
 
 - Code block
@@ -199,7 +208,7 @@ Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Mark
 该单向边界保持依赖图无环。当前候选使用已发布的 UI/Respo/js-ffi 依赖，
 CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和业务测试。
 
-本次 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。原 0.30.0 配对基线及
+此前 0.4.56 迁移中 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。原 0.30.0 配对基线及
 新的 alpha.4 候选均通过原 8 项附带测试、MathML、增量解析、14 项 Node 渲染回归和构建；
 新配对另通过完整 strict、all-defs 294/294、完整公开检查 117/117，以及全部 named entry 检查。
 真实浏览器验证 Unicode、表格、数学公式、代码块、刷新恢复和恢复后追加编辑，控制台无 warning/error。
