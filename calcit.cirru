@@ -868,6 +868,39 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Tag
+          :tests $ []
+            %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
+              :code $ quote $ let
+                  value $ {} (:nil nil) (:false false) (:zero 0) (:empty |)
+                assert= nil $ read-field value :missing
+                assert= nil $ read-field value :nil
+                assert= false $ read-field value :false
+                assert= 0 $ read-field value :zero
+                assert= | $ read-field value :empty
+              :tags $ #{} :option-migration :unit
+            %{} 'TestEntry (:name |keeps-nominal-fields-and-open-members)
+              :code $ quote $ let
+                  blocks $ [] nil false 0 |
+                  value $ respo-md.util.core/ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks 0 :scanned-lines 0 :incremental? false
+                assert= true $ identical? blocks $ read-field value :blocks
+                assert= false $ read-field value :incremental?
+                assert= 0 $ read-field value :reused-blocks
+                assert= nil $ read-field value :missing
+              :tags $ #{} :option-migration :unit
+            %{} 'TestEntry (:name |rejects-non-container-inputs)
+              :code $ quote $ do
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field nil :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field false :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field 0 :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field | :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try
+                  read-field ([]) :field
+                  fn (error) error
+              :tags $ #{} :option-migration :unit
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             {} $ :states $ {}

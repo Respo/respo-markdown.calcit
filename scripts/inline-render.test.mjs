@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as c from "../js-out/calcit.core.mjs";
-import { comp_md, comp_md_block } from "../js-out/respo-md.comp.md.mjs";
+import { comp_md, comp_md_block, resolve_blocks } from "../js-out/respo-md.comp.md.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
-import { DemoState, ParserResult, hydrate_demo_store, parse_markdown } from "../js-out/respo-md.util.core.mjs";
+import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, read_demo_state } from "../js-out/respo-md.util.core.mjs";
 import { escape_html } from "../js-out/respo-md.util.math.mjs";
 const t = c.init_tags(["class-name"]);
 const render = (text, options = c._$n__$M_()) => make_string(comp_md(text, options));
@@ -32,6 +32,50 @@ test("class-name option and literal angle-bracket text are preserved", () => {
   const html = render("a < b", c._$n__$M_(t["class-name"], "inline-fixture"));
   assert.ok(html.includes('class="inline-fixture"'));
   assert.ok(html.includes("&lt;"));
+});
+test("class omission distinguishes nil from false, zero and empty strings", () => {
+  for (const component of [comp_md, comp_md_block]) {
+    const absent = make_string(component("plain", c._$n__$M_()));
+    assert.equal(make_string(component("plain", c._$n__$M_(t["class-name"], null))), absent);
+    const prefix = component === comp_md ? "" : "md-block ";
+    for (const [value, text] of [[false, "false"], [0, "0"], ["", ""]]) {
+      const html = make_string(component("plain", c._$n__$M_(t["class-name"], value)));
+      assert.ok(html.startsWith(`<div class="${prefix}${text}"`));
+      assert.notEqual(html, absent);
+    }
+  }
+});
+test("style omission does not hide invalid provided values", () => {
+  const tags = c.init_tags(["style", "color"]);
+  const renderBlock = (options) => make_string(comp_md_block("plain", options));
+  assert.equal(renderBlock(c._$n__$M_(tags.style, null)), renderBlock(c._$n__$M_()));
+  for (const [value, type] of [[false, "bool"], [0, "number"], ["", "string"]]) {
+    assert.throws(() => renderBlock(c._$n__$M_(tags.style, value)), {message: `[Respo] expected :style to be a map, got: :${type}`});
+  }
+  assert.ok(renderBlock(c._$n__$M_(tags.style, c._$n__$M_(tags.color, "red"))).includes('style="color:red;"'));
+});
+test("provided parser results are checked instead of replaced by absence defaults", () => {
+  const tags = c.init_tags(["parse-result", "blocks", "reused-blocks", "reparsed-blocks", "scanned-lines", "incremental?"]);
+  const source = "typed cache";
+  const parsed = parse_markdown(source);
+  assert.equal(resolve_blocks("different source", c._$n__$M_(tags["parse-result"], parsed)), parsed.get(tags.blocks));
+  assert.equal(c._$e_(resolve_blocks(source, c._$n__$M_()), resolve_blocks(source, c._$n__$M_(tags["parse-result"], null))), true);
+  for (const value of [false, 0, "", c._$L_()]) {
+    assert.throws(() => resolve_blocks(source, c._$n__$M_(tags["parse-result"], value)), {message: "Expected Markdown parser result Struct"});
+  }
+  const wrong = c._$n__PCT__$M_(ScanResult, tags.blocks, c._$L_(), tags["reused-blocks"], 0, tags["reparsed-blocks"], 0, tags["scanned-lines"], 0, tags["incremental?"], false);
+  assert.throws(() => resolve_blocks(source, c._$n__$M_(tags["parse-result"], wrong)), {message: "Invalid Markdown parser result"});
+});
+test("demo state validates required strings and rebuilds only its optional parser cache", () => {
+  const tags = c.init_tags(["draft", "text", "parse-result", "blocks"]);
+  for (const value of [c._$n__$M_(), c._$n__$M_(tags.draft, 0, tags.text, ""), c._$n__$M_(tags.draft, "", tags.text, false)]) {
+    assert.throws(() => read_demo_state(value), {message: "Invalid Markdown demo draft/text"});
+  }
+  const rebuilt = read_demo_state(c._$n__$M_(tags.draft, "", tags.text, "", tags["parse-result"], 0));
+  assert.equal(rebuilt.get(tags.draft), "");
+  assert.equal(rebuilt.get(tags.text), "");
+  assert.equal(c.option_$o_unwrap(c.struct_definition(rebuilt.get(tags["parse-result"]))), ParserResult);
+  assert.equal(c._$e_(rebuilt.get(tags["parse-result"]).get(tags.blocks), parse_markdown("").get(tags.blocks)), true);
 });
 test("repeated cached rendering preserves Unicode text and valid children", () => {
   const source = "笔记 **内容**";
@@ -116,6 +160,10 @@ test("invalid highlighters and non-string results fail explicitly", () => {
     assert.throws(() => renderBlock(() => value), /highlight.*String/i);
   }
   assert.throws(() => renderBlock(() => { throw new Error("highlighter-sentinel"); }), /highlighter-sentinel/);
+  const sentinel = new Error("same-highlighter-error");
+  let calls = 0;
+  assert.throws(() => renderBlock(() => { calls += 1; throw sentinel; }), (error) => error === sentinel);
+  assert.equal(calls, 1);
 });
 
 test("absent or nil highlighter keeps source as text instead of HTML", () => {

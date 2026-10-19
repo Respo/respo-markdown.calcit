@@ -22,6 +22,13 @@ false、0、空串不是缺失块，仍报 `Invalid Markdown block`。
 - Respo 展示 props 的 class/style 省略保留原 nil 出口；不改成业务默认 String，也不把 false、0、空串当成缺失。
 - Markdown 正则匹配依赖 JavaScript 宿主；完整解析回归是 JS 验收，不宣称 native/WASM 已支持。
 
+这些出口保留的是具名旧合同，不是将任意 Dynamic 当作已验证的内容：`read-field` 对非容器
+仍报错；提供的 parser-result 必须是正确的 ParserResult；demo 的 draft/text 仍须为 String，
+只有可重建的解析缓存允许失效后重建。高亮器仍须为函数并返回 String，其异常保留原对象且只调用一次。
+class 的 false、0、空串原样输出；style 的缺失/nil 省略，但提供非 Map 的 false、0、空串仍明确报错。
+对应的 Map/Struct 原值测试在 definition `:tests`；实际 SSR、宿主 callback 和持久化解码由现有
+`scripts/inline-render.test.mjs` 验证，不用 schema 声明替代运行时边界。
+
 ## 复用现有验证入口
 
 使用 deps.cirru 指定的正式 CLI 与 @calcit/procs 配对，先正常安装依赖：
