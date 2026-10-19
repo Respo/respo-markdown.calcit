@@ -719,7 +719,7 @@
             :args $ [] 'String 'Bool
         'main! $ %{} 'CodeEntry
           :doc "|Runs append-only Markdown parser benchmark using Calcit code."
-          :code $ quote $ defn main! ()
+          :code $ quote $ defn main! () (test-option-block-boundaries!)
             let
                 base $ make-source 2000 |
                 appended $ str base "|tail\n\n"
@@ -806,6 +806,48 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo-md.perf-test/StreamStats)
             :args $ [] 'Number 'String 'respo-md.util.core/ParserResult 'Number 'Number
+        'test-option-block-boundaries! $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn test-option-block-boundaries! ()
+            let
+                absent $ respo-md.util.core/split-block-incremental |x |xy $ []
+                present-nil $ respo-md.util.core/split-block-incremental |x |xy $ [] nil
+                empty-lines $ respo-md.util.core/split-block-incremental |x |xy $ []
+                  :: :text $ []
+              assert= true $ :incremental? absent
+              assert= 0 $ :reused-blocks absent
+              assert= (respo-md.util.core/split-block |y) (:blocks absent)
+              assert= false $ :incremental? present-nil
+              assert= (respo-md.util.core/split-block |xy) (:blocks present-nil)
+              assert= "|Invalid Markdown text block lines" $ try
+                respo-md.util.core/split-block-incremental |x |xy $ [] $ :: :text
+                fn (error) error
+              assert= (respo-md.util.core/split-block |y) (:blocks empty-lines)
+            let
+                before "|第一段🐈\n\n"
+                after $ str before |tail
+                prefix $ respo-md.util.core/split-block before
+                result $ respo-md.util.core/split-block-incremental before after prefix
+              assert= true $ :incremental? result
+              assert= (count prefix) (:reused-blocks result)
+              assert= true $ identical?
+                .unwrap $ first prefix
+                .unwrap $ first $ :blocks result
+              assert= (respo-md.util.core/split-block after) (:blocks result)
+            let
+                before "|原文🐈"
+                after "|改写🐈"
+                result $ respo-md.util.core/split-block-incremental before after $ respo-md.util.core/split-block before
+              assert= false $ :incremental? result
+              assert= 0 $ :reused-blocks result
+              assert= (respo-md.util.core/split-block after) (:blocks result)
+            , &unit
+          :examples $ []
+          :schema $ :: 'Fn $ {} (:return 'Unit)
+            :args $ []
+            :features $ #{} :js-ffi
+          :tests $ [] $ %{} 'TestEntry (:name |keeps-incremental-option-semantics)
+            :code $ quote $ test-option-block-boundaries!
+            :tags $ #{} :js-only :option-migration
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.perf-test
           :require
@@ -826,6 +868,39 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
             :args $ [] 'Dynamic 'Tag
+          :tests $ []
+            %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
+              :code $ quote $ let
+                  value $ {} (:nil nil) (:false false) (:zero 0) (:empty |)
+                assert= nil $ read-field value :missing
+                assert= nil $ read-field value :nil
+                assert= false $ read-field value :false
+                assert= 0 $ read-field value :zero
+                assert= | $ read-field value :empty
+              :tags $ #{} :option-migration :unit
+            %{} 'TestEntry (:name |keeps-nominal-fields-and-open-members)
+              :code $ quote $ let
+                  blocks $ [] nil false 0 |
+                  value $ respo-md.util.core/ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks 0 :scanned-lines 0 :incremental? false
+                assert= true $ identical? blocks $ read-field value :blocks
+                assert= false $ read-field value :incremental?
+                assert= 0 $ read-field value :reused-blocks
+                assert= nil $ read-field value :missing
+              :tags $ #{} :option-migration :unit
+            %{} 'TestEntry (:name |rejects-non-container-inputs)
+              :code $ quote $ do
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field nil :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field false :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field 0 :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try (read-field | :field)
+                  fn (error) error
+                assert= "|[Markdown] expected Struct or Map" $ try
+                  read-field ([]) :field
+                  fn (error) error
+              :tags $ #{} :option-migration :unit
         'store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def store
             {} $ :states $ {}
@@ -999,16 +1074,39 @@
         'append-blocks $ %{} 'CodeEntry
           :doc "|Appends parsed blocks without rebuilding the reused prefix."
           :code $ quote $ defn append-blocks (acc blocks)
-            if (empty? blocks) acc $ recur
-              &list:append acc $ .unwrap-or (first blocks) nil
-              &list:rest blocks
+            match (destruct-list blocks)
+              (:none) acc
+              (:some block rest-blocks)
+                recur (&list:append acc block) rest-blocks
           :examples $ []
           :schema $ :: 'Fn $ {}
             :args $ [] (:: 'List 'Dynamic) (:: 'List 'Dynamic)
             :return $ :: 'List 'Dynamic
-          :tests $ [] $ %{} 'TestEntry (:name |appends-values)
-            :code $ quote $ assert= ([] 1 2)
-              append-blocks ([] 1) ([] 2)
+          :tests $ []
+            %{} 'TestEntry (:name |appends-values)
+              :code $ quote $ assert= ([] 1 2)
+                append-blocks ([] 1) ([] 2)
+            %{} 'TestEntry (:name |preserves-empty-and-open-members)
+              :code $ quote $ let
+                  prefix $ [] :prefix
+                  members $ [] nil false 0 |
+                  result $ append-blocks prefix members
+                assert= prefix $ append-blocks prefix $ []
+                assert= true $ identical? prefix $ append-blocks prefix ([])
+                assert= ([] :prefix nil false 0 |) result
+                assert= ([] :prefix) prefix
+                assert= ([] 1 |a)
+                  append-blocks ([] 1) ([] |a)
+              :tags $ #{} :option-migration :unit
+            %{} 'TestEntry (:name |preserves-member-identity)
+              :code $ quote $ let
+                  item $ ref 1
+                  result $ append-blocks ([]) ([] item)
+                assert= true $ identical? item $ .unwrap (first result)
+                reset! item 2
+                assert= 2 $ deref item
+                assert= ([] item) result
+              :tags $ #{} :option-migration :unit
         'coalesce $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn coalesce (a b)
             if (nil? a) b a
@@ -1349,26 +1447,29 @@
                   appended $ &str:slice new-text $ count old-text
                   appended-lines $ split-lines appended
                   block-count $ count old-blocks
-                  last-block $ if (> block-count 0)
-                    .unwrap-or (last old-blocks) nil
-                    , nil
-                  last-mode $ cond
-                      enum? last-block
-                      &enum:nth last-block 0
-                    (nil? last-block) :unknown
-                    true $ raise "|Invalid Markdown block"
+                  last-block $ last old-blocks
+                  last-mode $ match last-block
+                    (:none) :unknown
+                    (:some block)
+                      cond
+                          enum? block
+                          &enum:nth block 0
+                        (nil? block) :unknown
+                        true $ raise "|Invalid Markdown block"
                 if
                   and
                     = false $ ends-with? old-text "|\n\n"
-                    not $ nil? last-block
                     = last-mode :text
                   let
                       prefix-blocks $ &list:slice old-blocks 0 $ dec block-count
-                      last-lines $ let
-                          value $ respo-md.util.core/unwrap-or
-                            if (enum? last-block) (get last-block 1) (raise "|Missing Markdown text block")
-                            , []
-                        if (list? value) value $ raise "|Invalid Markdown text block lines"
+                      last-lines $ match last-block
+                        (:none) (raise "|Missing Markdown text block")
+                        (:some block)
+                          match
+                            if (enum? block) (get block 1) (raise "|Missing Markdown text block")
+                            (:none) (raise "|Invalid Markdown text block lines")
+                            (:some value)
+                              if (list? value) value $ raise "|Invalid Markdown text block lines"
                       tail-text $ if (ends-with? old-text "|\n")
                         str (respo-md.util.core/join-strings-dynamic last-lines &newline) &newline appended
                         str (respo-md.util.core/join-strings-dynamic last-lines &newline) appended
@@ -1396,6 +1497,21 @@
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ScanResult)
             :args $ [] 'String 'String $ :: 'List 'Dynamic
+          :tests $ [] $ %{} 'TestEntry (:name |rejects-invalid-last-blocks)
+            :code $ quote $ do
+              assert= "|Invalid Markdown block" $ try
+                split-block-incremental |x |xy $ [] false
+                fn (error) error
+              assert= "|Invalid Markdown block" $ try
+                split-block-incremental |x |xy $ [] 0
+                fn (error) error
+              assert= "|Invalid Markdown block" $ try
+                split-block-incremental |x |xy $ [] |
+                fn (error) error
+              assert= "|Invalid Markdown text block lines" $ try
+                split-block-incremental |x |xy $ [] $ :: :text nil
+                fn (error) error
+            :tags $ #{} :option-migration :unit
         'split-block-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-block-iter (lines acc buffer mode)
             if (empty? lines)

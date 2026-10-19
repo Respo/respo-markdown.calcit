@@ -65,7 +65,7 @@ jobs:
           calcit calcit.cirru --entry perf-test --check-only
           calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
           calcit analyze weak-types --only dynamic-method --summary-only --format json | jq -e '.data.summary.findings == 0'
-          calcit test --require-match --summary-only --format json
+          calcit test --exclude-tag js-only --require-match --summary-only --format json
 
       - name: Build client with CDN asset URLs
         id: asset-path
