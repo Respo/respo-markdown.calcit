@@ -11,7 +11,9 @@ UI **0.8.0**、Respo **0.16.124**、JS-FFI **0.2.5**，传递 Router **0.8.37**�
 下游需一起同步完整精确依赖图，保留 Caps strict；候选号不等于已经发布。
 本次 Snapshot、Markdown API、解析、高亮、MathML 与存储合同不变。
 UI 从 0.7 升到 0.8，基础样式可能变化，需要完整刷新和实际页面验收，不承诺逐像素一致。
-PR 不合并或部署下游应用；合并本库将触发原 Demo 前端部署，需单独确认。
+PR 不合并或部署下游应用。同仓库 PR 与 push 会自动上传 COS；main 收到 push
+（包括合并）会立即执行原 Demo 前端部署，workflow 没有单独确认步骤。
+因此本轮必须在合并前完成人工验收和部署授权，不能指望 workflow 等待确认。
 已知 Demo 恢复失败后的持久化时序风险见 [#87](https://github.com/Respo/respo-markdown.calcit/issues/87)。
 合法存档的刷新测试不证明失败路径安全；该风险尚未修复，本候选不据此宣称可直接部署。
 
