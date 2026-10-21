@@ -4,6 +4,15 @@
 
 Demo http://repo.respo-mvc.org/respo-markdown/
 
+### 正式 0.30.1 配对：使用者影响
+
+候选模块 **0.4.59** 配对正式 Calcit / `@calcit/procs` **0.30.1**，依赖已发布
+UI **0.8.0**、Respo **0.16.124**、JS-FFI **0.2.5**，传递 Router **0.8.37**。
+下游需一起同步完整精确依赖图，保留 Caps strict；候选号不等于已经发布。
+本次 Snapshot、Markdown API、解析、高亮、MathML 与存储合同不变。
+UI 从 0.7 升到 0.8，基础样式可能变化，需要完整刷新和实际页面验收，不承诺逐像素一致。
+PR 不合并或部署下游应用；合并本库将触发原 Demo 前端部署，需单独确认。
+
 ### 列表追加与增量解析的缺失值
 
 `append-blocks` 直接匹配列表的空/非空分支，不为取不到的成员填 nil。
@@ -15,13 +24,13 @@ nil、false、0 与空字符串仍按原顺序保留，成员身份不变。
 与已完成前缀的复用均保留。开放块内容和宿主正则仍是原边界，本次不声明整个解析器
 已成为闭合类型。具体合同与验证入口见 [Option 边界](docs/option-boundaries.md)。
 
-### 0.4.57 修复候选：空 alt 图片
+### 0.4.57 历史修复：空 alt 图片
 
 保留合法 `![](url)` 的空 alt，不再因分割结果少一项而使页面渲染失败。
 图片内容按首个 `](` 的 Unicode 标量位置读取，保留完整 URL；普通 alt、
 Unicode、相邻链接和文本行为不变。不改变 `split` 的既有语义或 Markdown 解析语法。
 本修复配对已发布 Calcit/procs `0.30.1-alpha.5`，模块仍使用下文精确正式 tag。
-版本声明不是已发布证明；仍需 PR、实际消费者和精确 main CI 验收后发布。
+这是先前版本记录，不是本次重新实现；本轮正式配对见文首。
 
 Supported features:
 
@@ -149,6 +158,10 @@ To insert raw HTML:
 #!html <div>TODO</div>
 ```
 
+Raw HTML 与自定义高亮 HTML 都是调用方的信任边界，本库不是 HTML 清洗器。
+不要因为类型检查通过就把不可信 Markdown 当作安全 HTML；调用方需按其应用的
+信任模型处理。本次不新增清洗策略，也不改变现有 raw HTML 语法。
+
 ### Incremental Parsing
 
 For editors or streaming text that append to an existing document, keep the parser result outside the Respo VDOM and pass it back through `:parse-result`:
@@ -201,11 +214,11 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 本轮为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
 的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
 已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
-已有缺失值修改保留；下面的 0.4.56 候选进一步对齐已发布工具链和依赖图，
-不重复改写源码。这不代表 Calcit 0.30.1 已稳定发布。
+已有缺失值修改保留；下面记录的是先前 0.4.56 的 alpha 配对，
+不是本轮正式 0.30.1 的验收。本候选不重复改写这些源码。
 不新增测试脚本、类型断言或 COS 校验流程，现有部署路径保持不变。
 
-0.4.56 候选使用已发布的 UI 0.7.41、Respo 0.16.122 和 JS FFI 0.2.3，
+历史 0.4.56 使用当时已发布的 UI 0.7.41、Respo 0.16.122 和 JS FFI 0.2.3，
 传递 Router 为 0.8.36；Calcit CLI/runtime 成对固定为已发布的 0.30.1-alpha.4。
 编译器仍为预发布版本，模块版本声明不代替发布与消费者验收。
 下游其他模块也需协调 UI/Router 的精确版本，不要放宽 Caps strict 来绕过冲突。
