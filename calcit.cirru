@@ -602,6 +602,12 @@
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
             if config/dev? $ load-console-formatter!
+            let
+                raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
+              match raw
+                (:some value)
+                  dispatch! $ :: :hydrate-storage $ parse-cirru-edn value
+                (:none) &unit
             render-app!
             add-watch! *store :changes $ fn (store prev) (render-app!)
               hint-fn $ {} (:kind :fn) (:return 'Unit)
@@ -614,12 +620,6 @@
             browser/set-interval!
               fn () $ persist-storage!
               , 60000
-            let
-                raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
-              match raw
-                (:some value)
-                  dispatch! $ :: :hydrate-storage $ parse-cirru-edn value
-                (:none) &unit
             println "|App started!"
             , &unit
           :examples $ []
