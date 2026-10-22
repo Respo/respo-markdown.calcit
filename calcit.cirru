@@ -118,7 +118,7 @@
                   (:ok decoded) decoded
                   (:err message) (raise message)
                 indented $ indent-option .unwrap-or 0
-                indentation $ if indented
+                indentation $ if (&> indented 0)
                   respo-md.util.core/join-strings-dynamic (repeat "| " indented) |
                   , |
                 lang $ let
