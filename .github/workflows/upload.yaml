@@ -45,6 +45,18 @@ jobs:
           yarn install --immutable
           caps verify --toolchain
 
+      - name: Baseline and formal scoped source preparation
+        run: |
+          set -euo pipefail
+          calcit --check-only --all-defs
+          calcit fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
+          calcit test --exclude-tag js-only --require-match --summary-only --format json
+          yarn test:mathml
+          yarn test:incremental
+          calcit js
+          node --test scripts/inline-render.test.mjs
+          node acceptance/prepare-markdown.mjs
+
       - name: Run MathML smoke test
         run: yarn test:mathml
 
@@ -58,7 +70,7 @@ jobs:
         run: |
           set -euo pipefail
           calcit calcit.cirru edit format
-          git diff --exit-code -- calcit.cirru
+          test "$(git hash-object calcit.cirru)" = "$(cat acceptance/snapshot-blob.txt)"
           calcit calcit.cirru --check-only --all-defs --format json
           calcit fix --workflow strict --verify --format json | jq -e '.data.workflow.status == "passed" and .diagnostics == []'
           calcit calcit.cirru --entry smoke-test --check-only
@@ -98,6 +110,16 @@ jobs:
         with:
           name: client-dist
           path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Preserve prepared source and evidence
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: markdown-prepared
+          path: |
+            calcit.cirru
+            acceptance/
           if-no-files-found: error
           retention-days: 7
 
