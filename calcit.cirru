@@ -628,7 +628,7 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
-            option:unwrap $ browser/query-selector |.app
+            .unwrap $ browser/query-selector |.app
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
             :args $ []
@@ -687,7 +687,7 @@
             :features $ #{} :js-ffi
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            option:some? $ browser/query-selector |meta.respo-ssr
+            .some? $ browser/query-selector |meta.respo-ssr
           :examples $ []
           :schema $ :: 'Bool
       :ns $ %{} 'NsEntry (:doc |)
@@ -1156,7 +1156,7 @@
                   , -1
               if (js-present? slash-matched)
                 let
-                    formula $ option:unwrap $ get1 slash-matched
+                    formula $ .unwrap $ get1 slash-matched
                     rest-line $ &str:slice line $ + 4 (count formula)
                   Option :some $ InlineMath :formula formula :rest-line rest-line
                 if (&< -1 dollar-end-idx)
@@ -1180,7 +1180,7 @@
                     matched $ .!match next-left peek-emphasis
                   if (js-present? matched)
                     let
-                        emphasis $ option:unwrap $ get1 matched
+                        emphasis $ .unwrap $ get1 matched
                         rest-line $ &str:slice next-left $ + 2 (count emphasis)
                       InlineStar :emphasis emphasis rest-line
                     InlineStar :literal
@@ -1188,7 +1188,7 @@
                     matched $ .!match left peek-italic
                   if (js-present? matched)
                     let
-                        italic $ option:unwrap $ get1 matched
+                        italic $ .unwrap $ get1 matched
                         rest-line $ &str:slice left $ + 1 (count italic)
                       InlineStar :italic italic rest-line
                     InlineStar :literal
@@ -1333,7 +1333,7 @@
                   &> (count trimmed) 4
                 trim $ &str:slice trimmed 2 $ - (count trimmed) 2
                 if (js-present? matched)
-                  trim $ option:unwrap $ get1 matched
+                  trim $ .unwrap $ get1 matched
                   , |
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
@@ -1359,7 +1359,7 @@
                 raw $ ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks (count blocks) :scanned-lines
                   count $ split-lines text
                   , :incremental? false
-              make-parser-result raw $ %:: ParseMode :full
+              make-parser-result raw $ ParseMode :full
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
             :args $ [] 'String
@@ -1369,8 +1369,8 @@
             let
                 raw $ split-block-incremental old-text new-text $ :blocks old-result
                 mode $ if (:incremental? raw)
-                  %:: ParseMode :incremental (:reused-blocks raw) (:reparsed-blocks raw)
-                  %:: ParseMode :fallback
+                  ParseMode :incremental (:reused-blocks raw) (:reparsed-blocks raw)
+                  ParseMode :fallback
               make-parser-result raw mode
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
@@ -1532,8 +1532,8 @@
                           raw $ cursor.!match pattern-indented-code
                         recur left acc
                           []
-                            count $ option:unwrap $ get1 raw
-                            &str:slice cursor $ count $ option:unwrap (get0 raw)
+                            count $ .unwrap $ get1 raw
+                            &str:slice cursor $ count $ .unwrap (get0 raw)
                           , :code
                     (math-block-single-line? cursor)
                       recur left
@@ -1569,8 +1569,8 @@
                         recur left
                           &list:append acc $ :: :text buffer
                           []
-                            count $ option:unwrap $ get1 raw
-                            &str:slice cursor $ count $ option:unwrap (get0 raw)
+                            count $ .unwrap $ get1 raw
+                            &str:slice cursor $ count $ .unwrap (get0 raw)
                           , :code
                     (math-block-single-line? cursor)
                       let
@@ -1914,13 +1914,14 @@
                 matched $ .!match line peek-command-name
               if (js-present? matched)
                 let
-                    name $ option:unwrap $ get1 matched
+                    name $ .unwrap $ get1 matched
                   [] name $ &str:slice line $ count name
                 [] nil line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
+          :schema $ :: 'Fn $ {}
             :args $ [] 'String
             :features $ #{} :js-ffi
+            :return $ :: 'List 'Dynamic
         'parse-math-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-arg (line)
             if (&= | line) ([] |<mrow></mrow> line)
@@ -1956,7 +1957,7 @@
                   (js-present? (.!match line peek-number))
                     let
                         matched $ .!match line peek-number
-                        content $ option:unwrap $ get1 matched
+                        content $ .unwrap $ get1 matched
                         next-rest $ &str:slice line $ count content
                       []
                         str |<mn> (escape-html content) |</mn>
