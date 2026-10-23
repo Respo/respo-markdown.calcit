@@ -80,7 +80,11 @@ jobs:
           else
             asset_prefix="${GITHUB_REPOSITORY}/branches/${GITHUB_REF_NAME}/"
           fi
-          export VITE_BASE_URL="${CDN_ORIGIN}/${asset_prefix}"
+          if [[ "$GITHUB_REF_TYPE" == "tag" || "$GITHUB_REF" == "refs/heads/maintenance/0.30.1" || "${GITHUB_BASE_REF:-}" == "maintenance/0.30.1" || "$GITHUB_REF" == refs/heads/prepare/markdown0460-* || "$GITHUB_REF" == refs/heads/release/markdown0460-* ]]; then
+            export VITE_BASE_URL="./"
+          else
+            export VITE_BASE_URL="${CDN_ORIGIN}/${asset_prefix}"
+          fi
           echo "VITE_BASE_URL=${VITE_BASE_URL}" >> "$GITHUB_ENV"
           echo "prefix=${asset_prefix}" >> "$GITHUB_OUTPUT"
           echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
@@ -100,7 +104,13 @@ jobs:
   upload:
     name: 上传前端产物
     needs: test
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      (github.event_name == 'push' && github.ref_type == 'branch' &&
+       github.ref != 'refs/heads/maintenance/0.30.1' &&
+       !startsWith(github.ref, 'refs/heads/prepare/markdown0460-') &&
+       !startsWith(github.ref, 'refs/heads/release/markdown0460-')) ||
+      (github.event_name == 'pull_request' && github.base_ref != 'maintenance/0.30.1' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     concurrency:
