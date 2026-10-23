@@ -6,15 +6,18 @@ Demo http://repo.respo-mvc.org/respo-markdown/
 
 ### 正式 0.30.1 配对：使用者影响
 
-候选模块 **0.4.59** 配对正式 Calcit / `@calcit/procs` **0.30.1**，依赖已发布
-UI **0.8.0**、Respo **0.16.124**、JS-FFI **0.2.5**，传递 Router **0.8.37**。
+维护候选模块 **0.4.60** 配对正式 Calcit / `@calcit/procs` **0.30.1**，依赖已发布
+UI **0.8.1**、Respo **0.16.126**、JS-FFI **0.2.6**，传递 Router **0.8.38**。
 下游需一起同步完整精确依赖图，保留 Caps strict；候选号不等于已经发布。
-Markdown API、解析、高亮、MathML 与存档格式不变；另修复 Demo 的恢复/持久化注册顺序。
-UI 从 0.7 升到 0.8，基础样式可能变化，需要完整刷新和实际页面验收，不承诺逐像素一致。
-PR 不合并或部署下游应用。同仓库 PR 与 push 会自动上传 COS；main 收到 push
-（包括合并）会立即执行原 Demo 前端部署，workflow 没有单独确认步骤。
-因此本轮必须在合并前完成人工验收和部署授权，不能指望 workflow 等待确认。
-Demo 现在先成功读取、解析并 hydrate 存档，再初次渲染和注册 watch、持久化监听及 timer，
+Markdown API、解析、高亮、MathML 与存档格式不变；本轮仅迁移旧 Option/ParseMode 构造，
+将真实返回 pair 的数学 helper 从整个 Dynamic 收紧到外层 List，仍保留 nil/String 载荷合同。
+不新增协议、Dynamic/unsafe、测试框架、预算或编译器规则；原断言和 hud! 页面报错路径保留。
+从正式0.4.59建立独立 `maintenance/0.30.1`，不回退较新main、不发布npm。
+创建维护线前已单独加入工作流隔离：维护线、这轮prepare/release分支及标签仅检查/构建，
+PR使用相对路径artifact，不读COS上传凭据、不rsync、不部署Demo或业务应用。
+main与其他原分支/面向main的同仓库PR预览和生产路径保持。发布状态以Release为准。
+
+以下恢复顺序由0.4.59交付，本轮不重复改动：先成功读取、解析并 hydrate 存档，再初次渲染和注册 watch、持久化监听及 timer，
 修复 [#87](https://github.com/Respo/respo-markdown.calcit/issues/87) 的启动顺序风险。
 恢复失败沿原错误在渲染前退出，不注册本次启动的自动写回，不清空或用默认值覆盖存档。
 合法存档的刷新测试不等同于异常存档的完整浏览器验收；实际验证范围以 PR 为准。
@@ -246,7 +249,7 @@ CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和�
 不宣称类型债务清零。
 CI 使用完整内置 strict，并显式要求 workflow passed 和空 diagnostics。
 完整依赖图通过正常 Caps strict 安装与工具链精确配对，不替换模块缓存或修改生成文件。
-显式 absence 迁移预览无建议；最新 HEAD 的 CI/review 与精确 main 部署通过后才发布模块。
+显式 absence 迁移预览无建议；本维护补丁在最新 HEAD 的 CI/review、实际验收与精确维护线合并CI通过后发布，不要求Demo部署。
 其他消费者和 Calcit 稳定版验收仍需独立完成。
 
 ### Workflow
