@@ -137,12 +137,12 @@
                 code-block $ if (nil? highlight-fn)
                   if (&= lang |cirru)
                     respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
                     respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
                   if (fn? highlight-fn)
                     div
-                      {} $ :class-name $ str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block (if indented? css/expand)
+                      {} $ :class-name $ if indented? (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block css/expand) (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block)
                       pre $ {} (:class-name css/expand)
                         :innerHTML $ highlight-code content lang highlight-fn
                       span
