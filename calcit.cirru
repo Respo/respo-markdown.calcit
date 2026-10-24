@@ -6,7 +6,7 @@
     :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :js) (:reload-fn 'respo-md.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |respo-md.schema/Op
     :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :js) (:reload-fn 'respo-md.perf-test/main!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |js-ffi/
@@ -590,7 +590,7 @@
               raise "|Invalid Markdown demo operation"
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'respo-md.schema/Op
         'highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn highligher (code lang)
             str |<code> (respo-md.util.math/escape-html code) |</code>
@@ -855,6 +855,13 @@
             respo-md.comp.md :refer $ resolve-blocks
     'respo-md.schema $ %{} 'FileEntry
       :defs $ {}
+        'Op $ %{} 'CodeEntry
+          :doc "|Dispatch Op of the demo app, bound to the :dispatch-op type slot."
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :hydrate-storage 'Dynamic
+          :examples $ []
+          :schema $ :: 'EnumDef
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (value field)
             cond
