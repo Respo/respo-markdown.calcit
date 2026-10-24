@@ -6,7 +6,7 @@
     :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :js) (:reload-fn 'respo-md.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
-      :type-slots $ {}
+      :type-slots $ {} $ :dispatch-op |respo-md.schema/Op
     :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :js) (:reload-fn 'respo-md.perf-test/main!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |js-ffi/
@@ -137,12 +137,12 @@
                 code-block $ if (nil? highlight-fn)
                   if (&= lang |cirru)
                     respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
                     respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ str-spaced |md-code-block style-code-block $ if indented? css/expand
+                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
                   if (fn? highlight-fn)
                     div
-                      {} $ :class-name $ str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block (if indented? css/expand)
+                      {} $ :class-name $ if indented? (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block css/expand) (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block)
                       pre $ {} (:class-name css/expand)
                         :innerHTML $ highlight-code content lang highlight-fn
                       span
@@ -590,7 +590,7 @@
               raise "|Invalid Markdown demo operation"
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'Dynamic
+            :args $ [] 'respo-md.schema/Op
         'highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn highligher (code lang)
             str |<code> (respo-md.util.math/escape-html code) |</code>
@@ -855,6 +855,13 @@
             respo-md.comp.md :refer $ resolve-blocks
     'respo-md.schema $ %{} 'FileEntry
       :defs $ {}
+        'Op $ %{} 'CodeEntry
+          :doc "|Dispatch Op of the demo app, bound to the :dispatch-op type slot."
+          :code $ quote $ defenum Op
+            :states (:: 'List 'Dynamic) 'Dynamic
+            :hydrate-storage 'Dynamic
+          :examples $ []
+          :schema $ :: 'EnumDef
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (value field)
             cond
