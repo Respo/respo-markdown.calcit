@@ -5,8 +5,41 @@ import { comp_md, comp_md_block, resolve_blocks } from "../js-out/respo-md.comp.
 import { make_string } from "../js-out/respo.render.html.mjs";
 import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, read_demo_state } from "../js-out/respo-md.util.core.mjs";
 import { escape_html } from "../js-out/respo-md.util.math.mjs";
+import { comp_container } from "../js-out/respo-md.comp.container.mjs";
+import { Op } from "../js-out/respo-md.schema.mjs";
 const t = c.init_tags(["class-name"]);
 const render = (text, options = c._$n__$M_()) => make_string(comp_md(text, options));
+test("demo input handlers dispatch one states operation with the updated text", () => {
+  const tags = c.init_tags(["states", "tree", "children", "node", "event", "input", "value", "text", "draft"]);
+  const inputs = [];
+  function visit(node) {
+    if (node.tag.value === "component") {
+      const tree = node.extra[0].get(tags.tree);
+      if (tree.tag.value === "some") visit(tree.extra[0]);
+    } else {
+      const element = node.extra[0];
+      const handler = c.get(element.get(tags.event), tags.input);
+      if (handler.tag.value === "some") inputs.push(handler.extra[0]);
+      for (const pair of element.get(tags.children).toArray()) {
+        const child = pair.get(tags.node);
+        if (child.tag.value === "some") visit(child.extra[0]);
+      }
+    }
+  }
+  const component = comp_container(c._$n__$M_(tags.states, c._$n__$M_()), null);
+  visit(c.option_$o_unwrap(component.get(tags.tree)));
+  assert.equal(inputs.length, 2);
+  inputs.forEach((handler, index) => {
+    const calls = [];
+    handler(c._$n__$M_(tags.value, "编辑🐈"), (...args) => calls.push(args));
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].length, 1);
+    const operation = calls[0][0];
+    assert.equal(operation.tag, tags.states);
+    assert.equal(c.option_$o_unwrap(c.enum_definition(operation)), Op);
+    assert.equal(operation.extra[1].get(index === 0 ? tags.text : tags.draft), "编辑🐈");
+  });
+});
 test("persisted demo text survives reload with a rebuilt nominal parser cache", () => {
   const tags = c.init_tags(["draft", "text", "parse-result", "states", "data", "blocks"]);
   const original = c._$n__PCT__$M_(DemoState, tags.draft, "# restored", tags.text, "inline restored", tags["parse-result"], parse_markdown("# restored"));

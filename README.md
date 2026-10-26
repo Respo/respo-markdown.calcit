@@ -4,7 +4,38 @@
 
 Demo http://repo.respo-mvc.org/respo-markdown/
 
-### 正式 0.30.1 配对：使用者影响
+### 0.5.0-alpha.3 候选：使用者影响
+
+本轮将已有 0.31 预发布线的 CLI / `@calcit/procs` 从 alpha.4 成对升级到已发布
+`0.31.0-alpha.7`，UI 从 alpha.1 升到已发布 `0.9.0-alpha.2`；保留 Respo
+`0.17.0-alpha.2`、JS FFI `0.2.5` 与间接 Router `0.9.0-alpha.1`。
+0.30 稳定消费者继续使用原 0.4.x 维护线，不能单独混装这些预发布依赖；其他模块
+需协调完整 UI/Respo 版本图，不修改缓存或放宽 Caps strict。
+alpha.7 默认预检查拒绝未证明的 Dynamic 流向；项目检查和构建保留默认 proof audit。
+
+26 处 String 和 27 处 List 长度读取改用 `.len`，11 处已知 Option 解包改用
+`.unwrap`。String 仍按 Unicode 标量计数，不改为 JS UTF-16 `.length`；原空值错误、
+解析边界和求值次数不变。Markdown API、MathML、增量解析、高亮信任边界、HUD 与
+存档恢复/保存顺序不变；不新增脚本、类型预算、强转或业务兜底。
+实际页面验收另外发现两个 Demo 输入事件仍调用旧的双参数 dispatch，导致编辑时报
+“expected 1 params, got 2”；现改为单个名义 `Op :states` Enum，保留原 cursor 和状态内容。
+在现有 JS 渲染测试中补一项真实事件回调回归，不修改公共 Markdown API。
+cursor 沿原缺失值默认空列表，再以 `decode-map-as` 检查其 `List<Dynamic>` 合同；
+损坏的非列表 cursor 会在渲染前明确拒绝，不再传入名义 Op 或静默强转。
+UI 的条件渲染修复随依赖带入，完整刷新后需验收页面，不保证全依赖图样式/生成代码相同。
+
+全部 132 定义、10 namespace、15 项附带测试及 schema/FFI 的对照只允许上述
+64 个调用头、两个 Demo dispatch 包装及一处 cursor 受检边界变化。原 JS-only 测试分组保留，MathML、
+增量解析和渲染测试继续执行。
+本地既有的一小时 npm 安装隔离显式写入项目，供本地/CI 一致使用；移除旧 alpha.4
+预批准项，不给新 alpha 增加免等待例外。候选不代表已发版，发布状态以对应 Git tag 为准。
+自动工作流只监听 main push 和 PR，避免同一功能分支 push 与 PR 重复构建、上传；
+其他分支需通过 PR 验收。保留原两段构建/上传 job 和 main 的生产部署条件、路径。
+已发布模块 alpha.2 的源码与本 PR base 相同，但它的工具链为 alpha.2，base 为 alpha.4；
+源码迁移先在 alpha.6 完成前后门禁，再用 alpha.7 复验；不冒充重新执行旧
+alpha.2/alpha.4 二进制的比较。
+
+### 0.4.59 / 正式 0.30.1 历史配对记录
 
 候选模块 **0.4.59** 配对正式 Calcit / `@calcit/procs` **0.30.1**，依赖已发布
 UI **0.8.0**、Respo **0.16.124**、JS-FFI **0.2.5**，传递 Router **0.8.37**。
@@ -36,7 +67,7 @@ nil、false、0 与空字符串仍按原顺序保留，成员身份不变。
 图片内容按首个 `](` 的 Unicode 标量位置读取，保留完整 URL；普通 alt、
 Unicode、相邻链接和文本行为不变。不改变 `split` 的既有语义或 Markdown 解析语法。
 本修复配对已发布 Calcit/procs `0.30.1-alpha.5`，模块仍使用下文精确正式 tag。
-这是先前版本记录，不是本次重新实现；本轮正式配对见文首。
+这是先前版本记录，不是本次重新实现；当前预发布配对见文首。
 
 Supported features:
 
@@ -217,7 +248,7 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 
 ### Dependency boundary
 
-本轮为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
+此前为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
 的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
 已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
 已有缺失值修改保留；下面记录的是先前 0.4.56 的 alpha 配对，
@@ -268,7 +299,7 @@ MIT
 ## 验证入口与兼容边界
 
 Node 24、Yarn 4.18.0 与 Vite 8.3.1 保持原配置；工具链与模块版本见上文依赖边界。
-发布状态以 Release 为准，版本声明不代替迁移验收。
+发布状态以对应 Git tag 为准，版本声明不代替迁移验收。
 默认 demo 入口为 JS/browser；`smoke-test` 和 `perf-test` 为 JS/node，
 与现有 Node 测试驱动一致，不再将它们标记为 native 入口。
 `calcit.cirru` 是源码快照；生成的 `js-out/` 可以删除，打包前须重新编译。
@@ -281,7 +312,8 @@ Node 24、Yarn 4.18.0 与 Vite 8.3.1 保持原配置；工具链与模块版本�
 上传 job 按 PR/生产分支分组串行执行，使用正式 Action v1.2.0 内置逐文件公开校验，
 不另加上传验证脚本。PR CDN 前缀按 PR/run/attempt 隔离；等待队列使用 `queue: max`，
 不会取消执行中的上传，也不会把不同 PR 的预览写到同一个目录。
-COS 只上传前端 `dist`；main 的服务器部署路径保持原样。
+COS 只上传前端 `dist`；main 的服务器部署路径保持原样。当前自动触发限 main push
+和 PR，非 main 分支需打开 PR 后验收，不再保留重复的分支 push 上传路径分支。
 
 CI 使用的校验命令：
 
@@ -296,7 +328,7 @@ calcit edit format
 calcit --check-only --all-defs --format json
 calcit fix --workflow strict --verify --format json
 calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
-calcit test --require-match --summary-only --format json
+calcit test --exclude-tag js-only --require-match --summary-only --format json
 calcit calcit.cirru js
 node --test scripts/inline-render.test.mjs
 yarn vite build --base=./
