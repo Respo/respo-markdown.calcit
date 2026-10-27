@@ -6,8 +6,8 @@ Demo http://repo.respo-mvc.org/respo-markdown/
 
 ### 0.5.0-alpha.3 候选：使用者影响
 
-本轮将已有 0.31 预发布线的 CLI / `@calcit/procs` 从 alpha.4 成对升级到已发布
-`0.31.0-alpha.7`，UI 从 alpha.1 升到已发布 `0.9.0-alpha.2`；保留 Respo
+本轮将已有 0.31 预发布线的 CLI / `@calcit/procs` 从 alpha.4 成对升级到正式版
+`0.31.0`，UI 从 alpha.1 升到已发布 `0.9.0-alpha.2`；保留 Respo
 `0.17.0-alpha.2`、JS FFI `0.2.5` 与间接 Router `0.9.0-alpha.1`。
 0.30 稳定消费者继续使用原 0.4.x 维护线，不能单独混装这些预发布依赖；其他模块
 需协调完整 UI/Respo 版本图，不修改缓存或放宽 Caps strict。
