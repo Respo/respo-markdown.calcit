@@ -16,7 +16,7 @@ Snapshot、公开 Markdown API、附带测试和现有断言保持。原 strict�
 Modal/HUD、存档格式及恢复后再注册保存的顺序保持。UI 依赖变化仍须验收实际页面，
 不承诺所有依赖的生成代码或样式逐字相同。
 
-上述依赖 tag 已分别通过原 CI、评审及 Demo 部署后发布，CLI/procs 均声明正式 0.31.0。此前 JS-FFI 0.2.6 的实际 tag 仍属于 0.30.1，本轮改用新 0.2.7，不改写旧 tag；不把 main 或根工具链检查当成所有依赖 tag 的配对证据。详见 [发布配对问题](https://github.com/calcit-lang/js-ffi/issues/195)。
+上述依赖 tag 均经原 CI 与评审验收后发布，CLI/procs 均声明正式 0.31.0。UI、Respo、Router 还通过了各自原 Demo 部署；JS-FFI 只完成原 CI 验收，不涉及 Demo/服务部署。此前 JS-FFI 0.2.6 的实际 tag 仍属于 0.30.1，本轮改用新 0.2.7，不改写旧 tag；不把 main 或根工具链检查当成所有依赖 tag 的配对证据。详见 [发布配对问题](https://github.com/calcit-lang/js-ffi/issues/195)。
 
 ### 历史：0.5.0-alpha.3 的 alpha.7 源码迁移
 
