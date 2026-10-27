@@ -22,7 +22,9 @@
           :code $ quote $ defcomp comp-container (store highlighter)
             let
                 states $ respo-md.schema/read-field store :states
-                cursor $ either (respo-md.schema/read-field states :cursor) ([])
+                cursor $ decode-map-as
+                  either (respo-md.schema/read-field states :cursor) ([])
+                  :: 'List 'Dynamic
                 state $ respo-md.util.core/read-demo-state $ respo-md.schema/read-field states :data
               div
                 {} (:class-name css/global)
@@ -49,9 +51,9 @@
                       :value $ :text state
                       :placeholder "|text inline"
                       :on-input $ fn (e d!)
-                        d! cursor $ respo-md.util.core/DemoState :draft (:draft state) :text
+                        d! $ respo-md.schema/Op :states cursor $ respo-md.util.core/DemoState :draft (:draft state) :text
                           str $ respo-md.schema/read-field e :value
-                          , :parse-result $ :parse-result state
+                          , :parse-result (:parse-result state)
                   div ({})
                     comp-md (:text state) ({})
                 =< nil 40
@@ -69,7 +71,7 @@
                         ; println |Editing: state $ :value e
                         let
                             next-draft $ str $ respo-md.schema/read-field e :value
-                          d! cursor $ update-draft-state state next-draft
+                          d! $ respo-md.schema/Op :states cursor $ update-draft-state state next-draft
                   div
                     {} (:class-name css/flex)
                       :style $ {} $ :padding 8
@@ -129,7 +131,7 @@
                 content $ -> (&list:rest lines)
                   map $ fn (line)
                     if (starts-with? line indentation)
-                      &str:slice line $ count indentation
+                      &str:slice line $ .len indentation
                       , line
                   respo-md.util.core/join-strings-dynamic &newline
                 highlight-fn $ respo-md.schema/read-field options :highlight
@@ -163,7 +165,7 @@
           :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
             let
-                useful $ &str:slice chunk 2 $ - (count chunk) 1
+                useful $ &str:slice chunk 2 $ - (.len chunk) 1
                 index $ .unwrap $ str-find-index useful "|]("
                 content $ &str:slice useful 0 index
                 url $ &str:slice useful $ + index 2
@@ -190,7 +192,7 @@
               (starts-with? line "| ")
                 let
                     content $ js-ffi.contract/expect-string |String.trimLeft $ .!trimLeft line
-                    space-size $ &- (count line) (count content)
+                    space-size $ &- (.len line) (.len content)
                     spaces $ js-ffi.contract/expect-string |String.slice $ .!slice line 0 space-size
                   div ({}) (<> spaces style-indent) (comp-line content)
               (or (starts-with? line "|* ") (starts-with? line "|- "))
@@ -208,7 +210,7 @@
         'comp-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-link (chunk)
             let
-                useful $ &str:slice chunk 1 $ - (count chunk) 1
+                useful $ &str:slice chunk 1 $ - (.len chunk) 1
               let[] (content url) (split useful "|](")
                 span ({})
                   if
@@ -219,7 +221,7 @@
                         :href url
                         :target |_blank
                       code $ {} $ :inner-text
-                        &str:slice content 1 $ dec $ count content
+                        &str:slice content 1 $ dec $ .len content
                     a $ {}
                       :class-name $ str-spaced css/link style-default-link
                       :href url
@@ -628,7 +630,7 @@
             :features $ #{} :js-ffi
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
-            option:unwrap $ browser/query-selector |.app
+            .unwrap $ browser/query-selector |.app
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
             :args $ []
@@ -747,32 +749,32 @@
                   , :unknown
                 , :full
               assert-perf |same-block-output $ =
-                count $ :blocks full-result
-                count $ :blocks incremental
+                .len $ :blocks full-result
+                .len $ :blocks incremental
               assert-perf |reuses-prefix $ > (:reused-blocks incremental) 1900
               assert-perf |scans-less-than-full $ < (:scanned-lines incremental)
-                count $ split-lines appended
+                .len $ split-lines appended
               assert-perf |fallback-mode $ not $ :incremental? fallback
               assert-perf |fallback-output $ =
-                count $ :blocks $ parse-markdown changed
-                count $ :blocks fallback
-              assert-perf |component-uses-parser-result $ = (count rendered-blocks)
-                count $ :blocks incremental
+                .len $ :blocks $ parse-markdown changed
+                .len $ :blocks fallback
+              assert-perf |component-uses-parser-result $ = (.len rendered-blocks)
+                .len $ :blocks incremental
               assert-perf |demo-state-draft $ = (:draft demo-state) appended
               assert-perf |demo-state-parser $ =
-                count $ :blocks $ :parse-result demo-state
-                count $ :blocks incremental
+                .len $ :blocks $ :parse-result demo-state
+                .len $ :blocks incremental
               assert-perf |llm-stream-output $ =
-                count $ :blocks $ :result stream
-                count $ :blocks $ parse-markdown (:text stream)
+                .len $ :blocks $ :result stream
+                .len $ :blocks $ parse-markdown (:text stream)
               assert-perf |llm-stream-saves-work $ > (:full-lines stream)
                 * (:incremental-lines stream) 10
               assert-perf |open-code-fallback $ = false $ :incremental? code-result
               assert-perf |open-code-output $ =
-                count $ :blocks code-result
-                count $ :blocks $ parse-markdown code-new
+                .len $ :blocks code-result
+                .len $ :blocks $ parse-markdown code-new
               println $ str |full-lines=
-                count $ split-lines appended
+                .len $ split-lines appended
                 , "| incremental-lines=" (:scanned-lines incremental) "| reused-blocks=" (:reused-blocks incremental) "| reparsed-blocks=" $ :reparsed-blocks incremental
               println $ str |llm-full-lines= (:full-lines stream) "| llm-incremental-lines=" $ :incremental-lines stream
               assert-perf |legacy-demo-draft $ = (:draft legacy-state) base
@@ -828,7 +830,7 @@
                 prefix $ respo-md.util.core/split-block before
                 result $ respo-md.util.core/split-block-incremental before after prefix
               assert= true $ :incremental? result
-              assert= (count prefix) (:reused-blocks result)
+              assert= (.len prefix) (:reused-blocks result)
               assert= true $ identical?
                 .unwrap $ first prefix
                 .unwrap $ first $ :blocks result
@@ -1163,8 +1165,8 @@
                   , -1
               if (js-present? slash-matched)
                 let
-                    formula $ option:unwrap $ get1 slash-matched
-                    rest-line $ &str:slice line $ + 4 (count formula)
+                    formula $ .unwrap $ get1 slash-matched
+                    rest-line $ &str:slice line $ + 4 (.len formula)
                   Option :some $ InlineMath :formula formula :rest-line rest-line
                 if (&< -1 dollar-end-idx)
                   let
@@ -1187,16 +1189,16 @@
                     matched $ .!match next-left peek-emphasis
                   if (js-present? matched)
                     let
-                        emphasis $ option:unwrap $ get1 matched
-                        rest-line $ &str:slice next-left $ + 2 (count emphasis)
+                        emphasis $ .unwrap $ get1 matched
+                        rest-line $ &str:slice next-left $ + 2 (.len emphasis)
                       InlineStar :emphasis emphasis rest-line
                     InlineStar :literal
                 let
                     matched $ .!match left peek-italic
                   if (js-present? matched)
                     let
-                        italic $ option:unwrap $ get1 matched
-                        rest-line $ &str:slice left $ + 1 (count italic)
+                        italic $ .unwrap $ get1 matched
+                        rest-line $ &str:slice left $ + 1 (.len italic)
                       InlineStar :italic italic rest-line
                     InlineStar :literal
           :examples $ []
@@ -1291,8 +1293,8 @@
             let
                 trimmed $ trim line
               if
-                &> (count trimmed) 2
-                trim $ &str:slice trimmed 0 $ - (count trimmed) 2
+                &> (.len trimmed) 2
+                trim $ &str:slice trimmed 0 $ - (.len trimmed) 2
                 , |
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
@@ -1313,7 +1315,7 @@
             let
                 trimmed $ trim line
               if
-                &> (count trimmed) 2
+                &> (.len trimmed) 2
                 trim $ &str:slice trimmed 2
                 , |
           :examples $ []
@@ -1337,10 +1339,10 @@
                 matched $ .!match trimmed peek-math-block-single-line
               if
                 and (starts-with? trimmed |$$) (ends-with? trimmed |$$)
-                  &> (count trimmed) 4
-                trim $ &str:slice trimmed 2 $ - (count trimmed) 2
+                  &> (.len trimmed) 4
+                trim $ &str:slice trimmed 2 $ - (.len trimmed) 2
                 if (js-present? matched)
-                  trim $ option:unwrap $ get1 matched
+                  trim $ .unwrap $ get1 matched
                   , |
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'String)
@@ -1352,7 +1354,7 @@
                 trimmed $ trim line
               or
                 and (starts-with? trimmed |$$) (ends-with? trimmed |$$)
-                  &> (count trimmed) 4
+                  &> (.len trimmed) 4
                 js-present? $ .!match trimmed peek-math-block-single-line
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Bool)
@@ -1363,8 +1365,8 @@
           :code $ quote $ defn parse-markdown (text)
             let
                 blocks $ split-block text
-                raw $ ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks (count blocks) :scanned-lines
-                  count $ split-lines text
+                raw $ ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks (.len blocks) :scanned-lines
+                  .len $ split-lines text
                   , :incremental? false
               make-parser-result raw $ %:: ParseMode :full
           :examples $ []
@@ -1451,9 +1453,9 @@
           :code $ quote $ defn split-block-incremental (old-text new-text old-blocks)
             if (starts-with? new-text old-text)
               let
-                  appended $ &str:slice new-text $ count old-text
+                  appended $ &str:slice new-text $ .len old-text
                   appended-lines $ split-lines appended
-                  block-count $ count old-blocks
+                  block-count $ .len old-blocks
                   last-block $ last old-blocks
                   last-mode $ match last-block
                     (:none) :unknown
@@ -1481,8 +1483,8 @@
                         str (respo-md.util.core/join-strings-dynamic last-lines &newline) &newline appended
                         str (respo-md.util.core/join-strings-dynamic last-lines &newline) appended
                       next-blocks $ split-block tail-text
-                    ScanResult :blocks (append-blocks prefix-blocks next-blocks) :reused-blocks (dec block-count) :reparsed-blocks (count next-blocks) :scanned-lines
-                      count $ split-lines tail-text
+                    ScanResult :blocks (append-blocks prefix-blocks next-blocks) :reused-blocks (dec block-count) :reparsed-blocks (.len next-blocks) :scanned-lines
+                      .len $ split-lines tail-text
                       , :incremental? true
                   let
                       next-blocks $ split-block appended
@@ -1492,14 +1494,14 @@
                         = false $ = last-mode :text
                       let
                           full-blocks $ split-block new-text
-                        ScanResult :blocks full-blocks :reused-blocks 0 :reparsed-blocks (count full-blocks) :scanned-lines
-                          count $ split-lines new-text
+                        ScanResult :blocks full-blocks :reused-blocks 0 :reparsed-blocks (.len full-blocks) :scanned-lines
+                          .len $ split-lines new-text
                           , :incremental? false
-                      ScanResult :blocks (append-blocks old-blocks next-blocks) :reused-blocks (count old-blocks) :reparsed-blocks (count next-blocks) :scanned-lines (count appended-lines) :incremental? true
+                      ScanResult :blocks (append-blocks old-blocks next-blocks) :reused-blocks (.len old-blocks) :reparsed-blocks (.len next-blocks) :scanned-lines (.len appended-lines) :incremental? true
               let
                   next-blocks $ split-block new-text
-                ScanResult :blocks next-blocks :reused-blocks 0 :reparsed-blocks (count next-blocks) :scanned-lines
-                  count $ split-lines new-text
+                ScanResult :blocks next-blocks :reused-blocks 0 :reparsed-blocks (.len next-blocks) :scanned-lines
+                  .len $ split-lines new-text
                   , :incremental? false
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ScanResult)
@@ -1539,8 +1541,8 @@
                           raw $ cursor.!match pattern-indented-code
                         recur left acc
                           []
-                            count $ option:unwrap $ get1 raw
-                            &str:slice cursor $ count $ option:unwrap (get0 raw)
+                            .len $ .unwrap $ get1 raw
+                            &str:slice cursor $ .len $ .unwrap (get0 raw)
                           , :code
                     (math-block-single-line? cursor)
                       recur left
@@ -1576,8 +1578,8 @@
                         recur left
                           &list:append acc $ :: :text buffer
                           []
-                            count $ option:unwrap $ get1 raw
-                            &str:slice cursor $ count $ option:unwrap (get0 raw)
+                            .len $ .unwrap $ get1 raw
+                            &str:slice cursor $ .len $ .unwrap (get0 raw)
                           , :code
                     (math-block-single-line? cursor)
                       let
@@ -1694,7 +1696,7 @@
                               conj
                                 if (&= | buffer) acc $ &list:append acc $ :: :text buffer
                                 :: :link guess
-                              &str:slice line $ count guess
+                              &str:slice line $ .len guess
                               , | :text
                           (:none)
                             recur acc left (str buffer |[) :text
@@ -1706,7 +1708,7 @@
                               conj
                                 if (&= | buffer) acc $ &list:append acc $ :: :text buffer
                                 :: :image guess
-                              &str:slice line $ count guess
+                              &str:slice line $ .len guess
                               , | :text
                           (:none)
                             recur acc left (str buffer |!) :text
@@ -1740,7 +1742,7 @@
         'split-table-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-table-content (cursor)
             -> cursor
-              &str:slice 1 $ dec $ count cursor
+              &str:slice 1 $ dec $ .len cursor
               split ||
               map $ fn (x) (trim x)
           :examples $ []
@@ -1921,8 +1923,8 @@
                 matched $ .!match line peek-command-name
               if (js-present? matched)
                 let
-                    name $ option:unwrap $ get1 matched
-                  [] name $ &str:slice line $ count name
+                    name $ .unwrap $ get1 matched
+                  [] name $ &str:slice line $ .len name
                 [] nil line
           :examples $ []
           :schema $ :: 'Fn $ {} (:return 'Dynamic)
@@ -1963,8 +1965,8 @@
                   (js-present? (.!match line peek-number))
                     let
                         matched $ .!match line peek-number
-                        content $ option:unwrap $ get1 matched
-                        next-rest $ &str:slice line $ count content
+                        content $ .unwrap $ get1 matched
+                        next-rest $ &str:slice line $ .len content
                       []
                         str |<mn> (escape-html content) |</mn>
                         , next-rest
@@ -2058,7 +2060,7 @@
                   if (>= end-index 0)
                     let
                         source $ &str:slice rest-line 0 end-index
-                        next-rest $ &str:slice rest-line $ + end-index (count closing)
+                        next-rest $ &str:slice rest-line $ + end-index (.len closing)
                       [] (math-environment-html name source) next-rest
                     [] (math-environment-html name rest-line) |
                 [] |<mi>begin</mi> line

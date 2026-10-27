@@ -1,7 +1,9 @@
 name: Upload
 
 on:
-  push: {}
+  push:
+    branches:
+      - main
   pull_request: {}
 
 permissions:
@@ -75,10 +77,8 @@ jobs:
           set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             asset_prefix="${GITHUB_REPOSITORY}/pr/${{ github.event.pull_request.number }}/${GITHUB_RUN_ID}/${GITHUB_RUN_ATTEMPT}/"
-          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            asset_prefix="${GITHUB_REPOSITORY}/"
           else
-            asset_prefix="${GITHUB_REPOSITORY}/branches/${GITHUB_REF_NAME}/"
+            asset_prefix="${GITHUB_REPOSITORY}/"
           fi
           export VITE_BASE_URL="${CDN_ORIGIN}/${asset_prefix}"
           echo "VITE_BASE_URL=${VITE_BASE_URL}" >> "$GITHUB_ENV"
