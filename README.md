@@ -4,7 +4,12 @@
 
 Demo http://repo.respo-mvc.org/respo-markdown/
 
-### 0.5.0-alpha.3 候选：使用者影响
+### 当前候选：正式 Calcit 0.31.0
+
+使用者影响：本轮只将 CLI 与 @calcit/procs 从 alpha.7 成对升级到正式 0.31.0，保留 Snapshot、公开 API、原断言和精确模块依赖。消费者需同步工具链并重新生成 JS。
+模块提交仍是候选，未发布新 tag；依赖图仍包含预发布模块，不代表完整正式模块图。原 strict、MathML、增量解析与渲染门禁保持。
+
+### 历史：0.5.0-alpha.3 的 alpha.7 源码迁移
 
 本轮将已有 0.31 预发布线的 CLI / `@calcit/procs` 从 alpha.4 成对升级到已发布
 `0.31.0-alpha.7`，UI 从 alpha.1 升到已发布 `0.9.0-alpha.2`；保留 Respo
@@ -67,7 +72,7 @@ nil、false、0 与空字符串仍按原顺序保留，成员身份不变。
 图片内容按首个 `](` 的 Unicode 标量位置读取，保留完整 URL；普通 alt、
 Unicode、相邻链接和文本行为不变。不改变 `split` 的既有语义或 Markdown 解析语法。
 本修复配对已发布 Calcit/procs `0.30.1-alpha.5`，模块仍使用下文精确正式 tag。
-这是先前版本记录，不是本次重新实现；当前预发布配对见文首。
+这是先前版本记录，不是本次重新实现；当前工具链配对见文首。
 
 Supported features:
 
