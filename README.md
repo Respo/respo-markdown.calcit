@@ -6,8 +6,8 @@ Demo http://repo.respo-mvc.org/respo-markdown/
 
 ### 当前候选：0.5.0-alpha.4 / 正式 Calcit 0.31.0
 
-使用者影响：本轮对齐已发布 UI `0.9.0-alpha.3`、Respo `0.17.0-alpha.3`、
-JS-FFI `0.2.6` 及传递 Router `0.9.0-alpha.2`，消费者需整体安装同一精确依赖图，
+使用者影响：本轮对齐已发布 UI `0.9.0-alpha.4`、Respo `0.17.0-alpha.4`、
+JS-FFI `0.2.7` 及传递 Router `0.9.0-alpha.3`，消费者需整体安装同一精确依赖图，
 重新生成 JS；不能只改一个根版本或关闭 Caps strict。CLI / `@calcit/procs` 保持正式
 `0.31.0`。模块图仍含 alpha，候选 `0.5.0-alpha.4` 尚未发版。
 
@@ -15,6 +15,8 @@ Snapshot、公开 Markdown API、附带测试和现有断言保持。原 strict�
 解析、渲染与 Demo 前端门禁继续执行，不新增类型预算、强转或重复 COS 校验脚本。
 Modal/HUD、存档格式及恢复后再注册保存的顺序保持。UI 依赖变化仍须验收实际页面，
 不承诺所有依赖的生成代码或样式逐字相同。
+
+上述依赖 tag 已分别通过原 CI、评审及 Demo 部署后发布，CLI/procs 均声明正式 0.31.0。此前 JS-FFI 0.2.6 的实际 tag 仍属于 0.30.1，本轮改用新 0.2.7，不改写旧 tag；不把 main 或根工具链检查当成所有依赖 tag 的配对证据。详见 [发布配对问题](https://github.com/calcit-lang/js-ffi/issues/195)。
 
 ### 历史：0.5.0-alpha.3 的 alpha.7 源码迁移
 
