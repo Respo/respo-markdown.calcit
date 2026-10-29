@@ -425,31 +425,31 @@
               :padding-left 12
               :color $ hsl 0 0 50
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-code-block
             {} $ |& $ {} (:max-width |60vw) (:margin-bottom 8)
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-default-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-default-link
             {}
               |& $ {} (:opacity 0.9) (:transition-duration |200ms)
               |&:hover $ {} (:opacity 1) (:transform "|scale(1)")
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-image $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-image
             {} $ |& $ {} (:max-width 480) (:max-height 320)
               :border $ str "|1px solid " $ hsl 0 0 90
               :border-radius |8px
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-indent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-indent
             {} $ |& $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-inline-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-inline-code
             {} $ |& $ {}
@@ -459,7 +459,7 @@
               :padding "|2px 4px"
               :margin "|2px 4px"
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-inline-math $ %{} 'CodeEntry
           :doc "|Keeps inline MathML readable inside prose without over-expanding line height."
           :code $ quote $ defstyle style-inline-math
@@ -467,7 +467,7 @@
               :background-color $ hsl 0 0 97
               :border-radius |4px
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-line-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-line-list
             {}
@@ -482,7 +482,7 @@
                 :color $ hsl 0 0 50
                 :content "|'● '"
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-math-block $ %{} 'CodeEntry
           :doc "|Expands block MathML slightly so dense formulas stay readable in the preview pane."
           :code $ quote $ defstyle style-math-block
@@ -492,7 +492,7 @@
               :line-height |1.6em
               :overflow :auto
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-md-table $ %{} 'CodeEntry
           :doc "|reused some styles from https://pure-css.github.io/tables/"
           :code $ quote $ defstyle style-md-table
@@ -511,12 +511,12 @@
                 :text-align :left
                 :vertical-align :middle
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
         'style-paragraph $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-paragraph
             {} $ |& $ {}
           :examples $ []
-          :schema $ quote Dynamic
+          :schema $ quote String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.comp.md
           :require
@@ -670,7 +670,7 @@
               println $ str "|[ok] " label
               raise $ str "|Performance assertion failed: " label
           :examples $ []
-          :schema $ quote $ Fn String Bool (-> Dynamic)
+          :schema $ quote $ Fn String Bool (-> Unit)
         'main! $ %{} 'CodeEntry
           :doc "|Runs append-only Markdown parser benchmark using Calcit code."
           :code $ quote $ defn main! () (test-option-block-boundaries!)
@@ -736,7 +736,7 @@
                 :blocks old-result
               println "|Incremental parser performance test passed."
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'make-source $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-source (n acc)
             if (&= n 0) acc $ recur (dec n) (str acc "|line\n\n")
@@ -880,7 +880,7 @@
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (test-inline-non-string!) (println "|All math tests passed.")
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'test-escape-html! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-escape-html! ()
             assert= |&amp; $ escape-html |&
@@ -889,7 +889,7 @@
             assert= | $ escape-html |
             println "|test-escape-html! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'test-inline-non-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-inline-non-string! ()
             let
@@ -962,14 +962,14 @@
               respo-md.util.math/parse-math-environment |{matrix}x
             println "|test-mathml-markup! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'test-normalize-math! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-normalize-math! ()
             assert= |a+b $ normalize-math-source "|  a+b  "
             assert= |ab $ normalize-math-source "|  a \n b  "
             println "|test-normalize-math! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.test
           :require
@@ -1740,7 +1740,7 @@
           :code $ quote $ defn math-operator-char? (cursor)
             or (&= cursor |+) (&= cursor |-) (&= cursor |=) (&= cursor "|(") (&= cursor "|)") (&= cursor |[) (&= cursor |]) (&= cursor |,) (&= cursor |/) (&= cursor |:)
           :examples $ []
-          :schema $ quote $ Fn String (-> Dynamic)
+          :schema $ quote $ Fn String (-> Bool)
           :tests $ [] $ %{} 'TestEntry (:name |recognizes-plus)
             :code $ quote $ assert= true (math-operator-char? |+)
         'math-operator-command? $ %{} 'CodeEntry
