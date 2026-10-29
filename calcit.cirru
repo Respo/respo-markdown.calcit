@@ -80,12 +80,11 @@
                         :parse-result $ :parse-result state
                 =< nil 200
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'Dynamic 'Dynamic
+          :schema $ quote $ Fn Dynamic Dynamic (-> respo.schema/Component)
         'initial-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-state (respo-md.util.core/read-demo-state nil)
           :examples $ []
-          :schema $ :: 'respo-md.util.core/DemoState
+          :schema $ quote respo-md.util.core/DemoState
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.comp.container
           :require
@@ -101,9 +100,7 @@
         'blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blockquote (props & children) (create-element :blockquote props & children)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:rest 'Dynamic) (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic & Dynamic (-> Dynamic) (:features :js-ffi)
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
@@ -112,7 +109,7 @@
                     (:none) (Option :none)
                     (:some value)
                       if (number? value) (Option :some value) (Option :none)
-                  :: 'Option 'Number
+                  quote $ Option Number
                 lines $ match
                   try-decode-map-as
                     if (indent-option .some?) (&list:rest indented-lines) indented-lines
@@ -159,8 +156,7 @@
                   , code-block
                 , code-block
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] (:: 'List 'Dynamic) (:: 'Map 'Dynamic 'Dynamic)
+          :schema $ quote $ Fn (List Dynamic) (Map Dynamic Dynamic) (-> respo.schema/Component)
         'comp-image $ %{} 'CodeEntry
           :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
@@ -171,9 +167,7 @@
                 url $ &str:slice useful $ + index 2
               img $ {} (:src url) (:class-name style-image) (:alt content)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo.schema/Element) (:features :js-ffi)
         'comp-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-line (line)
             cond
@@ -204,9 +198,7 @@
                   :innerHTML $ trim $ &str:slice line 7
               true $ div ({}) & $ render-inline line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo.schema/Component) (:features :js-ffi)
         'comp-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-link (chunk)
             let
@@ -228,17 +220,14 @@
                       :inner-text $ str-spaced "|🌐" content
                       :target |_blank
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo.schema/Element) (:features :js-ffi)
         'comp-math-block $ %{} 'CodeEntry
           :doc "|Renders a block-level math fragment as native MathML inside a styled container."
           :code $ quote $ defcomp comp-math-block (lines)
             div $ {} (:class-name style-math-block)
               :innerHTML $ mathml-markup (respo-md.util.core/join-strings-dynamic lines &newline) true
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'List 'Dynamic
+          :schema $ quote $ Fn (List Dynamic) (-> respo.schema/Component)
         'comp-md $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md (text options)
             let
@@ -250,8 +239,7 @@
                 {} $ :class-name $ .unwrap-or (get options :class-name) nil
                 , & inner
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String $ :: 'Map 'Dynamic 'Dynamic
+          :schema $ quote $ Fn String (Map Dynamic Dynamic) (-> respo.schema/Component)
         'comp-md-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md-block (text options)
             let
@@ -262,9 +250,7 @@
                   :class-name $ if (nil? class-name) |md-block $ str-spaced |md-block class-name
                   :style $ respo-md.schema/read-field options :style
                 -> blocks $ respo-md.util.core/map-indexed-dynamic $ fn (idx block)
-                  hint-fn $ {}
-                    :args $ [] 'Number 'Dynamic
-                    :return $ :: 'List 'Dynamic
+                  hint-fn $ Fn Number Dynamic $ -> (List Dynamic)
                   [] idx $ match block
                     (:text lines)
                       match
@@ -281,8 +267,7 @@
                         (:ok table-lines) (comp-table-block table-lines)
                         (:err error) (raise error)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
+          :schema $ quote $ Fn String (Map Tag Dynamic) (-> respo.schema/Component)
         'comp-table-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-table-block (lines)
             let
@@ -309,9 +294,10 @@
                       fn (x)
                         create-element :td ({}) & $ render-inline x
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Element)
-            :args $ [] $ :: 'List (:: 'List 'String)
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn
+            List $ List String
+            -> respo.schema/Element
+            :features :js-ffi
         'comp-text-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-text-block (lines)
             div
@@ -319,8 +305,7 @@
               , & $ -> lines $ map
                 fn (line) (respo.core/memo-comp-by line comp-line line)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo.schema/Component)
-            :args $ [] $ :: 'List 'String
+          :schema $ quote $ Fn (List String) (-> respo.schema/Component)
         'highlight-code $ %{} 'CodeEntry
           :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
           :code $ quote $ defn highlight-code (content lang highlight-fn)
@@ -328,17 +313,14 @@
                 html $ highlight-fn content lang
               if (string? html) html $ raise |Markdown-:highlight-must-return-a-String
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String 'String 'Fn
+          :schema $ quote $ Fn String String Fn (-> String)
           :tests $ []
             %{} 'TestEntry
               :name |highlight-callback-invoked-with-code-and-language
               :code $ quote $ let
                   calls $ ref 0
                   callback $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'String
+                    hint-fn $ Fn String String $ -> String
                     assert= "|🐈正文" code
                     assert= |unknown-language lang
                     reset! calls $ inc $ deref calls
@@ -350,9 +332,7 @@
             %{} 'TestEntry (:name |highlight-empty-code-and-language)
               :code $ quote $ let
                   callback $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'String
+                    hint-fn $ Fn String String $ -> String
                     assert= | code
                     assert= | lang
                     , |<b>empty-sentinel</b>
@@ -363,15 +343,11 @@
               :code $ quote $ let
                   calls $ ref 0
                   callback $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'String
+                    hint-fn $ Fn String String $ -> String
                     reset! calls $ inc $ deref calls
                     str |<i> lang |</i>
                   other $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'String
+                    hint-fn $ Fn String String $ -> String
                     , |<b>other-renderer</b>
                 assert= |<i>js</i> $ highlight-code |same |js callback
                 assert= |<i>bash</i> $ highlight-code |same |bash callback
@@ -381,31 +357,23 @@
             %{} 'TestEntry (:name |highlight-rejects-non-string-result)
               :code $ quote $ let
                   callback $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'Number
+                    hint-fn $ Fn String String $ -> Number
                     , 42
                 assert= true $ try
                   do (highlight-code |code |js callback) false
                   fn (message)
-                    hint-fn $ {}
-                      :args $ [] 'String
-                      :return 'Bool
+                    hint-fn $ Fn String $ -> Bool
                     .includes? message |highlight
               :tags $ #{} :highlight :unit
             %{} 'TestEntry (:name |highlight-preserves-callback-failure)
               :code $ quote $ let
                   callback $ fn (code lang)
-                    hint-fn $ {}
-                      :args $ [] 'String 'String
-                      :return 'String
+                    hint-fn $ Fn String String $ -> String
                     raise |highlighter-sentinel-failure
                 assert= true $ try
                   do (highlight-code |code |js callback) false
                   fn (message)
-                    hint-fn $ {}
-                      :args $ [] 'String
-                      :return 'Bool
+                    hint-fn $ Fn String $ -> Bool
                     &= message |highlighter-sentinel-failure
               :tags $ #{} :highlight :unit
         'render-inline $ %{} 'CodeEntry (:doc |)
@@ -434,10 +402,9 @@
                     create-element :i $ {} $ :inner-text content
                   _ $ <> (str |Unknown: chunk) nil
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn Dynamic
+            -> $ List Dynamic
+            :features :js-ffi
         'resolve-blocks $ %{} 'CodeEntry
           :doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree."
           :code $ quote $ defn resolve-blocks (text options)
@@ -448,9 +415,8 @@
                   if (&struct:matches? result respo-md.util.core/ParserResult) (:blocks result) (raise "|Invalid Markdown parser result")
                   raise "|Expected Markdown parser result Struct"
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String $ :: 'Map 'Tag 'Dynamic
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn String (Map Tag Dynamic)
+            -> $ List Dynamic
         'style-blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-blockquote
             {} $ |& $ {}
@@ -459,31 +425,31 @@
               :padding-left 12
               :color $ hsl 0 0 50
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-code-block
             {} $ |& $ {} (:max-width |60vw) (:margin-bottom 8)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-default-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-default-link
             {}
               |& $ {} (:opacity 0.9) (:transition-duration |200ms)
               |&:hover $ {} (:opacity 1) (:transform "|scale(1)")
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-image $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-image
             {} $ |& $ {} (:max-width 480) (:max-height 320)
               :border $ str "|1px solid " $ hsl 0 0 90
               :border-radius |8px
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-indent $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-indent
             {} $ |& $ {} (:white-space :pre) (:float :left) (:font-family ui/font-code) (:user-select :none)
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-inline-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-inline-code
             {} $ |& $ {}
@@ -493,7 +459,7 @@
               :padding "|2px 4px"
               :margin "|2px 4px"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-inline-math $ %{} 'CodeEntry
           :doc "|Keeps inline MathML readable inside prose without over-expanding line height."
           :code $ quote $ defstyle style-inline-math
@@ -501,7 +467,7 @@
               :background-color $ hsl 0 0 97
               :border-radius |4px
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-line-list $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-line-list
             {}
@@ -516,7 +482,7 @@
                 :color $ hsl 0 0 50
                 :content "|'● '"
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-math-block $ %{} 'CodeEntry
           :doc "|Expands block MathML slightly so dense formulas stay readable in the preview pane."
           :code $ quote $ defstyle style-math-block
@@ -526,7 +492,7 @@
               :line-height |1.6em
               :overflow :auto
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-md-table $ %{} 'CodeEntry
           :doc "|reused some styles from https://pure-css.github.io/tables/"
           :code $ quote $ defstyle style-md-table
@@ -545,12 +511,12 @@
                 :text-align :left
                 :vertical-align :middle
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
         'style-paragraph $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-paragraph
             {} $ |& $ {}
           :examples $ []
-          :schema $ :: 'Dynamic
+          :schema $ quote Dynamic
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.comp.md
           :require
@@ -569,12 +535,12 @@
         'dev? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def dev? true
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
         'site $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def site
             {} (:dev-ui |http://localhost:8100/main-fonts.css) (:release-ui |http://cdn.tiye.me/favored-fonts/main-fonts.css) (:cdn-url |http://cdn.tiye.me/respo-markdown/) (:title |Markdown) (:icon |http://cdn.tiye.me/logo/respo.png) (:storage-key |respo-markdown)
           :examples $ []
-          :schema $ :: 'Map 'Tag 'String
+          :schema $ quote $ Map Tag String
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.config
     'respo-md.main $ %{} 'FileEntry
@@ -582,7 +548,7 @@
         '*store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defref *store schema/store
           :examples $ []
-          :schema $ :: 'Ref $ :: 'Map 'Dynamic 'Dynamic
+          :schema $ quote $ Ref (Map Dynamic Dynamic)
         'dispatch! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn dispatch! (op)
             if (enum? op)
@@ -591,15 +557,12 @@
                 , &unit
               raise "|Invalid Markdown demo operation"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ [] 'respo-md.schema/Op
+          :schema $ quote $ Fn respo-md.schema/Op (-> Unit)
         'highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn highligher (code lang)
             str |<code> (respo-md.util.math/escape-html code) |</code>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String String (-> String) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! ()
             println "|Running mode:" $ if config/dev? |dev |release
@@ -625,15 +588,12 @@
             println "|App started!"
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'js-ffi.browser/DomElementHost)
-            :args $ []
+          :schema $ quote $ Fn (-> js-ffi.browser/DomElementHost)
         'next-store-of $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn next-store-of (op)
             match op
@@ -649,9 +609,8 @@
                 if (map? s) (respo-md.util.core/hydrate-demo-store s) (raise "|Invalid Markdown storage payload")
               _ $ do (eprintln "|unknown op:" op) @*store
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Enum
-            :return $ :: 'Map 'Dynamic 'Dynamic
+          :schema $ quote $ Fn Enum
+            -> $ Map Dynamic Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ shared/date-now-snapshot
@@ -659,9 +618,7 @@
               .unwrap $ get config/site :storage-key
               format-cirru-edn @*store
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -674,9 +631,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render!
@@ -684,14 +639,12 @@
               comp-container @*store highligher
               , dispatch!
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
             option:some? $ browser/query-selector |meta.respo-ssr
           :examples $ []
-          :schema $ :: 'Bool
+          :schema $ quote Bool
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.main
           :require
@@ -710,15 +663,14 @@
         'StreamStats $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct StreamStats (:text 'String) (:result 'respo-md.util.core/ParserResult) (:full-lines 'Number) (:incremental-lines 'Number)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'assert-perf $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn assert-perf (label condition)
             if condition
               println $ str "|[ok] " label
               raise $ str "|Performance assertion failed: " label
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String 'Bool
+          :schema $ quote $ Fn String Bool (-> Dynamic)
         'main! $ %{} 'CodeEntry
           :doc "|Runs append-only Markdown parser benchmark using Calcit code."
           :code $ quote $ defn main! () (test-option-block-boundaries!)
@@ -784,15 +736,12 @@
                 :blocks old-result
               println "|Incremental parser performance test passed."
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
         'make-source $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-source (n acc)
             if (&= n 0) acc $ recur (dec n) (str acc "|line\n\n")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'Number 'String
+          :schema $ quote $ Fn Number String (-> String)
         'stream-append-iter $ %{} 'CodeEntry
           :doc "|Feeds line-sized chunks like an LLM stream and compares cumulative full/incremental parser work."
           :code $ quote $ defn stream-append-iter (n text result full-lines incremental-lines)
@@ -806,8 +755,7 @@
                   + full-lines $ :scanned-lines full-result
                   + incremental-lines $ :scanned-lines next-result
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.perf-test/StreamStats)
-            :args $ [] 'Number 'String 'respo-md.util.core/ParserResult 'Number 'Number
+          :schema $ quote $ Fn Number String respo-md.util.core/ParserResult Number Number (-> respo-md.perf-test/StreamStats)
         'test-option-block-boundaries! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-option-block-boundaries! ()
             let
@@ -844,9 +792,7 @@
               assert= (respo-md.util.core/split-block after) (:blocks result)
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
           :tests $ [] $ %{} 'TestEntry (:name |keeps-incremental-option-semantics)
             :code $ quote $ test-option-block-boundaries!
             :tags $ #{} :js-only :option-migration
@@ -860,10 +806,12 @@
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch Op of the demo app, bound to the :dispatch-op type slot."
           :code $ quote $ defenum Op
-            :states (:: 'List 'Dynamic) 'Dynamic
+            :states
+              quote $ List Dynamic
+              , 'Dynamic
             :hydrate-storage 'Dynamic
           :examples $ []
-          :schema $ :: 'EnumDef
+          :schema $ quote EnumDef
         'read-field $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-field (value field)
             cond
@@ -875,8 +823,7 @@
                 .unwrap-or (get value field) nil
               true $ raise "|[Markdown] expected Struct or Map"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Tag
+          :schema $ quote $ Fn Dynamic Tag (-> Dynamic)
           :tests $ []
             %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
               :code $ quote $ let
@@ -914,7 +861,7 @@
           :code $ quote $ def store
             {} $ :states $ {}
           :examples $ []
-          :schema $ :: 'Map
+          :schema $ quote Map
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.schema
     'respo-md.test $ %{} 'FileEntry
@@ -929,15 +876,11 @@
                 println $ str "|  actual:   " actual
                 raise $ str "|Test failed: " label
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic Dynamic Dynamic (-> Dynamic) (:features :js-ffi)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (test-inline-non-string!) (println "|All math tests passed.")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
         'test-escape-html! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-escape-html! ()
             assert= |&amp; $ escape-html |&
@@ -946,9 +889,7 @@
             assert= | $ escape-html |
             println "|test-escape-html! done"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
         'test-inline-non-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-inline-non-string! ()
             let
@@ -958,9 +899,7 @@
               println "|test-inline-non-string! done"
             , &unit
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Unit)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'test-mathml-markup! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-mathml-markup! ()
             assert= |<math><mrow><mn>42</mn></mrow></math> $ mathml-markup |42 false
@@ -1023,18 +962,14 @@
               respo-md.util.math/parse-math-environment |{matrix}x
             println "|test-mathml-markup! done"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
         'test-normalize-math! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-normalize-math! ()
             assert= |a+b $ normalize-math-source "|  a+b  "
             assert= |ab $ normalize-math-source "|  a \n b  "
             println "|test-normalize-math! done"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ []
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn (-> Dynamic) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.test
           :require
@@ -1046,40 +981,40 @@
           :doc "|Typed state kept outside the VDOM tree for the Markdown demo."
           :code $ quote $ defstruct DemoState (:draft 'String) (:text 'String) (:parse-result 'respo-md.util.core/ParserResult)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'InlineMath $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct InlineMath (:formula 'String) (:rest-line 'String)
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'InlineStar $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defenum InlineStar (:literal) (:emphasis 'String 'String) (:italic 'String 'String)
           :examples $ []
-          :schema $ :: 'EnumDef
+          :schema $ quote EnumDef
         'ParseMode $ %{} 'CodeEntry (:doc "|Describes how a parser result was produced.")
           :code $ quote $ def ParseMode
             defenum ParseMode (:full) (:incremental 'Number 'Number) (:fallback)
           :examples $ []
-          :schema $ :: 'EnumDef
+          :schema $ quote EnumDef
         'ParserResult $ %{} 'CodeEntry
           :doc "|Typed public result shared by the incremental parser and Markdown components."
           :code $ quote $ defstruct ParserResult
-            :blocks $ :: 'List 'Dynamic
+            :blocks $ quote $ List Dynamic
             :reused-blocks 'Number
             :reparsed-blocks 'Number
             :scanned-lines 'Number
             :incremental? 'Bool
             :mode 'respo-md.util.core/ParseMode
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'ScanResult $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ScanResult
-            :blocks $ :: 'List 'Dynamic
+            :blocks $ quote $ List Dynamic
             :reused-blocks 'Number
             :reparsed-blocks 'Number
             :scanned-lines 'Number
             :incremental? 'Bool
           :examples $ []
-          :schema $ :: 'StructDef
+          :schema $ quote StructDef
         'append-blocks $ %{} 'CodeEntry
           :doc "|Appends parsed blocks without rebuilding the reused prefix."
           :code $ quote $ defn append-blocks (acc blocks)
@@ -1088,9 +1023,8 @@
               (:some block rest-blocks)
                 recur (&list:append acc block) rest-blocks
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'List 'Dynamic) (:: 'List 'Dynamic)
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn (List Dynamic) (List Dynamic)
+            -> $ List Dynamic
           :tests $ []
             %{} 'TestEntry (:name |appends-values)
               :code $ quote $ assert= ([] 1 2)
@@ -1120,8 +1054,7 @@
           :code $ quote $ defn coalesce (a b)
             if (nil? a) b a
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic
+          :schema $ quote $ Fn Dynamic Dynamic (-> Dynamic)
         'get0 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get0 (xs)
             match (js-nullish->option xs)
@@ -1133,11 +1066,10 @@
                   (:some value)
                     Option :some $ contract/expect-string |RegExp.capture value
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'T
-            :features $ #{} :js-ffi
-            :generics $ [] 'T
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn T
+            -> $ Option String
+            :generics T
+            :features :js-ffi
         'get1 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get1 (xs)
             match (js-nullish->option xs)
@@ -1149,11 +1081,10 @@
                   (:some value)
                     Option :some $ contract/expect-string |RegExp.capture value
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'T
-            :features $ #{} :js-ffi
-            :generics $ [] 'T
-            :return $ :: 'Option 'String
+          :schema $ quote $ Fn T
+            -> $ Option String
+            :generics T
+            :features :js-ffi
         'handle-inline-math $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-inline-math (line)
             let
@@ -1175,10 +1106,9 @@
                     Option :some $ InlineMath :formula formula :rest-line rest-line
                   Option :none
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'Option 'respo-md.util.core/InlineMath
+          :schema $ quote $ Fn String
+            -> $ Option respo-md.util.core/InlineMath
+            :features :js-ffi
         'handle-inline-star $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-inline-star (left)
             if (ignore-inline-star? left) (InlineStar :literal)
@@ -1202,9 +1132,7 @@
                       InlineStar :italic italic rest-line
                     InlineStar :literal
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/InlineStar)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> respo-md.util.core/InlineStar) (:features :js-ffi)
         'hydrate-demo-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn hydrate-demo-store (store)
             let
@@ -1218,18 +1146,15 @@
                 either states $ {}
                 , :data restored
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] $ :: 'Map 'Dynamic 'Dynamic
-            :return $ :: 'Map 'Dynamic 'Dynamic
+          :schema $ quote $ Fn (Map Dynamic Dynamic)
+            -> $ Map Dynamic Dynamic
         'ignore-inline-star? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ignore-inline-star? (left)
             if (&= left |) true $ =
               .unwrap-or (first left) |
               , "| "
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'join-strings-dynamic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn join-strings-dynamic (xs sep)
             let
@@ -1242,8 +1167,7 @@
                     if (= i 0) | sep
                     &list:nth xs i
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] (:: 'List 'Dynamic) 'String
+          :schema $ quote $ Fn (List Dynamic) String (-> String)
         'make-parser-result $ %{} 'CodeEntry
           :doc "|Converts an internal scan result into the typed parser result."
           :code $ quote $ defn make-parser-result (raw mode)
@@ -1255,14 +1179,11 @@
                 incremental? $ :incremental? raw
               &%{} ParserResult :blocks blocks :reused-blocks reused-blocks :reparsed-blocks reparsed-blocks :scanned-lines scanned-lines :incremental? incremental? :mode mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
-            :args $ [] 'respo-md.util.core/ScanResult 'respo-md.util.core/ParseMode
+          :schema $ quote $ Fn respo-md.util.core/ScanResult respo-md.util.core/ParseMode (-> respo-md.util.core/ParserResult)
         'make-regexp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-regexp (pattern flags) (new js/RegExp pattern flags)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'JsObject)
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String String (-> JsObject) (:features :js-ffi)
         'map-indexed-dynamic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn map-indexed-dynamic (xs f)
             loop
@@ -1273,12 +1194,10 @@
                 , acc $ recur (inc i)
                   &list:append acc $ f i $ &list:nth xs i
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'List 'T)
-              :: 'Fn $ {} (:return 'U)
-                :args $ [] 'Number 'T
-            :generics $ [] 'T 'U
-            :return $ :: 'List 'U
+          :schema $ quote $ Fn (List T)
+            Fn Number T $ -> U
+            -> $ List U
+            :generics T U
           :tests $ [] $ %{} 'TestEntry (:name |returns-accumulated-list)
             :code $ quote $ do
               is $ = 0 $ count
@@ -1297,9 +1216,7 @@
                 trim $ &str:slice trimmed 0 $ - (.len trimmed) 2
                 , |
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'math-block-close-line? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-close-line? (line)
             let
@@ -1307,9 +1224,7 @@
               or (&= trimmed |$$)
                 js-present? $ .!match trimmed pattern-math-block-close
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'math-block-open-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-open-content (line)
             let
@@ -1319,9 +1234,7 @@
                 trim $ &str:slice trimmed 2
                 , |
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'math-block-open? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-open? (line)
             let
@@ -1329,9 +1242,7 @@
               or (&= trimmed |$$)
                 js-present? $ .!match trimmed pattern-math-block-open
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'math-block-single-line-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-single-line-content (line)
             let
@@ -1345,9 +1256,7 @@
                   trim $ .unwrap $ get1 matched
                   , |
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'math-block-single-line? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-block-single-line? (line)
             let
@@ -1357,9 +1266,7 @@
                   &> (.len trimmed) 4
                 js-present? $ .!match trimmed peek-math-block-single-line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'parse-markdown $ %{} 'CodeEntry
           :doc "|Creates a parser result suitable for passing to comp-md-block via options :parse-result."
           :code $ quote $ defn parse-markdown (text)
@@ -1370,8 +1277,7 @@
                   , :incremental? false
               make-parser-result raw $ %:: ParseMode :full
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> respo-md.util.core/ParserResult)
         'parse-markdown-incremental $ %{} 'CodeEntry
           :doc "|Continues a parser result and returns only the changed suffix statistics."
           :code $ quote $ defn parse-markdown-incremental (old-text new-text old-result)
@@ -1382,44 +1288,43 @@
                   %:: ParseMode :fallback
               make-parser-result raw mode
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ParserResult)
-            :args $ [] 'String 'String 'respo-md.util.core/ParserResult
+          :schema $ quote $ Fn String String respo-md.util.core/ParserResult (-> respo-md.util.core/ParserResult)
         'pattern-indented-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-indented-code (respo-md.util.core/make-regexp "|^(\\s+)```" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'pattern-math-block-close $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-math-block-close (respo-md.util.core/make-regexp |\\\]$ |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'pattern-math-block-open $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-math-block-open (respo-md.util.core/make-regexp |^\\\[ |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-emphasis $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-emphasis (respo-md.util.core/make-regexp "|^(.+)\\*\\*" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-image $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-image (respo-md.util.core/make-regexp "|^\\!\\[[^\\]]*\\]\\([^\\)]+\\)" |g)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-inline-math $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-inline-math (respo-md.util.core/make-regexp "|^\\\\\\((.+?)\\\\\\)" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-italic $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-italic (respo-md.util.core/make-regexp "|^([^*/]+)\\*" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-link $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-link (respo-md.util.core/make-regexp "|^\\[[^\\]]+\\]\\([^\\)]+\\)" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-math-block-single-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-math-block-single-line (respo-md.util.core/make-regexp "|^\\\\\\[(.*)\\\\\\]$" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'read-demo-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-demo-state (value)
             if (nil? value)
@@ -1437,17 +1342,14 @@
                     DemoState :draft draft :text text :parse-result parsed
                   raise "|Invalid Markdown demo draft/text"
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/DemoState)
-            :args $ [] 'T
-            :generics $ [] 'T
+          :schema $ quote $ Fn T (-> respo-md.util.core/DemoState) (:generics T)
         'split-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-block (text)
             split-block-iter (split-lines text) ([]) ([]) :empty
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn String
+            -> $ List Dynamic
+            :features :js-ffi
         'split-block-incremental $ %{} 'CodeEntry
           :doc "|Parses only appended lines when the new source has the old source as a prefix; returns reuse statistics for benchmarks."
           :code $ quote $ defn split-block-incremental (old-text new-text old-blocks)
@@ -1504,8 +1406,7 @@
                   .len $ split-lines new-text
                   , :incremental? false
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/ScanResult)
-            :args $ [] 'String 'String $ :: 'List 'Dynamic
+          :schema $ quote $ Fn String String (List Dynamic) (-> respo-md.util.core/ScanResult)
           :tests $ [] $ %{} 'TestEntry (:name |rejects-invalid-last-blocks)
             :code $ quote $ do
               assert= "|Invalid Markdown block" $ try
@@ -1626,24 +1527,22 @@
                       , :empty
                   _ $ raise $ str "|Strange splitting mode: " mode
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'List 'String) (:: 'List 'Dynamic) (:: 'List 'Dynamic) 'Tag
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn (List String) (List Dynamic) (List Dynamic) Tag
+            -> $ List Dynamic
+            :features :js-ffi
         'split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line (line)
             if (string? line)
               assert-type
                 split-line-iter ([]) line | :text
-                :: 'List 'Dynamic
+                quote $ List Dynamic
               do
                 js/console.warn "|respo-markdown: ignored non-string inline Markdown"
                 []
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn Dynamic
+            -> $ List Dynamic
+            :features :js-ffi
         'split-line-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line-iter (acc line buffer mode)
             if (&= | line)
@@ -1735,10 +1634,9 @@
                     recur acc left (str buffer cursor) :code
                   _ $ raise $ str "|Unknown mode:" mode
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] (:: 'List 'Dynamic) 'String 'String 'Tag
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'Dynamic
+          :schema $ quote $ Fn (List Dynamic) String String Tag
+            -> $ List Dynamic
+            :features :js-ffi
         'split-table-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-table-content (cursor)
             -> cursor
@@ -1746,39 +1644,33 @@
               split ||
               map $ fn (x) (trim x)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
         'table-line? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn table-line? (cursor)
             and (starts-with? cursor ||) (ends-with? cursor ||)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Bool)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
         'unwrap-option $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-option (o)
             match o
               (:some x) x
               (:none) (raise "|unexpected none")
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
+          :schema $ quote $ Fn Dynamic (-> Dynamic)
         'unwrap-or $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-or (o d)
             match o
               (:some x) x
               (:none) d
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic 'Dynamic
+          :schema $ quote $ Fn Dynamic Dynamic (-> Dynamic)
         'update-draft-state $ %{} 'CodeEntry
           :doc "|Updates the textarea draft and parser result as one state transition."
           :code $ quote $ defn update-draft-state (state next-draft)
             DemoState :draft next-draft :text (:text state) :parse-result $ parse-markdown-incremental (:draft state) next-draft $ :parse-result state
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'respo-md.util.core/DemoState)
-            :args $ [] 'respo-md.util.core/DemoState 'String
+          :schema $ quote $ Fn respo-md.util.core/DemoState String (-> respo-md.util.core/DemoState)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.util.core
           :require
@@ -1795,23 +1687,17 @@
                 text3 $ &str:replace text2 |> |&gt;
               &str:replace text3 "|\"" |&quot;
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
         'function-command? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn function-command? (name)
             or (&= name |lim) (&= name |sin) (&= name |cos) (&= name |tan) (&= name |sinh) (&= name |cosh) (&= name |tanh) (&= name |ln) (&= name |log) (&= name |exp) (&= name |det) (&= name |gcd) (&= name |min) (&= name |max)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'greek-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn greek-command (name)
             match name (|alpha "|α") (|beta "|β") (|gamma "|γ") (|delta "|δ") (|epsilon "|ε") (|varepsilon "|ϵ") (|zeta "|ζ") (|eta "|η") (|theta "|θ") (|vartheta "|ϑ") (|iota "|ι") (|kappa "|κ") (|lambda "|λ") (|mu "|μ") (|nu "|ν") (|xi "|ξ") (|omicron "|ο") (|pi "|π") (|varpi "|ϖ") (|rho "|ρ") (|varrho "|ϱ") (|sigma "|σ") (|varsigma "|ς") (|tau "|τ") (|upsilon "|υ") (|phi "|φ") (|varphi "|ϕ") (|chi "|χ") (|psi "|ψ") (|omega "|ω") (|Gamma "|Γ") (|Delta "|Δ") (|Theta "|Θ") (|Lambda "|Λ") (|Xi "|Ξ") (|Pi "|Π") (|Sigma "|Σ") (|Upsilon "|Υ") (|Phi "|Φ") (|Psi "|Ψ") (|Omega "|Ω") (_ nil)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'math-command-html $ %{} 'CodeEntry
           :doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers."
           :code $ quote $ defn math-command-html (name)
@@ -1827,15 +1713,13 @@
                     match name (|int "|<mo>∫</mo>") (|iint "|<mo>∬</mo>") (|iiint "|<mo>∭</mo>") (|oint "|<mo>∮</mo>") (|sum "|<mo>∑</mo>") (|prod "|<mo>∏</mo>")
                       _ $ str |<mi> (escape-html name) |</mi>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
         'math-delimiter-html $ %{} 'CodeEntry
           :doc "|Wraps a single delimiter or operator character in a MathML operator node."
           :code $ quote $ defn math-delimiter-html (cursor)
             str |<mo> (escape-html cursor) |</mo>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
         'math-environment-html $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-environment-html (name source)
             if (matrix-environment? name)
@@ -1850,16 +1734,13 @@
                 str |<mrow> (or open-html |) table-html (or close-html |) |</mrow>
               str |<mrow><mi>begin</mi><mi> (escape-html name) |</mi></mrow>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String String (-> String) (:features :js-ffi)
         'math-operator-char? $ %{} 'CodeEntry
           :doc "|Recognizes punctuation and operator glyphs that should render as MathML operator nodes."
           :code $ quote $ defn math-operator-char? (cursor)
             or (&= cursor |+) (&= cursor |-) (&= cursor |=) (&= cursor "|(") (&= cursor "|)") (&= cursor |[) (&= cursor |]) (&= cursor |,) (&= cursor |/) (&= cursor |:)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> Dynamic)
           :tests $ [] $ %{} 'TestEntry (:name |recognizes-plus)
             :code $ quote $ assert= true (math-operator-char? |+)
         'math-operator-command? $ %{} 'CodeEntry
@@ -1867,9 +1748,7 @@
           :code $ quote $ defn math-operator-command? (name)
             or (&= name |pm) (&= name |neq) (&= name |to) (&= name |implies) (&= name |iff) (&= name |rightarrow) (&= name |Rightarrow) (&= name |leftarrow) (&= name |Leftarrow) (&= name |leftrightarrow) (&= name |mapsto) (&= name |gets) (&= name |longleftarrow) (&= name |longrightarrow) (&= name |uparrow) (&= name |downarrow) (&= name |longleftrightarrow) (&= name |nearrow) (&= name |searrow) (&= name |nwarrow) (&= name |swarrow) (&= name |updownarrow) (&= name |Longleftarrow) (&= name |Longrightarrow) (&= name |Uparrow) (&= name |Downarrow) (&= name |Leftrightarrow) (&= name |Longleftrightarrow) (&= name |Updownarrow) (&= name |longmapsto) (&= name |hookrightarrow) (&= name |hookleftarrow) (&= name |twoheadrightarrow) (&= name |twoheadleftarrow) (&= name |leftharpoonup) (&= name |rightharpoonup) (&= name |rightleftharpoonup) (&= name |rightleftharpoons) (&= name |nleftarrow) (&= name |nrightarrow) (&= name |nLeftarrow) (&= name |nRightarrow) (&= name |nleftrightarrow) (&= name |nLeftrightarrow)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'mathml-markup $ %{} 'CodeEntry
           :doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering."
           :code $ quote $ defn mathml-markup (source display?)
@@ -1877,8 +1756,7 @@
               parse-math-row (normalize-math-source source) nil
               str |<math><mrow> body |</mrow></math>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String 'Dynamic
+          :schema $ quote $ Fn String Dynamic (-> String)
         'matrix-environment-delimiters $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn matrix-environment-delimiters (name)
             match name
@@ -1890,16 +1768,12 @@
               |cases $ [] |<mo>{</mo> nil
               _ $ [] nil nil
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'matrix-environment? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn matrix-environment? (name)
             or (&= name |matrix) (&= name |pmatrix) (&= name |bmatrix) (&= name |Bmatrix) (&= name |vmatrix) (&= name |Vmatrix) (&= name |smallmatrix) (&= name |aligned) (&= name |cases)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'normalize-math-source $ %{} 'CodeEntry
           :doc "|Normalizes multi-line math input into a single trimmed line before tokenization."
           :code $ quote $ defn normalize-math-source (source)
@@ -1908,15 +1782,12 @@
               respo-md.util.core/join-strings-dynamic |
               trim
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
+          :schema $ quote $ Fn String (-> String)
         'operator-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn operator-command (name)
             match name (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|implies "|⇒") (|iff "|⇔") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗") (|langle "|⟨") (|rangle "|⟩") (|cong "|≅") (|sim "|∼") (|simeq "|≃") (|mid "|∣") (|vert ||) (|Vert "|‖") (|ldots "|…") (|cdots "|⋯") (_ nil)
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'Dynamic
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
         'parse-command-name $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-command-name (line)
             let
@@ -1927,9 +1798,7 @@
                   [] name $ &str:slice line $ .len name
                 [] nil line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
         'parse-math-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-arg (line)
             if (&= | line) ([] |<mrow></mrow> line)
@@ -1943,10 +1812,9 @@
                     if (&= | rest-line) rest-line $ &str:slice rest-line 1
                 parse-math-atom line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
+            :features :js-ffi
         'parse-math-atom $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-atom (line)
             if (&= | line) ([] || line)
@@ -1977,10 +1845,9 @@
                     str |<mi> (escape-html cursor) |</mi>
                     , left
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
+            :features :js-ffi
         'parse-math-command $ %{} 'CodeEntry
           :doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source."
           :code $ quote $ defn parse-math-command (line)
@@ -2045,10 +1912,9 @@
                         &str:slice rest-line 1
                 raise "|[Markdown] invalid command remainder"
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
+            :features :js-ffi
         'parse-math-environment $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-environment (line)
             let[] (name rest-line) (parse-math-raw-group line)
@@ -2065,19 +1931,17 @@
                     [] (math-environment-html name rest-line) |
                 [] |<mi>begin</mi> line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
+            :features :js-ffi
         'parse-math-over-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-over-arg (line mark)
             let[] (content rest-line) (parse-math-arg line)
               [] (str "|<mover accent=\"true\">" content |<mo> mark |</mo></mover>) rest-line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String String
+            -> $ List String
+            :features :js-ffi
         'parse-math-raw-group $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-raw-group (line)
             if
@@ -2091,9 +1955,7 @@
                     &str:slice line $ + end-index 1
                   [] nil line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
         'parse-math-root-index $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-root-index (line)
             if
@@ -2105,16 +1967,13 @@
                 [] body $ if (&= | rest-line) rest-line $ &str:slice rest-line 1
               [] nil line
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'Dynamic)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
         'parse-math-row $ %{} 'CodeEntry
           :doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached."
           :code $ quote $ defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'Dynamic
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String Dynamic
+            -> $ List String
         'parse-math-row-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-row-iter (line stop-char acc)
             if (&= | line) ([] acc line)
@@ -2126,10 +1985,9 @@
                   let[] (unit-html rest-line) (parse-math-unit line)
                     recur rest-line stop-char $ str acc unit-html
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'Dynamic 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String Dynamic String
+            -> $ List String
+            :features :js-ffi
         'parse-math-script $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-script (base line)
             if (&= | line) ([] base line)
@@ -2161,19 +2019,17 @@
                     [] (str |<msub> base sub |</msub>) rest1
                 _ $ [] base line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String String
+            -> $ List String
+            :features :js-ffi
         'parse-math-styled-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-styled-arg (line variant)
             let[] (content rest-line) (parse-math-arg line)
               [] (str "|<mstyle mathvariant=\"" variant "|\">" content |</mstyle>) rest-line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String String
+            -> $ List String
+            :features :js-ffi
         'parse-math-text-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-text-arg (line operator?)
             let[] (content rest-line) (parse-math-raw-group line)
@@ -2187,35 +2043,32 @@
                   parse-math-styled-arg line |normal
                 raise "|[Markdown] invalid text-group remainder"
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'Bool
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String Bool
+            -> $ List String
+            :features :js-ffi
         'parse-math-under-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-under-arg (line mark)
             let[] (content rest-line) (parse-math-arg line)
               [] (str "|<munder accentunder=\"true\">" content |<mo> mark |</mo></munder>) rest-line
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String String
+            -> $ List String
+            :features :js-ffi
         'parse-math-unit $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-unit (line)
             let[] (base rest-line) (parse-math-atom line) (parse-math-script base rest-line)
           :examples $ []
-          :schema $ :: 'Fn $ {}
-            :args $ [] 'String
-            :features $ #{} :js-ffi
-            :return $ :: 'List 'String
+          :schema $ quote $ Fn String
+            -> $ List String
+            :features :js-ffi
         'peek-command-name $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-command-name (respo-md.util.core/make-regexp "|^([A-Za-z]+)" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'peek-number $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def peek-number (respo-md.util.core/make-regexp "|^([0-9]+)" |)
           :examples $ []
-          :schema $ :: 'JsObject
+          :schema $ quote JsObject
         'render-math-matrix-row $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-math-matrix-row (source)
             let
@@ -2231,9 +2084,7 @@
                   , |
                 , |</mtr>
           :examples $ []
-          :schema $ :: 'Fn $ {} (:return 'String)
-            :args $ [] 'String
-            :features $ #{} :js-ffi
+          :schema $ quote $ Fn String (-> String) (:features :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.util.math
           :require $ respo-md.util.core :refer $ get1

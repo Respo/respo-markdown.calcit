@@ -4,12 +4,14 @@
 
 Demo http://repo.respo-mvc.org/respo-markdown/
 
-### 当前候选：0.5.0-alpha.4 / 正式 Calcit 0.31.0
+### 当前候选：0.5.0-alpha.5 / 正式 Calcit 0.32.1
 
-使用者影响：本轮对齐已发布 UI `0.9.0-alpha.4`、Respo `0.17.0-alpha.4`、
-JS-FFI `0.2.7` 及传递 Router `0.9.0-alpha.3`，消费者需整体安装同一精确依赖图，
-重新生成 JS；不能只改一个根版本或关闭 Caps strict。CLI / `@calcit/procs` 保持正式
-`0.31.0`。模块图仍含 alpha，候选 `0.5.0-alpha.4` 尚未发版。
+使用者影响：本轮对齐已发布 UI `0.9.0`、Respo `0.17.1`、JS-FFI `0.2.9` 及传递 Router
+`0.9.0-alpha.4`，CLI / `@calcit/procs` 升到正式 `0.32.1`；Snapshot 已用
+`calcit edit format` 迁移为 0.32 类型写法。消费者需整体安装同一精确依赖图，
+重新生成 JS；不能只改一个根版本或关闭 Caps strict。候选 `0.5.0-alpha.5` 尚未发版。
+
+以下为历史记录：
 
 Snapshot、公开 Markdown API、附带测试和现有断言保持。原 strict、MathML、增量
 解析、渲染与 Demo 前端门禁继续执行，不新增类型预算、强转或重复 COS 校验脚本。
