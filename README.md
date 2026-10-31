@@ -1,89 +1,28 @@
-## respo-markdown in Calcit-js
+# Respo Markdown for Calcit
 
-> Render Markdown subset to Respo DSL. Ported from [Respo/respo-markdown](https://github.com/Respo/respo-markdown).
+Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-Demo http://repo.respo-mvc.org/respo-markdown/
+## 使用者影响：0.5.0 正式版候选
 
-### 当前候选：0.5.0-alpha.5 / 正式 Calcit 0.32.1
+候选 `0.5.0` 配对正式 Calcit CLI / `@calcit/procs` **0.32.1**、UI **0.9.0**、Respo **0.17.1**、JS-FFI **0.2.9**；UI 的传递 Router 仍为 **0.9.0-alpha.4**，不声称整图全部正式版。从 0.4.x / Calcit 0.30.1 升级时，须协调完整精确依赖图，迁移旧类型写法并重新生成 JS，不能只更新单端或关闭 Caps strict。UI 变化不保证样式逐像素相同。
 
-使用者影响：本轮对齐已发布 UI `0.9.0`、Respo `0.17.1`、JS-FFI `0.2.9` 及传递 Router
-`0.9.0-alpha.4`，CLI / `@calcit/procs` 升到正式 `0.32.1`；Snapshot 已用
-`calcit edit format` 迁移为 0.32 类型写法。消费者需整体安装同一精确依赖图，
-重新生成 JS；不能只改一个根版本或关闭 Caps strict。候选 `0.5.0-alpha.5` 尚未发版。
+相对已发布 0.5.0-alpha.5，最新 main 只收紧 18 个定义的 schema：样式 class 为 String、实际测试/benchmark 返回 Unit、数学字符谓词返回 Bool；130 个定义的运行代码和原测试保持。公共 Markdown API、MathML、增量解析、原匿名块/载荷、HTML 信任边界及存档格式不变。本轮不修改 Snapshot，不增加类型预算、强转或迁移规则。版本声明仍是候选，以精确 Git tag 为发版证据，不移动旧 tag。
 
-以下为历史记录：
+README 的 highlighter 类型示例同步为当前 `Fn String String (-> String)`，不保留已退役的类型写法。
 
-Snapshot、公开 Markdown API、附带测试和现有断言保持。原 strict、MathML、增量
-解析、渲染与 Demo 前端门禁继续执行，不新增类型预算、强转或重复 COS 校验脚本。
-Modal/HUD、存档格式及恢复后再注册保存的顺序保持。UI 依赖变化仍须验收实际页面，
-不承诺所有依赖的生成代码或样式逐字相同。
+## 本轮验证
 
-上述依赖 tag 均经原 CI 与评审验收后发布，CLI/procs 均声明正式 0.31.0。UI、Respo、Router 还通过了各自原 Demo 部署；JS-FFI 只完成原 CI 验收，不涉及 Demo/服务部署。此前 JS-FFI 0.2.6 的实际 tag 仍属于 0.30.1，本轮改用新 0.2.7，不改写旧 tag；不把 main 或根工具链检查当成所有依赖 tag 的配对证据。详见 [发布配对问题](https://github.com/calcit-lang/js-ffi/issues/195)。
+正式工具链和已发布宿主图通过 Caps strict/toolchain、immutable、canonical、296 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、14 项 native 附带测试、原 MathML/增量解析、20 项 JS 渲染回归及构建。两个命名 Node 入口的原检查保留；原兼容 read-field 的两处 Option→nil 提示没有被静默删除，不假装旧缺失值协议已退场。
 
-### 历史：0.5.0-alpha.3 的 alpha.7 源码迁移
+实际隔离 Demo 完成内联/块输入、Unicode、表格、MathML、fenced code、正常刷新恢复及恢复后追加编辑，控制台无 warning/error；未操作剪贴板、坏存档或真实数据。原 HTML 信任模型与剩余开放载荷保持，构建的大 chunk 提示未调高阈值。FP China 精确源码另在隔离夹具用本候选替换 Markdown 入口：182 项全定义、完整 strict、原构建与 7 项 SSR 测试通过，消费者 Snapshot/四份 Markdown/原断言不变；该源码兼容夹具不冒充已发布 Caps 图。正式 tag 解析与下游依赖 pin 在发布后另行验证。
 
-本轮将已有 0.31 预发布线的 CLI / `@calcit/procs` 从 alpha.4 成对升级到正式版
-`0.31.0`，UI 从 alpha.1 升到已发布 `0.9.0-alpha.2`；保留 Respo
-`0.17.0-alpha.2`、JS FFI `0.2.5` 与间接 Router `0.9.0-alpha.1`。
-0.30 稳定消费者继续使用原 0.4.x 维护线，不能单独混装这些预发布依赖；其他模块
-需协调完整 UI/Respo 版本图，不修改缓存或放宽 Caps strict。
-alpha.7 默认预检查拒绝未证明的 Dynamic 流向；项目检查和构建保留默认 proof audit。
+## Demo 与持久化
 
-26 处 String 和 27 处 List 长度读取改用 `.len`，11 处已知 Option 解包改用
-`.unwrap`。String 仍按 Unicode 标量计数，不改为 JS UTF-16 `.length`；原空值错误、
-解析边界和求值次数不变。Markdown API、MathML、增量解析、高亮信任边界、HUD 与
-存档恢复/保存顺序不变；不新增脚本、类型预算、强转或业务兜底。
-实际页面验收另外发现两个 Demo 输入事件仍调用旧的双参数 dispatch，导致编辑时报
-“expected 1 params, got 2”；现改为单个名义 `Op :states` Enum，保留原 cursor 和状态内容。
-在现有 JS 渲染测试中补一项真实事件回调回归，不修改公共 Markdown API。
-cursor 沿原缺失值默认空列表，再以 `decode-map-as` 检查其 `List<Dynamic>` 合同；
-损坏的非列表 cursor 会在渲染前明确拒绝，不再传入名义 Op 或静默强转。
-UI 的条件渲染修复随依赖带入，完整刷新后需验收页面，不保证全依赖图样式/生成代码相同。
+Demo 的两个输入事件已在此前迁移中改为单个名义 Op，原 JS 事件回归保留。恢复只接受原 draft/text 字段并重新解析缓存；先恢复成功，再渲染和注册保存，失败则退出而不覆盖旧值，见 [#87](https://github.com/Respo/respo-markdown.calcit/issues/87)。本轮保留 Modal/HUD、原存档 key、格式与顺序，不用正常刷新替代坏存档验收。
 
-全部 132 定义、10 namespace、15 项附带测试及 schema/FFI 的对照只允许上述
-64 个调用头、两个 Demo dispatch 包装及一处 cursor 受检边界变化。原 JS-only 测试分组保留，MathML、
-增量解析和渲染测试继续执行。
-本地既有的一小时 npm 安装隔离显式写入项目，供本地/CI 一致使用；移除旧 alpha.4
-预批准项，不给新 alpha 增加免等待例外。候选不代表已发版，发布状态以对应 Git tag 为准。
-自动工作流只监听 main push 和 PR，避免同一功能分支 push 与 PR 重复构建、上传；
-其他分支需通过 PR 验收。保留原两段构建/上传 job 和 main 的生产部署条件、路径。
-已发布模块 alpha.2 的源码与本 PR base 相同，但它的工具链为 alpha.2，base 为 alpha.4；
-源码迁移先在 alpha.6 完成前后门禁，再用 alpha.7 复验；不冒充重新执行旧
-alpha.2/alpha.4 二进制的比较。
+## 开发与门禁
 
-### 0.4.59 / 正式 0.30.1 历史配对记录
-
-候选模块 **0.4.59** 配对正式 Calcit / `@calcit/procs` **0.30.1**，依赖已发布
-UI **0.8.0**、Respo **0.16.124**、JS-FFI **0.2.5**，传递 Router **0.8.37**。
-下游需一起同步完整精确依赖图，保留 Caps strict；候选号不等于已经发布。
-Markdown API、解析、高亮、MathML 与存档格式不变；另修复 Demo 的恢复/持久化注册顺序。
-UI 从 0.7 升到 0.8，基础样式可能变化，需要完整刷新和实际页面验收，不承诺逐像素一致。
-PR 不合并或部署下游应用。同仓库 PR 与 push 会自动上传 COS；main 收到 push
-（包括合并）会立即执行原 Demo 前端部署，workflow 没有单独确认步骤。
-因此本轮必须在合并前完成人工验收和部署授权，不能指望 workflow 等待确认。
-Demo 现在先成功读取、解析并 hydrate 存档，再初次渲染和注册 watch、持久化监听及 timer，
-修复 [#87](https://github.com/Respo/respo-markdown.calcit/issues/87) 的启动顺序风险。
-恢复失败沿原错误在渲染前退出，不注册本次启动的自动写回，不清空或用默认值覆盖存档。
-合法存档的刷新测试不等同于异常存档的完整浏览器验收；实际验证范围以 PR 为准。
-
-### 列表追加与增量解析的缺失值
-
-`append-blocks` 直接匹配列表的空/非空分支，不为取不到的成员填 nil。
-原 `List<Dynamic>` 合同保留，仍可追加异质成员；空列表不追加成员，真实存在的
-nil、false、0 与空字符串仍按原顺序保留，成员身份不变。
-
-增量解析在内部保留末块的 Option，读取时显式区分缺失和已有块；不先转成 nil。
-原有匿名块格式和输出不变，显式 nil 块的旧回退行为、非法块的错误、文本块重解析
-与已完成前缀的复用均保留。开放块内容和宿主正则仍是原边界，本次不声明整个解析器
-已成为闭合类型。具体合同与验证入口见 [Option 边界](docs/option-boundaries.md)。
-
-### 0.4.57 历史修复：空 alt 图片
-
-保留合法 `![](url)` 的空 alt，不再因分割结果少一项而使页面渲染失败。
-图片内容按首个 `](` 的 Unicode 标量位置读取，保留完整 URL；普通 alt、
-Unicode、相邻链接和文本行为不变。不改变 `split` 的既有语义或 Markdown 解析语法。
-本修复配对已发布 Calcit/procs `0.30.1-alpha.5`，模块仍使用下文精确正式 tag。
-这是先前版本记录，不是本次重新实现；当前工具链配对见文首。
+Node.js 24、Yarn 4.18.0。新解析出的 npm 包版本必须已发布至少 60 分钟，本仓库未配置单包豁免；已有 immutable 锁版本不重新计算等待时间。完整 strict、MathML、增量解析、原 native/JS 回归及 Demo 构建均保留；不引入额外 checker、concurrently 或 COS 校验脚本。
 
 Supported features:
 
@@ -104,9 +43,11 @@ Supported features:
 
 ```cirru.no-run
 respo-md.comp.md/comp-md-block "|# Title\n\n- item A\n- item B" $ {}
+
 ; => returns Respo DSL for a block container
 
 respo-md.comp.md/comp-md "|hello **world**" $ {}
+
 ; => returns inline Respo nodes
 ```
 
@@ -122,7 +63,7 @@ let
       , "|```js\nconsole.log(1)\n```"
     options $ {}
       :highlight $ fn (code lang)
-        hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
+        hint-fn $ Fn String String (-> String)
         ; replace with real highlighter in your app runtime
         respo-md.util.math/escape-html code
       :class-name |doc-preview
@@ -143,12 +84,10 @@ let
 
 ```cirru
 let
-    options $ {}
-      :class-name |demo
-      :css "|.md-code-block { padding: 8px; }"
+    options $ {} (:class-name |demo) (:css "|.md-code-block { padding: 8px; }")
       :style $ {}
       :highlight $ fn (code lang)
-        hint-fn $ {} (:args $ [] 'String 'String) (:return 'String)
+        hint-fn $ Fn String String $ -> String
         respo-md.util.math/escape-html code
   , options
 ```
@@ -229,7 +168,7 @@ let
     new-text $ str old-text "|Second paragraph."
     previous $ respo-md.util.core/parse-markdown old-text
     next $ respo-md.util.core/parse-markdown-incremental old-text new-text previous
-  respo-md.comp.md/comp-md-block new-text $ {} (:parse-result next)
+  respo-md.comp.md/comp-md-block new-text $ {} $ :parse-result next
 ```
 
 The incremental parser reuses completed blocks and reparses only the appended suffix. Non-prefix edits automatically fall back to a full parse.
@@ -261,40 +200,6 @@ The performance benchmark is intentionally a Calcit entry point, so it validates
 - Prefer `comp-md-block` for full article sections.
 - Prefer `comp-md` for text fragments inside buttons/cards/tooltips.
 - Keep code fences language tags (`js`, `bash`, `cirru`) so highlighter can work correctly.
-
-### Dependency boundary
-
-此前为 0.30.1 缺失值原语变化准备迁移：源码使用公开 `get`、`first`、`last`
-的 Option 合同，保留原缺失/nil 默认值与求值顺序；仅在非空字符串和 URL 分割
-已有分支保证的路径解包。原持久化渲染测试也改用公开查询，不改断言预期。
-已有缺失值修改保留；下面记录的是先前 0.4.56 的 alpha 配对，
-不是本轮正式 0.30.1 的验收。本候选不重复改写这些源码。
-不新增测试脚本、类型断言或 COS 校验流程，现有部署路径保持不变。
-
-历史 0.4.56 使用当时已发布的 UI 0.7.41、Respo 0.16.122 和 JS FFI 0.2.3，
-传递 Router 为 0.8.36；Calcit CLI/runtime 成对固定为已发布的 0.30.1-alpha.4。
-编译器仍为预发布版本，模块版本声明不代替发布与消费者验收。
-下游其他模块也需协调 UI/Router 的精确版本，不要放宽 Caps strict 来绕过冲突。
-本轮不改变 Markdown API、高亮、MathML 或增量解析语义。
-下游须在正式模块发布后更新 pin，不能将本地依赖调整当作已发布版本。
-
-Markdown rendering depends on `respo-ui` primitives. `respo-ui` does not depend
-back on Markdown, so the package graph stays acyclic.
-
-Markdown 渲染依赖 `respo-ui` 原语，而 `respo-ui` 不再反向依赖 Markdown。
-该单向边界保持依赖图无环。当前候选使用已发布的 UI/Respo/js-ffi 依赖，
-CI 通过 `caps --strict --ci` 拒绝版本冲突，再运行原严格检查和业务测试。
-
-此前 0.4.56 迁移中 `calcit.cirru`、Markdown API、解析实现与原测试完全未改动。原 0.30.0 配对基线及
-新的 alpha.4 候选均通过原 8 项附带测试、MathML、增量解析、14 项 Node 渲染回归和构建；
-新配对另通过完整 strict、all-defs 294/294、完整公开检查 117/117，以及全部 named entry 检查。
-真实浏览器验证 Unicode、表格、数学公式、代码块、刷新恢复和恢复后追加编辑，控制台无 warning/error。
-没有新增 Option→nil 回流、Dynamic、unsafe、脚本或预算豁免；既有开放解析载荷仍待收窄，
-不宣称类型债务清零。
-CI 使用完整内置 strict，并显式要求 workflow passed 和空 diagnostics。
-完整依赖图通过正常 Caps strict 安装与工具链精确配对，不替换模块缓存或修改生成文件。
-显式 absence 迁移预览无建议；最新 HEAD 的 CI/review 与精确 main 部署通过后才发布模块。
-其他消费者和 Calcit 稳定版验收仍需独立完成。
 
 ### Workflow
 
