@@ -2,19 +2,17 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 使用者影响：0.5.0 正式版候选
+## 使用者影响：0.5.1 正式依赖候选
 
-候选 `0.5.0` 配对正式 Calcit CLI / `@calcit/procs` **0.32.1**、UI **0.9.0**、Respo **0.17.1**、JS-FFI **0.2.9**；UI 的传递 Router 仍为 **0.9.0-alpha.4**，不声称整图全部正式版。从 0.4.x / Calcit 0.30.1 升级时，须协调完整精确依赖图，迁移旧类型写法并重新生成 JS，不能只更新单端或关闭 Caps strict。UI 变化不保证样式逐像素相同。
+候选 `0.5.1` 配对正式 Calcit CLI / `@calcit/procs` **0.32.1**、UI **0.10.0**、Respo **0.18.0**、JS-FFI **0.2.9**（传递 Router **0.9.0**）。消费者须协调完整精确依赖图并重新生成 JS；直接构造上游 DomProps 的代码使用 Option 字段。旧 tag 不移动，0.5.1 发布前不引用候选 main/hash。上游 UI/Core 含真实行为修复，不保证样式逐像素相同。
 
-相对已发布 0.5.0-alpha.5，最新 main 只收紧 18 个定义的 schema：样式 class 为 String、实际测试/benchmark 返回 Unit、数学字符谓词返回 Bool；130 个定义的运行代码和原测试保持。公共 Markdown API、MathML、增量解析、原匿名块/载荷、HTML 信任边界及存档格式不变。本轮不修改 Snapshot，不增加类型预算、强转或迁移规则。版本声明仍是候选，以精确 Git tag 为发版证据，不移动旧 tag。
+本次只改依赖、版本声明和本文档，规范 Snapshot 与原测试/工作流保持。公共 Markdown API、MathML、增量解析、原匿名块/载荷、HTML 信任边界及存档格式不变。现有 `respo-md.schema/read-field` 属于本库，不是 UI 已删除的同名 helper；保留原 Option→nil 缺失值合同，不以名称相同盲目替换。没有新增类型预算、强转或迁移规则。
 
-README 的 highlighter 类型示例同步为当前 `Fn String String (-> String)`，不保留已退役的类型写法。
+README 的 highlighter 类型示例保持当前 `Fn String String (-> String)`。本候选已通过 299 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、原 14 项 native 测试、MathML/增量解析、20 项 JS 渲染回归和构建。实际页面完成中文/emoji、表格、MathML、代码块、正常刷新恢复及恢复后继续编辑，控制台无 warning/error；未操作剪贴板或真实存档。旧版坏存档、HMR 或 FP China 消费者结果不自动计为本候选验收。
 
-## 本轮验证
+## 本轮门禁
 
-正式工具链和已发布宿主图通过 Caps strict/toolchain、immutable、canonical、296 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、14 项 native 附带测试、原 MathML/增量解析、20 项 JS 渲染回归及构建。两个命名 Node 入口的原检查保留；原兼容 read-field 的两处 Option→nil 提示没有被静默删除，不假装旧缺失值协议已退场。
-
-实际隔离 Demo 完成内联/块输入、Unicode、表格、MathML、fenced code、正常刷新恢复及恢复后追加编辑，控制台无 warning/error；未操作剪贴板、坏存档或真实数据。原 HTML 信任模型与剩余开放载荷保持，构建的大 chunk 提示未调高阈值。FP China 精确源码另在隔离夹具用本候选替换 Markdown 入口：182 项全定义、完整 strict、原构建与 7 项 SSR 测试通过，消费者 Snapshot/四份 Markdown/原断言不变；该源码兼容夹具不冒充已发布 Caps 图。正式 tag 解析与下游依赖 pin 在发布后另行验证。
+继续要求正式依赖图的 Caps strict/toolchain、Yarn immutable、canonical、全定义与公开定义检查、完整 strict（diagnostics=[]）、原 native 附带测试、原 MathML/增量解析、JS 渲染回归及构建。两个命名 Node 入口的原检查、零 dynamic-method 与 deprecated-call 门禁均保留，不以版本号代替实际检查。
 
 ## Demo 与持久化
 
