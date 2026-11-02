@@ -2,9 +2,11 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 使用者影响：0.5.2 正式依赖候选
+## 使用者影响
 
-候选 `0.5.2` 配对正式 Calcit CLI / `@calcit/procs` **0.34.1**、UI **0.11.0**、Respo **0.18.0**、JS-FFI **0.2.9**（传递 Router **0.9.0**）。消费者须协调完整精确依赖图并重新生成 JS；直接构造上游 DomProps 的代码使用 Option 字段。旧 tag 不移动，0.5.2 发布前不引用候选 main/hash。上游 UI/Core 含真实行为修复，不保证样式逐像素相同。
+0.5.3 候选将 Respo UI 配对到正式 0.12.0，并使用其传递 Router 0.10.0。直接依赖 UI 的消费者应同步版本，然后重新生成 JS。UI 基础样式可能发生变化。
+
+Calcit CLI 与 JS 运行时继续使用 0.34.1。本次仅更新依赖和模块版本，Markdown 渲染源码沿用 0.5.2。
 
 本次更新正式依赖图并收紧渲染结果：`blockquote` 返回 Element，`render-inline` 返回 List<Element>；
 Respo 的 memo-value-by 仍擦除回调返回型，所以消费缓存时保留原 List<Dynamic> 边界；
