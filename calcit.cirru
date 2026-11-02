@@ -24,7 +24,7 @@
                 states $ respo-md.schema/read-field store :states
                 cursor $ decode-map-as
                   either (respo-md.schema/read-field states :cursor) ([])
-                  :: 'List 'Dynamic
+                  quote $ List Dynamic
                 state $ respo-md.util.core/read-demo-state $ respo-md.schema/read-field states :data
               div
                 {} (:class-name css/global)
@@ -100,7 +100,7 @@
         'blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blockquote (props & children) (create-element :blockquote props & children)
           :examples $ []
-          :schema $ quote $ Fn Dynamic & Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic & Dynamic (-> respo.schema/Element) (:features :js-ffi)
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
@@ -113,7 +113,7 @@
                 lines $ match
                   try-decode-map-as
                     if (indent-option .some?) (&list:rest indented-lines) indented-lines
-                    :: 'List 'String
+                    quote $ List String
                   (:ok decoded) decoded
                   (:err message) (raise message)
                 indented $ indent-option .unwrap-or 0
@@ -232,7 +232,8 @@
           :code $ quote $ defcomp comp-md (text options)
             let
                 inner $ match
-                  try-decode-map-as (respo.core/memo-value-by text render-inline text) (:: 'List 'Dynamic)
+                  try-decode-map-as (respo.core/memo-value-by text render-inline text)
+                    quote $ List Dynamic
                   (:ok children) children
                   (:err message) (raise message)
               div
@@ -254,7 +255,7 @@
                   [] idx $ match block
                     (:text lines)
                       match
-                        try-decode-map-as lines $ :: 'List 'String
+                        try-decode-map-as lines $ quote $ List String
                         (:ok text-lines) (comp-text-block text-lines)
                         (:err error) (raise error)
                     (:code lines)
@@ -263,7 +264,7 @@
                       if (list? lines) (comp-math-block lines) (raise "|Invalid Markdown math block lines")
                     (:table lines)
                       match
-                        try-decode-map-as lines $ :: 'List $ :: 'List 'String
+                        try-decode-map-as lines $ quote $ List (List String)
                         (:ok table-lines) (comp-table-block table-lines)
                         (:err error) (raise error)
           :examples $ []
@@ -403,7 +404,7 @@
                   _ $ <> (str |Unknown: chunk) nil
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ List Dynamic
+            -> $ List respo.schema/Element
             :features :js-ffi
         'resolve-blocks $ %{} 'CodeEntry
           :doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree."
@@ -599,7 +600,7 @@
             match op
               (:states cursor s)
                 match
-                  try-decode-map-as cursor $ :: 'List 'Dynamic
+                  try-decode-map-as cursor $ quote $ List Dynamic
                   (:ok decoded)
                     assoc @*store :states $ respo.cursor/update-state-tree
                       .unwrap-or (get @*store :states) ({})
@@ -661,7 +662,7 @@
     'respo-md.perf-test $ %{} 'FileEntry
       :defs $ {}
         'StreamStats $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct StreamStats (:text 'String) (:result 'respo-md.util.core/ParserResult) (:full-lines 'Number) (:incremental-lines 'Number)
+          :code $ quote $ defstruct StreamStats (:text String) (:result respo-md.util.core/ParserResult) (:full-lines Number) (:incremental-lines Number)
           :examples $ []
           :schema $ quote StructDef
         'assert-perf $ %{} 'CodeEntry (:doc |)
@@ -808,8 +809,8 @@
           :code $ quote $ defenum Op
             :states
               quote $ List Dynamic
-              , 'Dynamic
-            :hydrate-storage 'Dynamic
+              , Dynamic
+            :hydrate-storage Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'read-field $ %{} 'CodeEntry (:doc |)
@@ -979,40 +980,40 @@
       :defs $ {}
         'DemoState $ %{} 'CodeEntry
           :doc "|Typed state kept outside the VDOM tree for the Markdown demo."
-          :code $ quote $ defstruct DemoState (:draft 'String) (:text 'String) (:parse-result 'respo-md.util.core/ParserResult)
+          :code $ quote $ defstruct DemoState (:draft String) (:text String) (:parse-result respo-md.util.core/ParserResult)
           :examples $ []
           :schema $ quote StructDef
         'InlineMath $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defstruct InlineMath (:formula 'String) (:rest-line 'String)
+          :code $ quote $ defstruct InlineMath (:formula String) (:rest-line String)
           :examples $ []
           :schema $ quote StructDef
         'InlineStar $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defenum InlineStar (:literal) (:emphasis 'String 'String) (:italic 'String 'String)
+          :code $ quote $ defenum InlineStar (:literal) (:emphasis String String) (:italic String String)
           :examples $ []
           :schema $ quote EnumDef
         'ParseMode $ %{} 'CodeEntry (:doc "|Describes how a parser result was produced.")
           :code $ quote $ def ParseMode
-            defenum ParseMode (:full) (:incremental 'Number 'Number) (:fallback)
+            defenum ParseMode (:full) (:incremental Number Number) (:fallback)
           :examples $ []
           :schema $ quote EnumDef
         'ParserResult $ %{} 'CodeEntry
           :doc "|Typed public result shared by the incremental parser and Markdown components."
           :code $ quote $ defstruct ParserResult
             :blocks $ quote $ List Dynamic
-            :reused-blocks 'Number
-            :reparsed-blocks 'Number
-            :scanned-lines 'Number
-            :incremental? 'Bool
-            :mode 'respo-md.util.core/ParseMode
+            :reused-blocks Number
+            :reparsed-blocks Number
+            :scanned-lines Number
+            :incremental? Bool
+            :mode respo-md.util.core/ParseMode
           :examples $ []
           :schema $ quote StructDef
         'ScanResult $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ScanResult
             :blocks $ quote $ List Dynamic
-            :reused-blocks 'Number
-            :reparsed-blocks 'Number
-            :scanned-lines 'Number
-            :incremental? 'Bool
+            :reused-blocks Number
+            :reparsed-blocks Number
+            :scanned-lines Number
+            :incremental? Bool
           :examples $ []
           :schema $ quote StructDef
         'append-blocks $ %{} 'CodeEntry

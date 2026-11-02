@@ -2,13 +2,19 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 使用者影响：0.5.1 正式依赖候选
+## 使用者影响：0.5.2 正式依赖候选
 
-候选 `0.5.1` 配对正式 Calcit CLI / `@calcit/procs` **0.32.1**、UI **0.10.0**、Respo **0.18.0**、JS-FFI **0.2.9**（传递 Router **0.9.0**）。消费者须协调完整精确依赖图并重新生成 JS；直接构造上游 DomProps 的代码使用 Option 字段。旧 tag 不移动，0.5.1 发布前不引用候选 main/hash。上游 UI/Core 含真实行为修复，不保证样式逐像素相同。
+候选 `0.5.2` 配对正式 Calcit CLI / `@calcit/procs` **0.34.1**、UI **0.11.0**、Respo **0.18.0**、JS-FFI **0.2.9**（传递 Router **0.9.0**）。消费者须协调完整精确依赖图并重新生成 JS；直接构造上游 DomProps 的代码使用 Option 字段。旧 tag 不移动，0.5.2 发布前不引用候选 main/hash。上游 UI/Core 含真实行为修复，不保证样式逐像素相同。
 
-本次只改依赖、版本声明和本文档，规范 Snapshot 与原测试/工作流保持。公共 Markdown API、MathML、增量解析、原匿名块/载荷、HTML 信任边界及存档格式不变。现有 `respo-md.schema/read-field` 属于本库，不是 UI 已删除的同名 helper；保留原 Option→nil 缺失值合同，不以名称相同盲目替换。没有新增类型预算、强转或迁移规则。
+本次更新正式依赖图并收紧渲染结果：`blockquote` 返回 Element，`render-inline` 返回 List<Element>；
+Respo 的 memo-value-by 仍擦除回调返回型，所以消费缓存时保留原 List<Dynamic> 边界；
+Element 含函数值，不能用闭合数据 decoder 验证，不新增强转或重复逐节点校验。
+没有新增节点包装或改变公开 Markdown 输入、MathML、增量解析、匿名块/载荷、HTML 信任边界及存档格式。现有 `respo-md.schema/read-field` 属于本库，不是 UI 已删除的同名 helper；保留原 Option→nil 缺失值合同，不以名称相同盲目替换。没有新增类型预算、强转或迁移规则。
 
-README 的 highlighter 类型示例保持当前 `Fn String String (-> String)`。本候选已通过 299 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、原 14 项 native 测试、MathML/增量解析、20 项 JS 渲染回归和构建。实际页面完成中文/emoji、表格、MathML、代码块、正常刷新恢复及恢复后继续编辑，控制台无 warning/error；未操作剪贴板或真实存档。旧版坏存档、HMR 或 FP China 消费者结果不自动计为本候选验收。
+0.5.2 已通过 299 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、
+原 14 项 native 测试、MathML/增量解析、20 项 JS 渲染回归、原 Demo 事件与恢复夹具和构建。
+README 的 highlighter 示例保持 `Fn String String (-> String)`。
+本次没有新增交互式浏览器/存档验收，不能把 0.5.1 的历史页面结果当作本候选证明。
 
 ## 本轮门禁
 
