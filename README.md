@@ -4,19 +4,31 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 ## 使用者影响
 
-0.5.3 候选将 Respo UI 配对到正式 0.12.0，并使用其传递 Router 0.10.0。直接依赖 UI 的消费者应同步版本，然后重新生成 JS。UI 基础样式可能发生变化。
+0.6.0 候选将 CLI / `@calcit/procs` 配对官方 **0.34.2**，使用正式 UI **0.12.1**、
+Respo **0.18.1**、JS-FFI **0.2.9**，传递 Router **0.10.1**。整图安装后重新生成 JS。
+这是 Map 事件 / Router struct 兼容图，不能与 Respo 0.19 新事件图混装。
 
-Calcit CLI 与 JS 运行时继续使用 0.34.1。本次仅更新依赖和模块版本，Markdown 渲染源码沿用 0.5.2。
+两个已有 helper 的静态合同收紧为真实泛型关系：
 
-本次更新正式依赖图并收紧渲染结果：`blockquote` 返回 Element，`render-inline` 返回 List<Element>；
-Respo 的 memo-value-by 仍擦除回调返回型，所以消费缓存时保留原 List<Dynamic> 边界；
-Element 含函数值，不能用闭合数据 decoder 验证，不新增强转或重复逐节点校验。
-没有新增节点包装或改变公开 Markdown 输入、MathML、增量解析、匿名块/载荷、HTML 信任边界及存档格式。现有 `respo-md.schema/read-field` 属于本库，不是 UI 已删除的同名 helper；保留原 Option→nil 缺失值合同，不以名称相同盲目替换。没有新增类型预算、强转或迁移规则。
+- `unwrap-option`：`Fn (Option T) (-> T) (:generics T)`。
+- `unwrap-or`：`Fn (Option T) T (-> T) (:generics T)`。
 
-0.5.2 已通过 299 项全定义、118 项公开定义、完整 strict（diagnostics=[]）、
-原 14 项 native 测试、MathML/增量解析、20 项 JS 渲染回归、原 Demo 事件与恢复夹具和构建。
-README 的 highlighter 示例保持 `Fn String String (-> String)`。
-本次没有新增交互式浏览器/存档验收，不能把 0.5.1 的历史页面结果当作本候选证明。
+调用方使用 core 的名义 Option，默认值与 payload 使用同一模型；依赖匿名 some/none Enum
+或不相关默认值类型的调用需先适配。用 0.6.0 标明公共类型收紧，不将它伪装成无影响的版本配对。
+两个 helper 的原函数体、成功值、none 报错和求值顺序未改；没有用自由返回泛型伪造具体结果。
+
+公开 Markdown 输入、`comp-md` / `comp-md-block`、MathML、增量解析、匿名块/载荷、
+HTML 信任边界与存档格式保持。`blockquote` 和 `render-inline` 的既有精确返回型保留；
+Respo memo-value-by 仍擦除回调返回型，消费缓存处继续如实保留 List<Dynamic>。
+Element 含函数，不能用闭合数据 decoder 验证，不新增强转或重复逐节点检查。
+本库 `read-field` 的原 Option→nil 合同保持，未因同名而替换成 UI 的 helper。
+
+官方 CLI 归一化逐定义审计只发现这两个 schema 改变，原 code、测试和其他 schema 不变。
+同一 0.34.2 工具链下 schema-dynamic 位置 **69→64**，未隐藏其他开放边界或声明 Dynamic 清零。
+正式 Caps strict/toolchain、immutable、299 个全定义、118 个公开定义、完整 strict、
+原 14 项 native、MathML/增量解析、20 项 JS 渲染、原六项发布边界回归与构建通过。
+没有新增预算、测试框架、验证脚本、编译器 fix/proof；新精确 CI/评审仍需跟进。
+本轮没有重新操作 Demo 的存档，不将历史页面验收当作新候选的存档证据。
 
 ## 本轮门禁
 
