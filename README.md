@@ -6,7 +6,7 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 0.7.0 候选配对官方 **Calcit / @calcit/procs 0.34.2**、正式 UI **0.14.0**、
 Respo **0.19.1**、JS-FFI **0.2.10**，传递 Router **0.11.1**。这是新版事件合同的
-依赖图，消费者应协调全部模块后重新生成 JS；旧 0.6.0 的 Respo 0.18 / UI 0.12
+依赖图，消费者应协调全部模块后重新生成 JS；旧 0.6.0 的 Respo 0.18.1 / UI 0.12.1
 配对保留，不移动旧 tag，也不混装两个图。
 
 库的 Markdown 输入、`comp-md` / `comp-md-block`、MathML、增量解析、匿名块/载荷、
@@ -22,8 +22,11 @@ Snapshot 通过官方 CLI 的事务及 revision 检查修改；原测试、质�
 本地原 14 项 native、MathML、增量解析、20 项 JS 渲染、六项发布边界回归及构建通过；
 最终源码的全定义 302/302、公开定义 118/118、零 deprecated-call / dynamic-method 通过；
 完整 strict（diagnostics=[]）通过；新精确 CI 仍需跟进。
-不新增预算、测试框架、验证脚本或编译器 fix/proof。本轮未重新操作浏览器存档，
-不将历史页面验收当作新候选的存档证据。0.7.0 在正式 Git tag 创建前仅为候选。
+不新增预算、测试框架、验证脚本或编译器 fix/proof。本候选已在全新临时 Chrome 156
+headless profile 验收两个真实输入控件、中文/emoji、强调/代码/标题/MathML、
+原间距 8/40/40/200，以及实际离页保存和刷新后合成输入与缓存恢复。
+这不代表坏存档保护、原 60 秒计时保存或实体移动设备已重新验收；这些路径本轮未复验。
+0.7.0 在正式 Git tag 创建前仅为候选。
 
 ## 本轮门禁
 
