@@ -5,7 +5,7 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 ## 使用者影响
 
 0.6.0 候选将 CLI / `@calcit/procs` 配对官方 **0.34.2**，使用正式 UI **0.12.1**、
-Respo **0.18.1**、JS-FFI **0.2.9**，传递 Router **0.10.1**。整图安装后重新生成 JS。
+Respo **0.18.1**、JS-FFI **0.2.9**，传递的 Router 版本为 **0.10.1**。整图安装后重新生成 JS。
 这是 Map 事件 / Router struct 兼容图，不能与 Respo 0.19 新事件图混装。
 
 两个已有 helper 的静态合同收紧为真实泛型关系：
