@@ -4,31 +4,29 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 ## 使用者影响
 
-0.6.0 候选将 CLI / `@calcit/procs` 配对官方 **0.34.2**，使用正式 UI **0.12.1**、
-Respo **0.18.1**、JS-FFI **0.2.9**，传递的 Router 版本为 **0.10.1**。整图安装后重新生成 JS。
-这是 Map 事件 / Router struct 兼容图，不能与 Respo 0.19 新事件图混装。
+0.7.0 候选配对官方 **Calcit / @calcit/procs 0.34.2**、正式 UI **0.14.0**、
+Respo **0.19.1**、JS-FFI **0.2.10**，传递 Router **0.11.1**。这是新版事件合同的
+依赖图，消费者应协调全部模块后重新生成 JS；旧 0.6.0 的 Respo 0.18.1 / UI 0.12.1
+配对保留，不移动旧 tag，也不混装两个图。
 
-两个已有 helper 的静态合同收紧为真实泛型关系：
+库的 Markdown 输入、`comp-md` / `comp-md-block`、MathML、增量解析、匿名块/载荷、
+HTML 信任边界和存档格式保持。两个无样式文本节点改为省略可选样式参数；Demo 的
+四处旧 `=<` 改为 `space-x` / `space-y`，保留原来的宽 8、高 40/40/200。
 
-- `unwrap-option`：`Fn (Option T) (-> T) (:generics T)`。
-- `unwrap-or`：`Fn (Option T) T (-> T) (:generics T)`。
+0.6.0 已收紧的 `unwrap-option` / `unwrap-or` 继续保留真实 Option 泛型合同；
+默认值必须与 payload 使用同一模型。本次不再次改写这些 helper，不用自由返回泛型、
+强转或重复 decoder 隐藏 Dynamic。开放 Markdown 块、缓存回调和存档入口仍按实际合同
+处理，不声称本次已清零 Dynamic。
 
-调用方使用 core 的名义 Option，默认值与 payload 使用同一模型；依赖匿名 some/none Enum
-或不相关默认值类型的调用需先适配。用 0.6.0 标明公共类型收紧，不将它伪装成无影响的版本配对。
-两个 helper 的原函数体、成功值、none 报错和求值顺序未改；没有用自由返回泛型伪造具体结果。
-
-公开 Markdown 输入、`comp-md` / `comp-md-block`、MathML、增量解析、匿名块/载荷、
-HTML 信任边界与存档格式保持。`blockquote` 和 `render-inline` 的既有精确返回型保留；
-Respo memo-value-by 仍擦除回调返回型，消费缓存处继续如实保留 List<Dynamic>。
-Element 含函数，不能用闭合数据 decoder 验证，不新增强转或重复逐节点检查。
-本库 `read-field` 的原 Option→nil 合同保持，未因同名而替换成 UI 的 helper。
-
-官方 CLI 归一化逐定义审计只发现这两个 schema 改变，原 code、测试和其他 schema 不变。
-同一 0.34.2 工具链下 schema-dynamic 位置 **69→64**，未隐藏其他开放边界或声明 Dynamic 清零。
-正式 Caps strict/toolchain、immutable、299 个全定义、118 个公开定义、完整 strict、
-原 14 项 native、MathML/增量解析、20 项 JS 渲染、原六项发布边界回归与构建通过。
-没有新增预算、测试框架、验证脚本、编译器 fix/proof；新精确 CI/评审仍需跟进。
-本轮没有重新操作 Demo 的存档，不将历史页面验收当作新候选的存档证据。
+Snapshot 通过官方 CLI 的事务及 revision 检查修改；原测试、质量门禁与 npm 依赖保持。
+本地原 14 项 native、MathML、增量解析、20 项 JS 渲染、六项发布边界回归及构建通过；
+最终源码的全定义 302/302、公开定义 118/118、零 deprecated-call / dynamic-method 通过；
+完整 strict（diagnostics=[]）通过；新精确 CI 仍需跟进。
+不新增预算、测试框架、验证脚本或编译器 fix/proof。本候选已在全新临时 Chrome 156
+headless profile 验收两个真实输入控件、中文/emoji、强调/代码/标题/MathML、
+原间距 8/40/40/200，以及实际离页保存和刷新后合成输入与缓存恢复。
+这不代表坏存档保护、原 60 秒计时保存或实体移动设备已重新验收；这些路径本轮未复验。
+0.7.0 在正式 Git tag 创建前仅为候选。
 
 ## 本轮门禁
 

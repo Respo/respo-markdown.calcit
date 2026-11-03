@@ -34,13 +34,13 @@
                   img $ {}
                     :src |https://cos-sh.tiye.me/cos-up/bb4c2755050318e864b56f59145d726e-SubstractRespo.png
                     :style $ {} $ :width 40
-                  =< 8 nil
+                  space-x 8
                   a
                     {} $ :href |https://github.com/Respo/respo-markdown.calcit
                     <> |respo-markdown
                 div ({})
                   comp-md-block "|Respo Markdown component renders Markdown text to virtual DOM in Respo. Require the code with\n\n```cirru\n:require\n  respo-md.comp.md :refer $ comp-md comp-md-block\n\ncomp-md \"|content\"\n\ncomp-md-block \"|content\\nnew line\" $ {}\n```\n" $ {}
-                =< nil 40
+                space-y 40
                 div
                   {} $ :style $ {}
                   div ({})
@@ -56,7 +56,7 @@
                           , :parse-result (:parse-result state)
                   div ({})
                     comp-md (:text state) ({})
-                =< nil 40
+                space-y 40
                 div ({})
                   comp-md "|Example For using `comp-md-block`:" $ {}
                 div
@@ -78,7 +78,7 @@
                     comp-md-block (:draft state)
                       {} (:highlight highlighter) (:class-name |demo)
                         :parse-result $ :parse-result state
-                =< nil 200
+                space-y 200
           :examples $ []
           :schema $ quote $ Fn Dynamic Dynamic (-> respo.schema/Component)
         'initial-state $ %{} 'CodeEntry (:doc |)
@@ -91,7 +91,7 @@
             respo.util.format :refer $ hsl
             respo-ui.core :as ui
             respo-ui.css :as css
-            respo.comp.space :refer $ =<
+            respo.comp.space :refer $ space-x space-y
             respo-md.comp.md :refer $ comp-md comp-md-block
             respo-md.util.core :refer $ update-draft-state
             respo.core :refer $ defcomp <> div span textarea input a img
@@ -396,12 +396,12 @@
                   (:image content)
                     if (string? content) (comp-image content) (raise "|Invalid Markdown image payload")
                   (:text content)
-                    if (string? content) (<> content nil) (raise "|Invalid inline text payload")
+                    if (string? content) (<> content) (raise "|Invalid inline text payload")
                   (:emphasis content)
                     create-element :b ({}) & $ render-inline content
                   (:italic content)
                     create-element :i $ {} $ :inner-text content
-                  _ $ <> (str |Unknown: chunk) nil
+                  _ $ <> $ str |Unknown: chunk
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List respo.schema/Element
