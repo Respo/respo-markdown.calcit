@@ -1658,14 +1658,14 @@
               (:some x) x
               (:none) (raise "|unexpected none")
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic)
+          :schema $ quote $ Fn (Option T) (-> T) (:generics T)
         'unwrap-or $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-or (o d)
             match o
               (:some x) x
               (:none) d
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic (-> Dynamic)
+          :schema $ quote $ Fn (Option T) T (-> T) (:generics T)
         'update-draft-state $ %{} 'CodeEntry
           :doc "|Updates the textarea draft and parser result as one state transition."
           :code $ quote $ defn update-draft-state (state next-draft)
