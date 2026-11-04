@@ -1283,7 +1283,16 @@
           :doc "|Continues a parser result and returns only the changed suffix statistics."
           :code $ quote $ defn parse-markdown-incremental (old-text new-text old-result)
             let
-                raw $ split-block-incremental old-text new-text $ :blocks old-result
+                raw $ if
+                  and
+                    not $ empty? old-text
+                    empty? $ :blocks old-result
+                  let
+                      next-blocks $ split-block new-text
+                    ScanResult :blocks next-blocks :reused-blocks 0 :reparsed-blocks (.len next-blocks) :scanned-lines
+                      .len $ split-lines new-text
+                      , :incremental? false
+                  split-block-incremental old-text new-text $ :blocks old-result
                 mode $ if (:incremental? raw)
                   %:: ParseMode :incremental (:reused-blocks raw) (:reparsed-blocks raw)
                   %:: ParseMode :fallback
@@ -1368,33 +1377,41 @@
                           &enum:nth block 0
                         (nil? block) :unknown
                         true $ raise "|Invalid Markdown block"
+                  last-text $ if (= last-mode :text)
+                    let
+                        last-lines $ match last-block
+                          (:none) (raise "|Missing Markdown text block")
+                          (:some block)
+                            match
+                              if (enum? block) (get block 1) (raise "|Missing Markdown text block")
+                              (:none) (raise "|Invalid Markdown text block lines")
+                              (:some value)
+                                if (list? value) value $ raise "|Invalid Markdown text block lines"
+                      respo-md.util.core/join-strings-dynamic last-lines &newline
+                    , |
+                  tail-source $ cond
+                      ends-with? old-text "|\n\n"
+                      str last-text "|\n\n"
+                    (ends-with? old-text "|\n") (str last-text &newline)
+                    true last-text
+                  tail-safe? $ or (= block-count 0)
+                    and (= last-mode :text)
+                      or (empty? last-text) (ends-with? old-text tail-source)
                 if
                   and
                     = false $ ends-with? old-text "|\n\n"
                     = last-mode :text
+                    , tail-safe?
                   let
                       prefix-blocks $ &list:slice old-blocks 0 $ dec block-count
-                      last-lines $ match last-block
-                        (:none) (raise "|Missing Markdown text block")
-                        (:some block)
-                          match
-                            if (enum? block) (get block 1) (raise "|Missing Markdown text block")
-                            (:none) (raise "|Invalid Markdown text block lines")
-                            (:some value)
-                              if (list? value) value $ raise "|Invalid Markdown text block lines"
-                      tail-text $ if (ends-with? old-text "|\n")
-                        str (respo-md.util.core/join-strings-dynamic last-lines &newline) &newline appended
-                        str (respo-md.util.core/join-strings-dynamic last-lines &newline) appended
+                      tail-text $ str tail-source appended
                       next-blocks $ split-block tail-text
                     ScanResult :blocks (append-blocks prefix-blocks next-blocks) :reused-blocks (dec block-count) :reparsed-blocks (.len next-blocks) :scanned-lines
                       .len $ split-lines tail-text
                       , :incremental? true
                   let
                       next-blocks $ split-block appended
-                    if
-                      and (> block-count 0)
-                        = false $ ends-with? old-text "|\n\n"
-                        = false $ = last-mode :text
+                    if (not tail-safe?)
                       let
                           full-blocks $ split-block new-text
                         ScanResult :blocks full-blocks :reused-blocks 0 :reparsed-blocks (.len full-blocks) :scanned-lines

@@ -4,29 +4,33 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 ## 使用者影响
 
-0.7.0 候选配对官方 **Calcit / @calcit/procs 0.34.2**、正式 UI **0.14.0**、
-Respo **0.19.1**、JS-FFI **0.2.10**，传递 Router **0.11.1**。这是新版事件合同的
-依赖图，消费者应协调全部模块后重新生成 JS；旧 0.6.0 的 Respo 0.18.1 / UI 0.12.1
-配对保留，不移动旧 tag，也不混装两个图。
+0.7.1 候选保持官方 Calcit / `@calcit/procs` **0.34.2**，依赖对齐正式 UI
+**0.14.1**、Respo **0.19.2**、JS-FFI **0.2.10**，传递 Router **0.11.2**。
+这使本库能与正式 Reel 0.9.0 / UI 0.14.1 一起通过 Caps strict；0.7.0 的旧精确
+依赖会导致混装图被 strict 拒绝。消费者须协调完整模块图，重新生成 JS 并刷新。
+旧 tag 不移动，不关闭 strict 或使用 main/hash 替代版本。
 
-库的 Markdown 输入、`comp-md` / `comp-md-block`、MathML、增量解析、匿名块/载荷、
-HTML 信任边界和存档格式保持。两个无样式文本节点改为省略可选样式参数；Demo 的
-四处旧 `=<` 改为 `space-x` / `space-y`，保留原来的宽 8、高 40/40/200。
+本 patch 还修复 [#105](https://github.com/Respo/respo-markdown.calcit/issues/105)：
+逐字符输入数学块或含空行的 code fence 时，增量结果必须与完整解析一致；数学式
+不再需要刷新才能出现。调整两个增量解析函数，保留低层 API 的空列表兼容合同；ParserResult 没有可复用
+缓存时走完整解析，仅复用确实对应 raw source
+末尾的 text 后缀；边界不确定时回退原完整解析。未闭合片段可能扫描更多行，
+`incremental?`/复用计数相应反映实际回退；原已完成段落的性能断言保留。
 
-0.6.0 已收紧的 `unwrap-option` / `unwrap-or` 继续保留真实 Option 泛型合同；
-默认值必须与 payload 使用同一模型。本次不再次改写这些 helper，不用自由返回泛型、
-强转或重复 decoder 隐藏 Dynamic。开放 Markdown 块、缓存回调和存档入口仍按实际合同
-处理，不声称本次已清零 Dynamic。
+`comp-md` / `comp-md-block`、ParserResult/ScanResult 字段、匿名块/载荷、HTML 信任
+边界、原 8/40/40/200 间距、HUD 及存档合同保持。已有 Option 泛型继续保留，
+不为开放 Markdown 块/缓存回调构造不完整 union，不声称清零 Dynamic。
 
-Snapshot 通过官方 CLI 的事务及 revision 检查修改；原测试、质量门禁与 npm 依赖保持。
-本地原 14 项 native、MathML、增量解析、20 项 JS 渲染、六项发布边界回归及构建通过；
-最终源码的全定义 302/302、公开定义 118/118、零 deprecated-call / dynamic-method 通过；
-完整 strict（diagnostics=[]）通过；新精确 CI 仍需跟进。
-不新增预算、测试框架、验证脚本或编译器 fix/proof。本候选已在全新临时 Chrome 156
-headless profile 验收两个真实输入控件、中文/emoji、强调/代码/标题/MathML、
-原间距 8/40/40/200，以及实际离页保存和刷新后合成输入与缓存恢复。
-这不代表坏存档保护、原 60 秒计时保存或实体移动设备已重新验收；这些路径本轮未复验。
-0.7.0 在正式 Git tag 创建前仅为候选。
+最终本地 302 个全定义、118 个公开定义、完整 strict（diagnostics=[]）、原 14 项 native、
+原 MathML/增量性能与边界、21 项 JS 渲染及构建通过。普通可见 Chrome 逐字输入后
+即时生成 MathML，两个合成输入与数学块刷新后恢复，无应用 pageerror；这不替代坏
+存档或 60 秒保存验收。
+
+保留全部原测试与质量门禁，在现有 JS 渲染测试中加入逐字符 full/incremental 输出
+一致的真实回归，旧实现已确认失败；不新增预算、检查脚本、测试框架或编译器 fix/proof。
+本轮正式依赖图的原类型/解析/渲染/构建验收与精确 CI 分开记录；0.7.1 在正式
+Git tag 创建前仍是候选。原生/JS 测试不代替全部浏览器持久化场景；本轮不沿用
+0.7.0 的历史浏览器结果证明坏存档保护、60 秒计时保存或实体移动设备已复验。
 
 ## 本轮门禁
 
