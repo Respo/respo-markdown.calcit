@@ -3,7 +3,7 @@ import { test } from "node:test";
 import * as c from "../js-out/calcit.core.mjs";
 import { comp_md, comp_md_block, resolve_blocks } from "../js-out/respo-md.comp.md.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
-import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, read_demo_state } from "../js-out/respo-md.util.core.mjs";
+import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, parse_markdown_incremental, read_demo_state } from "../js-out/respo-md.util.core.mjs";
 import { escape_html } from "../js-out/respo-md.util.math.mjs";
 import { comp_container } from "../js-out/respo-md.comp.container.mjs";
 import { Op } from "../js-out/respo-md.schema.mjs";
@@ -225,4 +225,26 @@ test("headings, inline code and fenced code coexist in a homepage document", () 
   assert.ok(html.includes("安装"));
   assert.ok(html.includes("--check-only"));
   assert.ok(html.includes("<code"));
+});
+
+
+test("character append keeps math and fenced blank lines equivalent to full parsing", () => {
+  const parseResult = c.newTag("parse-result");
+  const sources = [
+    "# Title\n\nparagraph\n\n$$\nx^2 + y^2\n$$",
+    "$$\nx^2\n$$",
+    "paragraph\n\n```js\nconst x = 1;\n\nconst y = 2;\n```\n\ntail",
+  ];
+  for (const source of sources) {
+    let text = "";
+    let previous = parse_markdown(text);
+    for (const char of source) {
+      const next = text + char;
+      previous = parse_markdown_incremental(text, next, previous);
+      const incremental = make_string(comp_md_block(next, c._$n__$M_(parseResult, previous)));
+      const full = make_string(comp_md_block(next, c._$n__$M_()));
+      assert.equal(incremental, full, `prefix ${JSON.stringify(next)}`);
+      text = next;
+    }
+  }
 });
