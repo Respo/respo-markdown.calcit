@@ -2,7 +2,15 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 0.8.0 候选：使用者影响
+## 0.8.1 候选：使用者影响
+
+CLI / `@calcit/procs` 同步正式 **0.35.1**，依赖 UI **0.15.1**、Respo **0.19.4**、JS-FFI **0.2.13**，传递 Router **0.12.1**。请统一精确依赖图并重新生成 JS；正式 tag 发布前仍为候选。
+
+本 patch 纳入此前已合并 #108 的 AnyEnum 同义拼写，候选自身不改 Snapshot。既有 BlockBufferValue union、累积器和拼接泛型、parser payload/缓存、MathML及增量输出合同保持；append-blocks 的 nil / false / 混合值与宿主引用继续按原开放合同处理，不伪装成有限模型。HUD、存档格式与恢复/保存顺序、HTML信任边界及部署路径保持。
+
+原完整strict、全部定义、原native/JS/MathML/增量性能与逐字符等价回归、包年龄门禁和COS action内置verify保留；本轮精确结果以PR为准，不引用历史运行或浏览器操作作为本次证据。不新增测试/验证脚本或编译器fix规则。
+
+## 历史 0.8.0：有限缓冲区与泛型
 
 CLI / `@calcit/procs` 配对正式 **0.35.0**，依赖 UI **0.15.0**、Respo **0.19.3**、
 JS-FFI **0.2.12**，传递 Router **0.12.0**。消费者须同步完整精确图并重新生成 JS；
