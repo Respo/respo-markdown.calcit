@@ -2,7 +2,34 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 使用者影响
+## 0.8.0 候选：使用者影响
+
+CLI / `@calcit/procs` 配对正式 **0.35.0**，依赖 UI **0.15.0**、Respo **0.19.3**、
+JS-FFI **0.2.12**，传递 Router **0.12.0**。消费者须同步完整精确图并重新生成 JS；
+正式 tag 发布前仍是候选，不使用 main/hash 替代，也不关闭 Caps strict。
+
+低层 `split-block-iter` 的累积器明确为 `List Enum`，缓冲区使用新具名 union
+`BlockBufferValue = String | Number | List<String>`（文本/代码、缩进宽度、表格行）；
+`split-line-iter` 的累积器同样明确为 `List Enum`。直接调用这两个低层入口时，
+预填累积器与缓冲区需符合上述类型。这是 minor 的静态合同变化，匿名 Enum 块的运行表示、
+parser mode 和载荷不变，不声称 Enum 的任意外部 payload 已通过深层验证。
+
+`split-block` / `split-line` 自产结果明确为 `List Enum`；字符串拼接辅助函数保留泛型元素
+并沿用原 `str` 转换。五个 schema 共减少 **8** 处显式 Dynamic；两处 Number/String
+字面量用静态标注提供共同 union 上下文，移除一处重复输出标注。原130个定义的执行逻辑、
+附带测试与其他元数据保持，新增一个 union 定义；全部代码差异只涉及静态标注。
+
+真实开放边界保持：`split-line` 仍接收任意输入，对非字符串告警并返回空列表；
+`append-blocks` 继续允许 nil / false / 混合值及宿主引用，保持成员身份；外部旧块缓存、
+ParserResult / ScanResult、options 与 wire 不伪装成有限业务模型。HTML 信任边界、
+HUD、存档格式与恢复/保存顺序不改，没有增加兼容改写规则或校验脚本。
+
+本轮验证包括原14项 native、MathML、增量性能与逐字符输出一致性、原21项 JS 渲染、
+两端命名入口、完整 strict、canonical、工具链和构建。实际结果与精确 CI 见 PR；
+本轮不宣称浏览器坏存档、60秒保存、剪贴板或生产数据已复验。全部原测试、门禁、
+部署路径与 COS action 内置 verify 保持。
+
+## 历史 0.7.1：使用者影响
 
 0.7.1 候选保持官方 Calcit / `@calcit/procs` **0.34.2**，依赖对齐正式 UI
 **0.14.1**、Respo **0.19.2**、JS-FFI **0.2.10**，传递 Router **0.11.2**。

@@ -24,7 +24,7 @@
                 states $ respo-md.schema/read-field store :states
                 cursor $ decode-map-as
                   either (respo-md.schema/read-field states :cursor) ([])
-                  quote $ List Dynamic
+                  List Dynamic
                 state $ respo-md.util.core/read-demo-state $ respo-md.schema/read-field states :data
               div
                 {} (:class-name css/global)
@@ -109,11 +109,11 @@
                     (:none) (Option :none)
                     (:some value)
                       if (number? value) (Option :some value) (Option :none)
-                  quote $ Option Number
+                  Option Number
                 lines $ match
                   try-decode-map-as
                     if (indent-option .some?) (&list:rest indented-lines) indented-lines
-                    quote $ List String
+                    List String
                   (:ok decoded) decoded
                   (:err message) (raise message)
                 indented $ indent-option .unwrap-or 0
@@ -232,8 +232,7 @@
           :code $ quote $ defcomp comp-md (text options)
             let
                 inner $ match
-                  try-decode-map-as (respo.core/memo-value-by text render-inline text)
-                    quote $ List Dynamic
+                  try-decode-map-as (respo.core/memo-value-by text render-inline text) (List Dynamic)
                   (:ok children) children
                   (:err message) (raise message)
               div
@@ -255,7 +254,7 @@
                   [] idx $ match block
                     (:text lines)
                       match
-                        try-decode-map-as lines $ quote $ List String
+                        try-decode-map-as lines $ List String
                         (:ok text-lines) (comp-text-block text-lines)
                         (:err error) (raise error)
                     (:code lines)
@@ -264,7 +263,7 @@
                       if (list? lines) (comp-math-block lines) (raise "|Invalid Markdown math block lines")
                     (:table lines)
                       match
-                        try-decode-map-as lines $ quote $ List (List String)
+                        try-decode-map-as lines $ List $ List String
                         (:ok table-lines) (comp-table-block table-lines)
                         (:err error) (raise error)
           :examples $ []
@@ -600,7 +599,7 @@
             match op
               (:states cursor s)
                 match
-                  try-decode-map-as cursor $ quote $ List Dynamic
+                  try-decode-map-as cursor $ List Dynamic
                   (:ok decoded)
                     assoc @*store :states $ respo.cursor/update-state-tree
                       .unwrap-or (get @*store :states) ({})
@@ -807,9 +806,7 @@
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch Op of the demo app, bound to the :dispatch-op type slot."
           :code $ quote $ defenum Op
-            :states
-              quote $ List Dynamic
-              , Dynamic
+            :states (List Dynamic) Dynamic
             :hydrate-storage Dynamic
           :examples $ []
           :schema $ quote EnumDef
@@ -978,6 +975,11 @@
             respo-md.util.core :refer $ split-line
     'respo-md.util.core $ %{} 'FileEntry
       :defs $ {}
+        'BlockBufferValue $ %{} 'CodeEntry
+          :doc "|Internal scanner buffer values: text/code strings, numeric indentation width, or table rows. Does not describe arbitrary externally supplied Markdown blocks."
+          :code $ quote $ defunion BlockBufferValue String Number (List String)
+          :examples $ []
+          :schema $ quote UnionDef
         'DemoState $ %{} 'CodeEntry
           :doc "|Typed state kept outside the VDOM tree for the Markdown demo."
           :code $ quote $ defstruct DemoState (:draft String) (:text String) (:parse-result respo-md.util.core/ParserResult)
@@ -999,7 +1001,7 @@
         'ParserResult $ %{} 'CodeEntry
           :doc "|Typed public result shared by the incremental parser and Markdown components."
           :code $ quote $ defstruct ParserResult
-            :blocks $ quote $ List Dynamic
+            :blocks $ List Dynamic
             :reused-blocks Number
             :reparsed-blocks Number
             :scanned-lines Number
@@ -1009,7 +1011,7 @@
           :schema $ quote StructDef
         'ScanResult $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstruct ScanResult
-            :blocks $ quote $ List Dynamic
+            :blocks $ List Dynamic
             :reused-blocks Number
             :reparsed-blocks Number
             :scanned-lines Number
@@ -1168,7 +1170,7 @@
                     if (= i 0) | sep
                     &list:nth xs i
           :examples $ []
-          :schema $ quote $ Fn (List Dynamic) String (-> String)
+          :schema $ quote $ Fn (List T) String (-> String) (:generics T)
         'make-parser-result $ %{} 'CodeEntry
           :doc "|Converts an internal scan result into the typed parser result."
           :code $ quote $ defn make-parser-result (raw mode)
@@ -1358,7 +1360,7 @@
             split-block-iter (split-lines text) ([]) ([]) :empty
           :examples $ []
           :schema $ quote $ Fn String
-            -> $ List Dynamic
+            -> $ List Enum
             :features :js-ffi
         'split-block-incremental $ %{} 'CodeEntry
           :doc "|Parses only appended lines when the new source has the old source as a prefix; returns reuse statistics for benchmarks."
@@ -1459,9 +1461,11 @@
                       let
                           raw $ cursor.!match pattern-indented-code
                         recur left acc
-                          []
-                            .len $ .unwrap $ get1 raw
-                            &str:slice cursor $ .len $ .unwrap (get0 raw)
+                          assert-type
+                            []
+                              .len $ .unwrap $ get1 raw
+                              &str:slice cursor $ .len $ .unwrap (get0 raw)
+                            List respo-md.util.core/BlockBufferValue
                           , :code
                     (math-block-single-line? cursor)
                       recur left
@@ -1496,9 +1500,11 @@
                           raw $ cursor.!match pattern-indented-code
                         recur left
                           &list:append acc $ :: :text buffer
-                          []
-                            .len $ .unwrap $ get1 raw
-                            &str:slice cursor $ .len $ .unwrap (get0 raw)
+                          assert-type
+                            []
+                              .len $ .unwrap $ get1 raw
+                              &str:slice cursor $ .len $ .unwrap (get0 raw)
+                            List respo-md.util.core/BlockBufferValue
                           , :code
                     (math-block-single-line? cursor)
                       let
@@ -1545,21 +1551,19 @@
                       , :empty
                   _ $ raise $ str "|Strange splitting mode: " mode
           :examples $ []
-          :schema $ quote $ Fn (List String) (List Dynamic) (List Dynamic) Tag
-            -> $ List Dynamic
+          :schema $ quote $ Fn (List String) (List Enum) (List respo-md.util.core/BlockBufferValue) Tag
+            -> $ List Enum
             :features :js-ffi
         'split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line (line)
             if (string? line)
-              assert-type
-                split-line-iter ([]) line | :text
-                quote $ List Dynamic
+              split-line-iter ([]) line | :text
               do
                 js/console.warn "|respo-markdown: ignored non-string inline Markdown"
                 []
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ List Dynamic
+            -> $ List Enum
             :features :js-ffi
         'split-line-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line-iter (acc line buffer mode)
@@ -1652,8 +1656,8 @@
                     recur acc left (str buffer cursor) :code
                   _ $ raise $ str "|Unknown mode:" mode
           :examples $ []
-          :schema $ quote $ Fn (List Dynamic) String String Tag
-            -> $ List Dynamic
+          :schema $ quote $ Fn (List Enum) String String Tag
+            -> $ List Enum
             :features :js-ffi
         'split-table-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-table-content (cursor)
