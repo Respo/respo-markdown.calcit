@@ -313,7 +313,7 @@
                 html $ highlight-fn content lang
               if (string? html) html $ raise |Markdown-:highlight-must-return-a-String
           :examples $ []
-          :schema $ quote $ Fn String String Fn (-> String)
+          :schema $ quote $ Fn String String AnyFn (-> String)
           :tests $ []
             %{} 'TestEntry
               :name |highlight-callback-invoked-with-code-and-language
@@ -609,7 +609,7 @@
                 if (map? s) (respo-md.util.core/hydrate-demo-store s) (raise "|Invalid Markdown storage payload")
               _ $ do (eprintln "|unknown op:" op) @*store
           :examples $ []
-          :schema $ quote $ Fn Enum
+          :schema $ quote $ Fn AnyEnum
             -> $ Map Dynamic Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
@@ -1360,7 +1360,7 @@
             split-block-iter (split-lines text) ([]) ([]) :empty
           :examples $ []
           :schema $ quote $ Fn String
-            -> $ List Enum
+            -> $ List AnyEnum
             :features :js-ffi
         'split-block-incremental $ %{} 'CodeEntry
           :doc "|Parses only appended lines when the new source has the old source as a prefix; returns reuse statistics for benchmarks."
@@ -1551,8 +1551,8 @@
                       , :empty
                   _ $ raise $ str "|Strange splitting mode: " mode
           :examples $ []
-          :schema $ quote $ Fn (List String) (List Enum) (List respo-md.util.core/BlockBufferValue) Tag
-            -> $ List Enum
+          :schema $ quote $ Fn (List String) (List AnyEnum) (List respo-md.util.core/BlockBufferValue) Tag
+            -> $ List AnyEnum
             :features :js-ffi
         'split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line (line)
@@ -1563,7 +1563,7 @@
                 []
           :examples $ []
           :schema $ quote $ Fn Dynamic
-            -> $ List Enum
+            -> $ List AnyEnum
             :features :js-ffi
         'split-line-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line-iter (acc line buffer mode)
@@ -1656,8 +1656,8 @@
                     recur acc left (str buffer cursor) :code
                   _ $ raise $ str "|Unknown mode:" mode
           :examples $ []
-          :schema $ quote $ Fn (List Enum) String String Tag
-            -> $ List Enum
+          :schema $ quote $ Fn (List AnyEnum) String String Tag
+            -> $ List AnyEnum
             :features :js-ffi
         'split-table-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-table-content (cursor)
