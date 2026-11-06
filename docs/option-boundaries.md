@@ -18,7 +18,7 @@ false、0、空串不是缺失块，仍报 `Invalid Markdown block`。
 ## 保留的边界
 
 - 匿名块仍按原 List/Enum 协议传递；开放 payload 的名义化属于后续公开模型设计，不能只改返回 schema 冒充已验证。
-- `respo-md.schema/read-field` 继续兼容 Map/Struct 旧字段读取，缺失与显式 nil 的旧合流不改变；消费者仍在具体使用处检查内容。
+- `respo-md.schema/read-field` 读取 Map/Struct 字段并返回 `Option Dynamic`：缺失字段为 `Option :none`，显式 nil 为 `Option :some nil`，false、0、空串原样包在 `:some` 里；调用处用 `match` 或 `.unwrap-or` 选择具体默认值（Calcit 0.36.0 起 Option 擦回 nil 是 E_OPTION_ERASED_TO_NIL 错误）。
 - Respo 展示 props 的 class/style 省略保留原 nil 出口；不改成业务默认 String，也不把 false、0、空串当成缺失。
 - Markdown 正则匹配依赖 JavaScript 宿主；完整解析回归是 JS 验收，不宣称 native/WASM 已支持。
 

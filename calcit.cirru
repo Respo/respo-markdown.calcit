@@ -24,7 +24,8 @@
                 states $ .unwrap-or (respo-md.schema/read-field store :states) ({})
                 cursor $ decode-map-as
                   match (respo-md.schema/read-field states :cursor)
-                    (:some v) (either v ([]))
+                    (:some v)
+                      either v $ []
                     (:none) ([])
                   List Dynamic
                 state $ match (respo-md.schema/read-field states :data)
@@ -136,8 +137,9 @@
                       , line
                   respo-md.util.core/join-strings-dynamic &newline
                 highlight-fn $ match (respo-md.schema/read-field options :highlight)
-                  (:some f) $ if (nil? f) (Option :none) (Option :some f)
-                  (:none) $ Option :none
+                  (:some f)
+                    if (nil? f) (Option :none) (Option :some f)
+                  (:none) (Option :none)
                 indented? $ &> indented 0
                 code-block $ match highlight-fn
                   (:none)
@@ -245,7 +247,8 @@
                   (:err message) (raise message)
               div
                 match (get options :class-name)
-                  (:some class-name) ({} (:class-name class-name))
+                  (:some class-name)
+                    {} $ :class-name class-name
                   (:none) ({})
                 , & inner
           :examples $ []
@@ -255,7 +258,8 @@
             let
                 blocks $ resolve-blocks text options
                 class-name $ match (respo-md.schema/read-field options :class-name)
-                  (:some v) $ if (nil? v) |md-block $ str-spaced |md-block v
+                  (:some v)
+                    if (nil? v) |md-block $ str-spaced |md-block v
                   (:none) |md-block
               list->
                 {} (:class-name class-name)
@@ -421,8 +425,9 @@
           :code $ quote $ defn resolve-blocks (text options)
             let
                 result $ match (respo-md.schema/read-field options :parse-result)
-                  (:some v) $ if (nil? v) (Option :none) (Option :some v)
-                  (:none) $ Option :none
+                  (:some v)
+                    if (nil? v) (Option :none) (Option :some v)
+                  (:none) (Option :none)
               match result
                 (:none) (split-block text)
                 (:some result)
@@ -830,8 +835,7 @@
             cond
                 struct? value
                 get (&struct:to-map value) field
-              (map? value)
-                get value field
+              (map? value) (get value field)
               true $ raise "|[Markdown] expected Struct or Map"
           :examples $ []
           :schema $ quote $ Fn Dynamic Tag
@@ -840,20 +844,20 @@
             %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
               :code $ quote $ let
                   value $ {} (:nil nil) (:false false) (:zero 0) (:empty |)
-                assert= (Option :none) $ read-field value :missing
-                assert= (Option :some nil) $ read-field value :nil
-                assert= (Option :some false) $ read-field value :false
-                assert= (Option :some 0) $ read-field value :zero
-                assert= (Option :some |) $ read-field value :empty
+                assert= (Option :none) (read-field value :missing)
+                assert= (Option :some nil) (read-field value :nil)
+                assert= (Option :some false) (read-field value :false)
+                assert= (Option :some 0) (read-field value :zero)
+                assert= (Option :some |) (read-field value :empty)
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |keeps-nominal-fields-and-open-members)
               :code $ quote $ let
                   blocks $ [] nil false 0 |
                   value $ respo-md.util.core/ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks 0 :scanned-lines 0 :incremental? false
                 assert= true $ identical? blocks $ .unwrap-or (read-field value :blocks) ([])
-                assert= (Option :some false) $ read-field value :incremental?
-                assert= (Option :some 0) $ read-field value :reused-blocks
-                assert= (Option :none) $ read-field value :missing
+                assert= (Option :some false) (read-field value :incremental?)
+                assert= (Option :some 0) (read-field value :reused-blocks)
+                assert= (Option :none) (read-field value :missing)
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |rejects-non-container-inputs)
               :code $ quote $ do
@@ -1155,10 +1159,11 @@
             let
                 states $ .unwrap-or (respo-md.schema/read-field store :states) ({})
                 restored $ match (respo-md.schema/read-field states :data)
-                  (:some data) $ if (nil? data) (read-demo-state nil)
-                    read-demo-state $ {}
-                      :draft $ .unwrap-or (respo-md.schema/read-field data :draft) false
-                      :text $ .unwrap-or (respo-md.schema/read-field data :text) false
+                  (:some data)
+                    if (nil? data) (read-demo-state nil)
+                      read-demo-state $ {}
+                        :draft $ .unwrap-or (respo-md.schema/read-field data :draft) false
+                        :text $ .unwrap-or (respo-md.schema/read-field data :text) false
                   (:none) (read-demo-state nil)
               assoc store :states $ assoc
                 either states $ {}
