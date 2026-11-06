@@ -21,11 +21,15 @@
         'comp-container $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-container (store highlighter)
             let
-                states $ respo-md.schema/read-field store :states
+                states $ .unwrap-or (respo-md.schema/read-field store :states) ({})
                 cursor $ decode-map-as
-                  either (respo-md.schema/read-field states :cursor) ([])
+                  match (respo-md.schema/read-field states :cursor)
+                    (:some v) (either v ([]))
+                    (:none) ([])
                   List Dynamic
-                state $ respo-md.util.core/read-demo-state $ respo-md.schema/read-field states :data
+                state $ match (respo-md.schema/read-field states :data)
+                  (:some v) (respo-md.util.core/read-demo-state v)
+                  (:none) (respo-md.util.core/read-demo-state nil)
               div
                 {} (:class-name css/global)
                   :style $ {} (:width |96%) (:margin "|0 auto") (:padding 8)
@@ -52,7 +56,7 @@
                       :placeholder "|text inline"
                       :on-input $ fn (e d!)
                         d! $ respo-md.schema/Op :states cursor $ respo-md.util.core/DemoState :draft (:draft state) :text
-                          str $ respo-md.schema/read-field e :value
+                          str $ .unwrap-or (respo-md.schema/read-field e :value) |
                           , :parse-result (:parse-result state)
                   div ({})
                     comp-md (:text state) ({})
@@ -70,7 +74,7 @@
                       :on-input $ fn (e d!)
                         ; println |Editing: state $ :value e
                         let
-                            next-draft $ str $ respo-md.schema/read-field e :value
+                            next-draft $ str $ .unwrap-or (respo-md.schema/read-field e :value) |
                           d! $ respo-md.schema/Op :states cursor $ update-draft-state state next-draft
                   div
                     {} (:class-name css/flex)
@@ -131,23 +135,27 @@
                       &str:slice line $ .len indentation
                       , line
                   respo-md.util.core/join-strings-dynamic &newline
-                highlight-fn $ respo-md.schema/read-field options :highlight
+                highlight-fn $ match (respo-md.schema/read-field options :highlight)
+                  (:some f) $ if (nil? f) (Option :none) (Option :some f)
+                  (:none) $ Option :none
                 indented? $ &> indented 0
-                code-block $ if (nil? highlight-fn)
-                  if (&= lang |cirru)
-                    respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
-                    respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                      Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
-                  if (fn? highlight-fn)
-                    div
-                      {} $ :class-name $ if indented? (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block css/expand) (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block)
-                      pre $ {} (:class-name css/expand)
-                        :innerHTML $ highlight-code content lang highlight-fn
-                      span
-                        {} $ :class-name respo-ui.comp/style-copy-wrapper
-                        respo-ui.comp/comp-copy content $ Option :none
-                    raise |Markdown-:highlight-must-be-a-function-or-nil
+                code-block $ match highlight-fn
+                  (:none)
+                    if (&= lang |cirru)
+                      respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                        Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
+                      respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
+                        Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
+                  (:some f)
+                    if (fn? f)
+                      div
+                        {} $ :class-name $ if indented? (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block css/expand) (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block)
+                        pre $ {} (:class-name css/expand)
+                          :innerHTML $ highlight-code content lang f
+                        span
+                          {} $ :class-name respo-ui.comp/style-copy-wrapper
+                          respo-ui.comp/comp-copy content $ Option :none
+                      raise |Markdown-:highlight-must-be-a-function-or-nil
               if indented?
                 div
                   {} $ :class-name css/row
@@ -236,7 +244,9 @@
                   (:ok children) children
                   (:err message) (raise message)
               div
-                {} $ :class-name $ .unwrap-or (get options :class-name) nil
+                match (get options :class-name)
+                  (:some class-name) ({} (:class-name class-name))
+                  (:none) ({})
                 , & inner
           :examples $ []
           :schema $ quote $ Fn String (Map Dynamic Dynamic) (-> respo.schema/Component)
@@ -244,11 +254,12 @@
           :code $ quote $ defcomp comp-md-block (text options)
             let
                 blocks $ resolve-blocks text options
-                class-name $ respo-md.schema/read-field options :class-name
+                class-name $ match (respo-md.schema/read-field options :class-name)
+                  (:some v) $ if (nil? v) |md-block $ str-spaced |md-block v
+                  (:none) |md-block
               list->
-                {}
-                  :class-name $ if (nil? class-name) |md-block $ str-spaced |md-block class-name
-                  :style $ respo-md.schema/read-field options :style
+                {} (:class-name class-name)
+                  :style $ .unwrap-or (respo-md.schema/read-field options :style) ({})
                 -> blocks $ respo-md.util.core/map-indexed-dynamic $ fn (idx block)
                   hint-fn $ Fn Number Dynamic $ -> (List Dynamic)
                   [] idx $ match block
@@ -409,11 +420,15 @@
           :doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree."
           :code $ quote $ defn resolve-blocks (text options)
             let
-                result $ respo-md.schema/read-field options :parse-result
-              if (nil? result) (split-block text)
-                if (struct? result)
-                  if (&struct:matches? result respo-md.util.core/ParserResult) (:blocks result) (raise "|Invalid Markdown parser result")
-                  raise "|Expected Markdown parser result Struct"
+                result $ match (respo-md.schema/read-field options :parse-result)
+                  (:some v) $ if (nil? v) (Option :none) (Option :some v)
+                  (:none) $ Option :none
+              match result
+                (:none) (split-block text)
+                (:some result)
+                  if (struct? result)
+                    if (&struct:matches? result respo-md.util.core/ParserResult) (:blocks result) (raise "|Invalid Markdown parser result")
+                    raise "|Expected Markdown parser result Struct"
           :examples $ []
           :schema $ quote $ Fn String (Map Tag Dynamic)
             -> $ List Dynamic
@@ -814,32 +829,31 @@
           :code $ quote $ defn read-field (value field)
             cond
                 struct? value
-                .unwrap-or
-                  get (&struct:to-map value) field
-                  , nil
+                get (&struct:to-map value) field
               (map? value)
-                .unwrap-or (get value field) nil
+                get value field
               true $ raise "|[Markdown] expected Struct or Map"
           :examples $ []
-          :schema $ quote $ Fn Dynamic Tag (-> Dynamic)
+          :schema $ quote $ Fn Dynamic Tag
+            -> $ Option Dynamic
           :tests $ []
             %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
               :code $ quote $ let
                   value $ {} (:nil nil) (:false false) (:zero 0) (:empty |)
-                assert= nil $ read-field value :missing
-                assert= nil $ read-field value :nil
-                assert= false $ read-field value :false
-                assert= 0 $ read-field value :zero
-                assert= | $ read-field value :empty
+                assert= (Option :none) $ read-field value :missing
+                assert= (Option :some nil) $ read-field value :nil
+                assert= (Option :some false) $ read-field value :false
+                assert= (Option :some 0) $ read-field value :zero
+                assert= (Option :some |) $ read-field value :empty
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |keeps-nominal-fields-and-open-members)
               :code $ quote $ let
                   blocks $ [] nil false 0 |
                   value $ respo-md.util.core/ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks 0 :scanned-lines 0 :incremental? false
-                assert= true $ identical? blocks $ read-field value :blocks
-                assert= false $ read-field value :incremental?
-                assert= 0 $ read-field value :reused-blocks
-                assert= nil $ read-field value :missing
+                assert= true $ identical? blocks $ .unwrap-or (read-field value :blocks) ([])
+                assert= (Option :some false) $ read-field value :incremental?
+                assert= (Option :some 0) $ read-field value :reused-blocks
+                assert= (Option :none) $ read-field value :missing
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |rejects-non-container-inputs)
               :code $ quote $ do
@@ -1139,12 +1153,13 @@
         'hydrate-demo-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn hydrate-demo-store (store)
             let
-                states $ respo-md.schema/read-field store :states
-                data $ respo-md.schema/read-field states :data
-                restored $ if (nil? data) (read-demo-state nil)
-                  read-demo-state $ {}
-                    :draft $ respo-md.schema/read-field data :draft
-                    :text $ respo-md.schema/read-field data :text
+                states $ .unwrap-or (respo-md.schema/read-field store :states) ({})
+                restored $ match (respo-md.schema/read-field states :data)
+                  (:some data) $ if (nil? data) (read-demo-state nil)
+                    read-demo-state $ {}
+                      :draft $ .unwrap-or (respo-md.schema/read-field data :draft) false
+                      :text $ .unwrap-or (respo-md.schema/read-field data :text) false
+                  (:none) (read-demo-state nil)
               assoc store :states $ assoc
                 either states $ {}
                 , :data restored
@@ -1342,9 +1357,9 @@
             if (nil? value)
               DemoState :draft | :text | :parse-result $ parse-markdown |
               let
-                  draft $ respo-md.schema/read-field value :draft
-                  text $ respo-md.schema/read-field value :text
-                  result $ respo-md.schema/read-field value :parse-result
+                  draft $ .unwrap-or (respo-md.schema/read-field value :draft) false
+                  text $ .unwrap-or (respo-md.schema/read-field value :text) false
+                  result $ .unwrap-or (respo-md.schema/read-field value :parse-result) false
                 if
                   and (string? draft) (string? text)
                   let
