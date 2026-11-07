@@ -6,7 +6,7 @@
     :default $ {} (:description |) (:init-fn 'respo-md.main/main!) (:mode :js) (:reload-fn 'respo-md.main/reload!) (:target :browser)
       :feature-policy $ {}
       :modules $ [] |respo.calcit/calcit.cirru |respo-ui.calcit/calcit.cirru |js-ffi/
-      :type-slots $ {} $ :dispatch-op |respo-md.schema/Op
+      :type-slots $ {} $ :dispatch-op 'respo-md.schema/Op
     :perf-test $ {} (:description |) (:init-fn 'respo-md.perf-test/main!) (:mode :js) (:reload-fn 'respo-md.perf-test/main!) (:target :node)
       :feature-policy $ {}
       :modules $ [] |js-ffi/
@@ -105,7 +105,7 @@
         'blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blockquote (props & children) (create-element :blockquote props & children)
           :examples $ []
-          :schema $ quote $ Fn Dynamic & Dynamic (-> respo.schema/Element) (:features :js-ffi)
+          :schema $ quote $ Fn Dynamic (& Dynamic) (-> respo.schema/Element) (:features :js-ffi)
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let

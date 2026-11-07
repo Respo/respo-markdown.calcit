@@ -2,7 +2,11 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 0.8.1 候选：使用者影响
+## 0.8.2 候选：Calcit 0.37.0
+
+CLI / `@calcit/procs` 配对正式 **0.37.0**，依赖 UI **0.15.2**、Respo **0.19.5**、JS-FFI **0.2.13**，传递 Router **0.12.2**。`edit format` 把剩余的 `& Dynamic` 改为 `(& Dynamic)`，入口 `:dispatch-op` 改为符号 `'respo-md.schema/Op`，0.37 不再接受旧写法。
+
+## 历史 0.8.1：使用者影响
 
 CLI / `@calcit/procs` 同步正式 **0.35.1**，依赖 UI **0.15.1**、Respo **0.19.4**、JS-FFI **0.2.13**，传递 Router **0.12.1**。请统一精确依赖图并重新生成 JS；正式 tag 发布前仍为候选。
 
