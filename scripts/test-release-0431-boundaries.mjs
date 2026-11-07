@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { init_tags, _$e_ as equal } from "../js-out/calcit.core.mjs";
+import { init_tags, _$e_ as equal, option_$o_unwrap as unwrap } from "../js-out/calcit.core.mjs";
 import { read_field } from "../js-out/respo-md.schema.mjs";
 import { split_block, split_block_incremental } from "../js-out/respo-md.util.core.mjs";
 
@@ -14,7 +14,7 @@ const cases = [
 ];
 for (const [name, before, after, incremental] of cases) {
   const result = split_block_incremental(before, after, split_block(before));
-  assert.equal(read_field(result, tags["incremental?"]), incremental, name);
-  assert.equal(equal(read_field(result, tags.blocks), split_block(after)), true, `${name}: full block equality`);
+  assert.equal(unwrap(read_field(result, tags["incremental?"])), incremental, name);
+  assert.equal(equal(unwrap(read_field(result, tags.blocks)), split_block(after)), true, `${name}: full block equality`);
   console.log(`[ok] ${name}`);
 }
