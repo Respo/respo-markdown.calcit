@@ -153,7 +153,9 @@
                       div
                         {} $ :class-name $ if indented? (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block css/expand) (str-spaced css/row respo-ui.comp/css-snippet |md-code-block style-code-block)
                         pre $ {} (:class-name css/expand)
-                          :innerHTML $ highlight-code content lang f
+                          :innerHTML $ highlight-code content lang $ fn (code language)
+                            hint-fn $ Fn String String $ -> Dynamic
+                            f code language
                         span
                           {} $ :class-name respo-ui.comp/style-copy-wrapper
                           respo-ui.comp/comp-copy content $ Option :none
@@ -328,7 +330,10 @@
                 html $ highlight-fn content lang
               if (string? html) html $ raise |Markdown-:highlight-must-return-a-String
           :examples $ []
-          :schema $ quote $ Fn String String AnyFn (-> String)
+          :schema $ quote $ Fn String String
+            Fn String String $ -> T
+            -> String
+            :generics T
           :tests $ []
             %{} 'TestEntry
               :name |highlight-callback-invoked-with-code-and-language
