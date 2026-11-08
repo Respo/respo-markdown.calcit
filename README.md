@@ -2,6 +2,11 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
+## Calcit 0.38.0
+
+更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染组件、增量解析结果和 Demo 存档格式沿用现有约定。
+Demo 在读取存档后校验 Map，随后将其封装为具名操作。编辑状态更新使用 `DemoState` 和 Respo 的 `CoordKey` 路径。
+
 ## 0.8.3 候选
 
 Markdown 的自定义高亮选项沿用原格式。直接调用 `highlight-code` 时，高亮器需要接收源码与语言两个 String；高亮输出仍在运行时检查为 String。

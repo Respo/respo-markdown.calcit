@@ -27,7 +27,7 @@
                     (:some v)
                       either v $ []
                     (:none) ([])
-                  List Dynamic
+                  List respo.schema/CoordKey
                 state $ match (respo-md.schema/read-field states :data)
                   (:some v) (respo-md.util.core/read-demo-state v)
                   (:none) (respo-md.util.core/read-demo-state nil)
@@ -596,7 +596,11 @@
                 raw $ browser/storage-get $ .unwrap (get config/site :storage-key)
               match raw
                 (:some value)
-                  dispatch! $ :: :hydrate-storage $ parse-cirru-edn value
+                  let
+                      restored $ parse-cirru-edn value
+                    if (map? restored)
+                      dispatch! $ schema/Op :hydrate-storage restored
+                      raise "|Invalid Markdown storage payload"
                 (:none) &unit
             render-app!
             add-watch! *store :changes $ fn (store prev) (render-app!)
@@ -622,19 +626,14 @@
         'next-store-of $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn next-store-of (op)
             match op
-              (:states cursor s)
-                match
-                  try-decode-map-as cursor $ List Dynamic
-                  (:ok decoded)
-                    assoc @*store :states $ respo.cursor/update-state-tree
-                      .unwrap-or (get @*store :states) ({})
-                      , decoded s
-                  (:err message) (raise message)
-              (:hydrate-storage s)
-                if (map? s) (respo-md.util.core/hydrate-demo-store s) (raise "|Invalid Markdown storage payload")
+              (:states cursor state)
+                assoc @*store :states $ respo.cursor/update-state-tree
+                  .unwrap-or (get @*store :states) ({})
+                  , cursor state
+              (:hydrate-storage store) (respo-md.util.core/hydrate-demo-store store)
               _ $ do (eprintln "|unknown op:" op) @*store
           :examples $ []
-          :schema $ quote $ Fn AnyEnum
+          :schema $ quote $ Fn respo-md.schema/Op
             -> $ Map Dynamic Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
@@ -831,8 +830,8 @@
         'Op $ %{} 'CodeEntry
           :doc "|Dispatch Op of the demo app, bound to the :dispatch-op type slot."
           :code $ quote $ defenum Op
-            :states (List Dynamic) Dynamic
-            :hydrate-storage Dynamic
+            :states (List respo.schema/CoordKey) respo-md.util.core/DemoState
+            :hydrate-storage $ Map Dynamic Dynamic
           :examples $ []
           :schema $ quote EnumDef
         'read-field $ %{} 'CodeEntry (:doc |)
