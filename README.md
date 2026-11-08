@@ -23,6 +23,10 @@ CLI / `@calcit/procs` 同步正式 **0.35.1**，依赖 UI **0.15.1**、Respo **0
 
 原完整strict、全部定义、原native/JS/MathML/增量性能与逐字符等价回归、包年龄门禁和COS action内置verify保留；本轮精确结果以PR为准，不引用历史运行或浏览器操作作为本次证据。不新增测试/验证脚本或编译器fix规则。
 
+## 内联扫描与渲染
+
+渲染器使用具名 `InlineToken`，文本、数学、代码和链接等分支均携带 `String`。直接调用低层 `split-line` 或 `split-line-iter` 的项目继续收到原匿名 Enum，包括原有 tag 和载荷格式。
+
 ## 历史 0.8.0：有限缓冲区与泛型
 
 CLI / `@calcit/procs` 配对正式 **0.35.0**，依赖 UI **0.15.0**、Respo **0.19.3**、
