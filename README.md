@@ -2,7 +2,11 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## 0.8.2 候选：Calcit 0.37.0
+## 0.8.3 候选
+
+Markdown 的自定义高亮选项沿用原格式。直接调用 `highlight-code` 时，高亮器需要接收源码与语言两个 String；高亮输出仍在运行时检查为 String。
+
+## 0.8.2：Calcit 0.37.0
 
 CLI / `@calcit/procs` 配对正式 **0.37.0**，依赖 UI **0.15.2**、Respo **0.19.5**、JS-FFI **0.2.13**，传递 Router **0.12.2**。`edit format` 把剩余的 `& Dynamic` 改为 `(& Dynamic)`，入口 `:dispatch-op` 改为符号 `'respo-md.schema/Op`，0.37 不再接受旧写法。
 
