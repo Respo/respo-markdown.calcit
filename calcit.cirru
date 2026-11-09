@@ -109,12 +109,12 @@
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
-                indent-option $ assert-type
-                  match (first indented-lines)
-                    (:none) (Option :none)
-                    (:some value)
-                      if (number? value) (Option :some value) (Option :none)
-                  Option Number
+                indent-option $ match (first indented-lines)
+                  (:none) (Option :none)
+                  (:some value)
+                    match value
+                      (Number n) (Option :some n)
+                      (String _) (Option :none)
                 lines $ match
                   try-decode-map-as
                     if (indent-option .some?) (&list:rest indented-lines) indented-lines
@@ -168,7 +168,7 @@
                   , code-block
                 , code-block
           :examples $ []
-          :schema $ quote $ Fn (List Dynamic) (Map Dynamic Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn (List respo-md.util.core/CodeLine) (Map Tag Dynamic) (-> respo.schema/Component)
         'comp-image $ %{} 'CodeEntry
           :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
@@ -239,7 +239,7 @@
             div $ {} (:class-name style-math-block)
               :innerHTML $ mathml-markup (respo-md.util.core/join-strings-dynamic lines &newline) true
           :examples $ []
-          :schema $ quote $ Fn (List Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn (List String) (-> respo.schema/Component)
         'comp-md $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md (text options)
             let
@@ -321,7 +321,7 @@
                 BlockToken :text $ decode-map-as lines $ List String
               (:code lines)
                 if (list? lines)
-                  BlockToken :code $ decode-map-as lines $ List respo-md.util.core/BlockBufferValue
+                  BlockToken :code $ decode-map-as lines $ List respo-md.util.core/CodeLine
                   raise |Invalid-Markdown-code-block-lines
               (:math lines)
                 if (list? lines)
@@ -1052,11 +1052,16 @@
           :doc "|Named rendering blocks. The scanner keeps its public anonymous output and emits this type for the renderer."
           :code $ quote $ defenum BlockToken
             :text $ List String
-            :code $ List BlockBufferValue
+            :code $ List CodeLine
             :math $ List String
             :table $ List $ List String
           :examples $ []
           :schema $ quote EnumDef
+        'CodeLine $ %{} 'CodeEntry
+          :doc "|Code fence content is text. A leading number is the legacy indentation marker."
+          :code $ quote $ defunion CodeLine String Number
+          :examples $ []
+          :schema $ quote UnionDef
         'DemoState $ %{} 'CodeEntry
           :doc "|Typed state kept outside the VDOM tree for the Markdown demo."
           :code $ quote $ defstruct DemoState (:draft String) (:text String) (:parse-result respo-md.util.core/ParserResult)
@@ -1809,7 +1814,7 @@
           :code $ quote $ defn typed-block (mode buffer)
             match mode
               :text $ BlockToken :text $ decode-map-as buffer (List String)
-              :code $ BlockToken :code buffer
+              :code $ BlockToken :code $ decode-map-as buffer (List respo-md.util.core/CodeLine)
               :math $ BlockToken :math $ decode-map-as buffer (List String)
               :table $ BlockToken :table $ decode-map-as buffer
                 List $ List String

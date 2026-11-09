@@ -146,12 +146,14 @@ test("empty image alt preserves URLs and adjacent content", () => {
   assert.ok(html.includes("after"));
 });
 
-test("fenced code uses typed presentation options for both snippet components", () => {
-  for (const source of ["```bash\nprintf hello\n```", "```cirru\nprintln |hello\n```"]) {
+test("fenced code renders both snippet components and preserves cached indentation", () => {
+  for (const source of ["```bash\nprintf hello\n```", "```cirru\nprintln |hello\n```", "  ```bash\n  printf hello\n  ```"]) {
     const html = make_string(comp_md_block(source, c._$n__$M_()));
     assert.ok(html.includes("hello"));
     assert.ok(html.includes("md-code-block"));
     assert.ok(html.includes("<pre"));
+    const cached = c._$n__$M_(c.to_tag("parse-result"), parse_markdown(source));
+    assert.equal(make_string(comp_md_block("", cached)), html);
   }
 });
 
