@@ -3,7 +3,7 @@ import { test } from "node:test";
 import * as c from "../js-out/calcit.core.mjs";
 import { comp_md, comp_md_block, resolve_blocks } from "../js-out/respo-md.comp.md.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
-import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, parse_markdown_incremental, read_demo_state } from "../js-out/respo-md.util.core.mjs";
+import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, parse_markdown_incremental, read_demo_state, split_line, split_line_iter } from "../js-out/respo-md.util.core.mjs";
 import { escape_html } from "../js-out/respo-md.util.math.mjs";
 import { comp_container } from "../js-out/respo-md.comp.container.mjs";
 import { Op } from "../js-out/respo-md.schema.mjs";
@@ -60,6 +60,18 @@ test("inline emphasis, code and URL remain actual rendered nodes", () => {
   assert.ok(html.includes("world"));
   assert.ok(html.includes("<code"));
   assert.ok(html.includes('href="https://example.com/"'));
+});
+test("low-level inline scanners keep anonymous tokens and reuse the supplied prefix", () => {
+  const tags = c.init_tags(["text", "code", "emphasis", "none"]);
+  const tokens = split_line("hi **bold**").toArray();
+  assert.deepEqual(tokens.map(token => [token.tag, ...token.extra]), [[tags.text, "hi "], [tags.emphasis, "bold"]]);
+  for (const token of tokens) assert.equal(c.enum_definition(token).tag, tags.none);
+  const prefix = c._$L_(tokens[0]);
+  const resumed = split_line_iter(prefix, "rest", "pre", tags.code).toArray();
+  assert.equal(resumed[0], tokens[0]);
+  assert.equal(resumed[1].tag, tags.code);
+  assert.deepEqual(resumed[1].extra, ["prerest"]);
+  assert.equal(c.enum_definition(resumed[1]).tag, tags.none);
 });
 test("class-name option and literal angle-bracket text are preserved", () => {
   const html = render("a < b", c._$n__$M_(t["class-name"], "inline-fixture"));

@@ -396,31 +396,39 @@
                     hint-fn $ Fn String $ -> Bool
                     &= message |highlighter-sentinel-failure
               :tags $ #{} :highlight :unit
+        'inline-token $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn inline-token (tag value)
+            match tag
+              :text $ InlineToken :text value
+              :code $ InlineToken :code value
+              :math $ InlineToken :math value
+              :url $ InlineToken :url value
+              :link $ InlineToken :link value
+              :image $ InlineToken :image value
+              :emphasis $ InlineToken :emphasis value
+              :italic $ InlineToken :italic value
+              _ $ raise $ str "|Unknown inline Markdown token: " tag
+          :examples $ []
+          :schema $ quote $ Fn Tag String (-> respo-md.util.core/InlineToken)
         'render-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-inline (text)
-            -> (split-line text)
+            -> (scan-inline text inline-token)
               map $ fn (chunk)
                 match chunk
                   (:code content)
                     code $ {} (:class-name style-inline-code) (:inner-text content)
                   (:math content)
-                    if (string? content)
-                      span $ {} (:class-name style-inline-math)
-                        :innerHTML $ mathml-markup content false
-                      raise "|Invalid inline math payload"
+                    span $ {} (:class-name style-inline-math)
+                      :innerHTML $ mathml-markup content false
                   (:url content)
                     a $ {} (:href content) (:inner-text content) (:target |_blank)
-                  (:link content)
-                    if (string? content) (comp-link content) (raise "|Invalid Markdown link payload")
-                  (:image content)
-                    if (string? content) (comp-image content) (raise "|Invalid Markdown image payload")
-                  (:text content)
-                    if (string? content) (<> content) (raise "|Invalid inline text payload")
+                  (:link content) (comp-link content)
+                  (:image content) (comp-image content)
+                  (:text content) (<> content)
                   (:emphasis content)
                     create-element :b ({}) & $ render-inline content
                   (:italic content)
                     create-element :i $ {} $ :inner-text content
-                  _ $ <> $ str |Unknown: chunk
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List respo.schema/Element
@@ -550,7 +558,7 @@
             respo-ui.css :as css
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li create-element
             respo.comp.space :refer $ =<
-            respo-md.util.core :refer $ split-block split-line get1
+            respo-md.util.core :refer $ split-block scan-inline InlineToken get1
             respo.util.list :refer $ map-with-idx
             respo.css :refer $ defstyle
             respo-ui.comp :refer $ comp-cirru-snippet comp-snippet
@@ -1015,6 +1023,10 @@
           :code $ quote $ defenum InlineStar (:literal) (:emphasis String String) (:italic String String)
           :examples $ []
           :schema $ quote EnumDef
+        'InlineToken $ %{} 'CodeEntry (:doc "|Typed payloads emitted to the inline renderer.")
+          :code $ quote $ defenum InlineToken (:text String) (:code String) (:math String) (:url String) (:link String) (:image String) (:emphasis String) (:italic String)
+          :examples $ []
+          :schema $ quote EnumDef
         'ParseMode $ %{} 'CodeEntry (:doc "|Describes how a parser result was produced.")
           :code $ quote $ def ParseMode
             defenum ParseMode (:full) (:incremental Number Number) (:fallback)
@@ -1040,6 +1052,10 @@
             :incremental? Bool
           :examples $ []
           :schema $ quote StructDef
+        'anonymous-inline-token $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn anonymous-inline-token (tag value) (:: tag value)
+          :examples $ []
+          :schema $ quote $ Fn Tag String (-> AnyEnum)
         'append-blocks $ %{} 'CodeEntry
           :doc "|Appends parsed blocks without rebuilding the reused prefix."
           :code $ quote $ defn append-blocks (acc blocks)
@@ -1379,6 +1395,117 @@
                   raise "|Invalid Markdown demo draft/text"
           :examples $ []
           :schema $ quote $ Fn T (-> respo-md.util.core/DemoState) (:generics T)
+        'scan-inline $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn scan-inline (line emit)
+            if (string? line)
+              scan-inline-iter emit ([]) line | :text
+              do
+                js/console.warn "|respo-markdown: ignored non-string inline Markdown"
+                []
+          :examples $ []
+          :schema $ quote $ Fn Dynamic
+            Fn Tag String $ -> T
+            -> $ List T
+            :generics T
+            :features :js-ffi
+        'scan-inline-iter $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn scan-inline-iter (emit acc line buffer mode)
+            if (&= | line)
+              if (&= | buffer) acc $ &list:append acc $ emit mode buffer
+              let
+                  cursor $ .unwrap $ .first line
+                  left $ &str:slice line 1
+                match mode
+                  :text $ if
+                    or
+                      js-present? $ .!match line peek-inline-math
+                      let
+                          dollar-end-idx $ if (starts-with? line |$)
+                            js-ffi.contract/expect-number |String.indexOf $ .!indexOf (&str:slice line 1) |$
+                            , -1
+                        &< -1 dollar-end-idx
+                    match (handle-inline-math line)
+                      (:some parsed)
+                        recur emit
+                          conj
+                            if (&= | buffer) acc $ &list:append acc $ emit :text buffer
+                            emit :math $ :formula parsed
+                          :rest-line parsed
+                          , | :text
+                      (:none) (raise "|Inconsistent inline math prefix")
+                    match cursor
+                      "|`" $ recur emit
+                        if (non-nil? buffer)
+                          &list:append acc $ emit :text buffer
+                          , acc
+                        , left | :code
+                      |h $ if
+                        or
+                          = |http:// $ &str:slice line 0 7
+                          = |https:// $ &str:slice line 0 8
+                        let
+                            pieces $ split line "| "
+                          recur emit
+                            conj
+                              if (&= | buffer) acc $ &list:append acc $ emit :text buffer
+                              emit :url $ .unwrap $ first pieces
+                            str "| " $ respo-md.util.core/join-strings-dynamic (&list:rest pieces) "| "
+                            , | :text
+                        recur emit acc left (str buffer |h) :text
+                      |[ $ let
+                          guess $ get0 $ .!match line peek-link
+                        match guess
+                          (:some guess)
+                            recur emit
+                              conj
+                                if (&= | buffer) acc $ &list:append acc $ emit :text buffer
+                                emit :link guess
+                              &str:slice line $ .len guess
+                              , | :text
+                          (:none)
+                            recur emit acc left (str buffer |[) :text
+                      |! $ let
+                          guess $ get0 $ .!match line peek-image
+                        match guess
+                          (:some guess)
+                            recur emit
+                              conj
+                                if (&= | buffer) acc $ &list:append acc $ emit :text buffer
+                                emit :image guess
+                              &str:slice line $ .len guess
+                              , | :text
+                          (:none)
+                            recur emit acc left (str buffer |!) :text
+                      |* $ match (handle-inline-star left)
+                        (:literal)
+                          recur emit acc left (str buffer |*) :text
+                        (:emphasis content rest-line)
+                          recur emit
+                            &list:append
+                              &list:append acc $ emit :text buffer
+                              emit :emphasis content
+                            , rest-line | :text
+                        (:italic content rest-line)
+                          recur emit
+                            &list:append
+                              &list:append acc $ emit :text buffer
+                              emit :italic content
+                            , rest-line | :text
+                      _ $ recur emit acc left (str buffer cursor) :text
+                  :code $ if (&= cursor "|`")
+                    recur emit
+                      &list:append acc $ emit :code buffer
+                      , left | :text
+                    recur emit acc left (str buffer cursor) :code
+                  _ $ raise $ str "|Unknown mode:" mode
+          :examples $ []
+          :schema $ quote $ Fn
+            Fn Tag String $ -> T
+            List T
+            , String String Tag
+              -> $ List T
+              :generics T
+              :features :js-ffi
         'split-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-block (text)
             split-block-iter (split-lines text) ([]) ([]) :empty
@@ -1579,106 +1706,13 @@
             -> $ List AnyEnum
             :features :js-ffi
         'split-line $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn split-line (line)
-            if (string? line)
-              split-line-iter ([]) line | :text
-              do
-                js/console.warn "|respo-markdown: ignored non-string inline Markdown"
-                []
+          :code $ quote $ defn split-line (line) (scan-inline line anonymous-inline-token)
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List AnyEnum
             :features :js-ffi
         'split-line-iter $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn split-line-iter (acc line buffer mode)
-            if (&= | line)
-              if (&= | buffer) acc $ &list:append acc $ :: mode buffer
-              let
-                  cursor $ .unwrap $ .first line
-                  left $ &str:slice line 1
-                match mode
-                  :text $ if
-                    or
-                      js-present? $ .!match line peek-inline-math
-                      let
-                          dollar-end-idx $ if (starts-with? line |$)
-                            js-ffi.contract/expect-number |String.indexOf $ .!indexOf (&str:slice line 1) |$
-                            , -1
-                        &< -1 dollar-end-idx
-                    match (handle-inline-math line)
-                      (:some parsed)
-                        recur
-                          conj
-                            if (&= | buffer) acc $ &list:append acc $ :: :text buffer
-                            :: :math $ :formula parsed
-                          :rest-line parsed
-                          , | :text
-                      (:none) (raise "|Inconsistent inline math prefix")
-                    match cursor
-                      "|`" $ recur
-                        if (non-nil? buffer)
-                          &list:append acc $ :: :text buffer
-                          , acc
-                        , left | :code
-                      |h $ if
-                        or
-                          = |http:// $ &str:slice line 0 7
-                          = |https:// $ &str:slice line 0 8
-                        let
-                            pieces $ split line "| "
-                          recur
-                            conj
-                              if (&= | buffer) acc $ &list:append acc $ :: :text buffer
-                              :: :url $ .unwrap $ first pieces
-                            str "| " $ respo-md.util.core/join-strings-dynamic (&list:rest pieces) "| "
-                            , | :text
-                        recur acc left (str buffer |h) :text
-                      |[ $ let
-                          guess $ get0 $ .!match line peek-link
-                        match guess
-                          (:some guess)
-                            recur
-                              conj
-                                if (&= | buffer) acc $ &list:append acc $ :: :text buffer
-                                :: :link guess
-                              &str:slice line $ .len guess
-                              , | :text
-                          (:none)
-                            recur acc left (str buffer |[) :text
-                      |! $ let
-                          guess $ get0 $ .!match line peek-image
-                        match guess
-                          (:some guess)
-                            recur
-                              conj
-                                if (&= | buffer) acc $ &list:append acc $ :: :text buffer
-                                :: :image guess
-                              &str:slice line $ .len guess
-                              , | :text
-                          (:none)
-                            recur acc left (str buffer |!) :text
-                      |* $ match (handle-inline-star left)
-                        (:literal)
-                          recur acc left (str buffer |*) :text
-                        (:emphasis content rest-line)
-                          recur
-                            &list:append
-                              &list:append acc $ :: :text buffer
-                              :: :emphasis content
-                            , rest-line | :text
-                        (:italic content rest-line)
-                          recur
-                            &list:append
-                              &list:append acc $ :: :text buffer
-                              :: :italic content
-                            , rest-line | :text
-                      _ $ recur acc left (str buffer cursor) :text
-                  :code $ if (&= cursor "|`")
-                    recur
-                      &list:append acc $ :: :code buffer
-                      , left | :text
-                    recur acc left (str buffer cursor) :code
-                  _ $ raise $ str "|Unknown mode:" mode
+          :code $ quote $ defn split-line-iter (acc line buffer mode) (scan-inline-iter anonymous-inline-token acc line buffer mode)
           :examples $ []
           :schema $ quote $ Fn (List AnyEnum) String String Tag
             -> $ List AnyEnum
