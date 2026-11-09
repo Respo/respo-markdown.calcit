@@ -258,7 +258,7 @@
         'comp-md-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md-block (text options)
             let
-                blocks $ resolve-blocks text options
+                blocks $ resolve-render-blocks text options
                 class-name $ match (respo-md.schema/read-field options :class-name)
                   (:some v)
                     if (nil? v) |md-block $ str-spaced |md-block v
@@ -267,22 +267,12 @@
                 {} (:class-name class-name)
                   :style $ .unwrap-or (respo-md.schema/read-field options :style) ({})
                 -> blocks $ respo-md.util.core/map-indexed-dynamic $ fn (idx block)
-                  hint-fn $ Fn Number Dynamic $ -> (List Dynamic)
+                  hint-fn $ Fn Number BlockToken $ -> (List Dynamic)
                   [] idx $ match block
-                    (:text lines)
-                      match
-                        try-decode-map-as lines $ List String
-                        (:ok text-lines) (comp-text-block text-lines)
-                        (:err error) (raise error)
-                    (:code lines)
-                      if (list? lines) (comp-code-block lines options) (raise |Invalid-Markdown-code-block-lines)
-                    (:math lines)
-                      if (list? lines) (comp-math-block lines) (raise "|Invalid Markdown math block lines")
-                    (:table lines)
-                      match
-                        try-decode-map-as lines $ List $ List String
-                        (:ok table-lines) (comp-table-block table-lines)
-                        (:err error) (raise error)
+                    (:text lines) (comp-text-block lines)
+                    (:code lines) (comp-code-block lines options)
+                    (:math lines) (comp-math-block lines)
+                    (:table lines) (comp-table-block lines)
           :examples $ []
           :schema $ quote $ Fn String (Map Tag Dynamic) (-> respo.schema/Component)
         'comp-table-block $ %{} 'CodeEntry (:doc |)
@@ -323,6 +313,27 @@
                 fn (line) (respo.core/memo-comp-by line comp-line line)
           :examples $ []
           :schema $ quote $ Fn (List String) (-> respo.schema/Component)
+        'decode-render-block $ %{} 'CodeEntry
+          :doc "|Reads existing anonymous parser blocks. Cached math lines retain the legacy string conversion before MathML rendering. Fresh scanner math lines are already strings."
+          :code $ quote $ defn decode-render-block (block)
+            match block
+              (:text lines)
+                BlockToken :text $ decode-map-as lines $ List String
+              (:code lines)
+                if (list? lines)
+                  BlockToken :code $ decode-map-as lines $ List respo-md.util.core/BlockBufferValue
+                  raise |Invalid-Markdown-code-block-lines
+              (:math lines)
+                if (list? lines)
+                  BlockToken :math $ map lines $ fn (line)
+                    hint-fn $ Fn Dynamic $ -> String
+                    str line
+                  raise "|Invalid Markdown math block lines"
+              (:table lines)
+                BlockToken :table $ decode-map-as lines $ List (List String)
+              _ $ raise "|Invalid Markdown block"
+          :examples $ []
+          :schema $ quote $ Fn Dynamic (-> respo-md.util.core/BlockToken)
         'highlight-code $ %{} 'CodeEntry
           :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
           :code $ quote $ defn highlight-code (content lang highlight-fn)
@@ -410,6 +421,20 @@
               _ $ raise $ str "|Unknown inline Markdown token: " tag
           :examples $ []
           :schema $ quote $ Fn Tag String (-> respo-md.util.core/InlineToken)
+        'read-parser-result $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn read-parser-result (options)
+            match (respo-md.schema/read-field options :parse-result)
+              (:some raw)
+                if (nil? raw) (Option :none)
+                  if (struct? raw)
+                    struct-match raw
+                      respo-md.util.core/ParserResult result $ Option :some result
+                      _ other $ raise "|Invalid Markdown parser result"
+                    raise "|Expected Markdown parser result Struct"
+              (:none) (Option :none)
+          :examples $ []
+          :schema $ quote $ Fn (Map Tag Dynamic)
+            -> $ Option respo-md.util.core/ParserResult
         'render-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-inline (text)
             -> (scan-inline text inline-token)
@@ -436,20 +461,21 @@
         'resolve-blocks $ %{} 'CodeEntry
           :doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree."
           :code $ quote $ defn resolve-blocks (text options)
-            let
-                result $ match (respo-md.schema/read-field options :parse-result)
-                  (:some v)
-                    if (nil? v) (Option :none) (Option :some v)
-                  (:none) (Option :none)
-              match result
-                (:none) (split-block text)
-                (:some result)
-                  if (struct? result)
-                    if (&struct:matches? result respo-md.util.core/ParserResult) (:blocks result) (raise "|Invalid Markdown parser result")
-                    raise "|Expected Markdown parser result Struct"
+            match (read-parser-result options)
+              (:none) (split-block text)
+              (:some result) (:blocks result)
           :examples $ []
           :schema $ quote $ Fn String (Map Tag Dynamic)
             -> $ List Dynamic
+        'resolve-render-blocks $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn resolve-render-blocks (text options)
+            match (read-parser-result options)
+              (:none) (scan-blocks text)
+              (:some result)
+                map (:blocks result) decode-render-block
+          :examples $ []
+          :schema $ quote $ Fn String (Map Tag Dynamic)
+            -> $ List respo-md.util.core/BlockToken
         'style-blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-blockquote
             {} $ |& $ {}
@@ -558,7 +584,7 @@
             respo-ui.css :as css
             respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li create-element
             respo.comp.space :refer $ =<
-            respo-md.util.core :refer $ split-block scan-inline InlineToken get1
+            respo-md.util.core :refer $ split-block scan-inline InlineToken get1 scan-blocks BlockToken
             respo.util.list :refer $ map-with-idx
             respo.css :refer $ defstyle
             respo-ui.comp :refer $ comp-cirru-snippet comp-snippet
@@ -707,6 +733,18 @@
           :doc "|Runs append-only Markdown parser benchmark using Calcit code."
           :code $ quote $ defn main! () (test-option-block-boundaries!)
             let
+                sample "|# Heading\n\n```js\nlet x = 1\n```\n\n$$x^2$$\n\n|a|b|\n|--|--|\n|1|2|"
+                cached $ parse-markdown sample
+              assert-perf |typed-block-cache-parity $ =
+                resolve-render-blocks sample $ {}
+                resolve-render-blocks sample $ {} $ :parse-result cached
+            let
+                cached $ assoc (parse-markdown |) :blocks $ []
+                  :: :math $ [] nil 1
+              assert-perf |legacy-math-cache-stringification $ =
+                [] $ respo-md.util.core/BlockToken :math $ [] | |1
+                resolve-render-blocks | $ {} $ :parse-result cached
+            let
                 base $ make-source 2000 |
                 appended $ str base "|tail\n\n"
                 old-result $ parse-markdown base
@@ -715,7 +753,7 @@
                 demo-state $ update-draft-state (respo-md.util.core/DemoState :draft base :text | :parse-result old-result) appended
                 changed $ str "|changed\n\n" base
                 fallback $ parse-markdown-incremental base changed old-result
-                rendered-blocks $ resolve-blocks appended $ {} (:parse-result incremental)
+                rendered-blocks $ resolve-render-blocks appended $ {} (:parse-result incremental)
                 stream $ stream-append-iter 80 base old-result 0 0
                 code-old "|```js\nconst x = 1\n"
                 code-new $ str code-old "|const y = 2\n```\n"
@@ -832,7 +870,7 @@
         :code $ quote $ ns respo-md.perf-test
           :require
             respo-md.util.core :refer $ parse-markdown parse-markdown-incremental update-draft-state
-            respo-md.comp.md :refer $ resolve-blocks
+            respo-md.comp.md :refer $ resolve-render-blocks
     'respo-md.schema $ %{} 'FileEntry
       :defs $ {}
         'Op $ %{} 'CodeEntry
@@ -1010,6 +1048,15 @@
           :code $ quote $ defunion BlockBufferValue String Number (List String)
           :examples $ []
           :schema $ quote UnionDef
+        'BlockToken $ %{} 'CodeEntry
+          :doc "|Named rendering blocks. The scanner keeps its public anonymous output and emits this type for the renderer."
+          :code $ quote $ defenum BlockToken
+            :text $ List String
+            :code $ List BlockBufferValue
+            :math $ List String
+            :table $ List $ List String
+          :examples $ []
+          :schema $ quote EnumDef
         'DemoState $ %{} 'CodeEntry
           :doc "|Typed state kept outside the VDOM tree for the Markdown demo."
           :code $ quote $ defstruct DemoState (:draft String) (:text String) (:parse-result respo-md.util.core/ParserResult)
@@ -1052,6 +1099,10 @@
             :incremental? Bool
           :examples $ []
           :schema $ quote StructDef
+        'anonymous-block $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn anonymous-block (mode buffer) (:: mode buffer)
+          :examples $ []
+          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> AnyEnum)
         'anonymous-inline-token $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn anonymous-inline-token (tag value) (:: tag value)
           :examples $ []
@@ -1395,6 +1446,131 @@
                   raise "|Invalid Markdown demo draft/text"
           :examples $ []
           :schema $ quote $ Fn T (-> respo-md.util.core/DemoState) (:generics T)
+        'scan-block-iter $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn scan-block-iter (emit lines acc buffer mode)
+            if (empty? lines)
+              if (empty? buffer) acc $ &list:append acc $ emit mode buffer
+              let
+                  cursor $ .unwrap $ .first lines
+                  left $ &list:rest lines
+                match mode
+                  :empty $ cond
+                      &= cursor |
+                      recur emit left acc ([]) :empty
+                    (starts-with? cursor "|```")
+                      recur emit left acc
+                        [] $ &str:slice cursor 3
+                        , :code
+                    (cursor.!match pattern-indented-code)
+                      let
+                          raw $ cursor.!match pattern-indented-code
+                        recur emit left acc
+                          assert-type
+                            []
+                              .len $ .unwrap $ get1 raw
+                              &str:slice cursor $ .len $ .unwrap (get0 raw)
+                            List respo-md.util.core/BlockBufferValue
+                          , :code
+                    (math-block-single-line? cursor)
+                      recur emit left
+                        &list:append acc $ emit :math $ [] (math-block-single-line-content cursor)
+                        []
+                        , :empty
+                    (math-block-open? cursor)
+                      let
+                          first-line $ math-block-open-content cursor
+                        recur emit left acc
+                          if (&= first-line |) ([]) ([] first-line)
+                          , :math
+                    (table-line? cursor)
+                      recur emit left
+                        &list:append acc $ emit :text buffer
+                        [] $ split-table-content cursor
+                        , :table
+                    true $ recur emit left acc ([] cursor) :text
+                  :text $ cond
+                      &= cursor |
+                      recur emit left
+                        &list:append acc $ emit :text buffer
+                        []
+                        , :empty
+                    (starts-with? cursor "|```")
+                      recur emit left
+                        &list:append acc $ emit :text buffer
+                        [] $ &str:slice cursor 3
+                        , :code
+                    (cursor.!match pattern-indented-code)
+                      let
+                          raw $ cursor.!match pattern-indented-code
+                        recur emit left
+                          &list:append acc $ emit :text buffer
+                          assert-type
+                            []
+                              .len $ .unwrap $ get1 raw
+                              &str:slice cursor $ .len $ .unwrap (get0 raw)
+                            List respo-md.util.core/BlockBufferValue
+                          , :code
+                    (math-block-single-line? cursor)
+                      let
+                          next-acc $ -> acc
+                            &list:append $ emit :text buffer
+                            &list:append $ emit :math $ [] (math-block-single-line-content cursor)
+                        recur emit left next-acc ([]) :empty
+                    (math-block-open? cursor)
+                      let
+                          first-line $ math-block-open-content cursor
+                        recur emit left
+                          &list:append acc $ emit :text buffer
+                          if (&= first-line |) ([]) ([] first-line)
+                          , :math
+                    (table-line? cursor)
+                      recur emit left
+                        &list:append acc $ emit :text buffer
+                        [] $ split-table-content cursor
+                        , :table
+                    true $ recur emit left acc (&list:append buffer cursor) :text
+                  :code $ if
+                    or (starts-with? cursor "|```") (cursor.!match pattern-indented-code)
+                    recur emit left
+                      &list:append acc $ emit :code buffer
+                      []
+                      , :empty
+                    recur emit left acc (&list:append buffer cursor) :code
+                  :math $ if (math-block-close-line? cursor)
+                    let
+                        tail-line $ math-block-close-content cursor
+                        next-buffer $ if (&= tail-line |) buffer $ &list:append buffer tail-line
+                      recur emit left
+                        &list:append acc $ emit :math next-buffer
+                        []
+                        , :empty
+                    recur emit left acc (&list:append buffer cursor) :math
+                  :table $ if (table-line? cursor)
+                    recur emit left acc
+                      &list:append buffer $ split-table-content cursor
+                      , :table
+                    recur emit left
+                      &list:append acc $ emit :table buffer
+                      []
+                      , :empty
+                  _ $ raise $ str "|Strange splitting mode: " mode
+          :examples $ []
+          :schema $ quote $ Fn
+            Fn Tag (List respo-md.util.core/BlockBufferValue) (-> T)
+            List String
+            List T
+            List respo-md.util.core/BlockBufferValue
+            , Tag
+              -> $ List T
+              :generics T
+              :features :js-ffi
+        'scan-blocks $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn scan-blocks (text)
+            scan-block-iter typed-block (split-lines text) ([]) ([]) :empty
+          :examples $ []
+          :schema $ quote $ Fn String
+            -> $ List respo-md.util.core/BlockToken
+            :features :js-ffi
         'scan-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scan-inline (line emit)
             if (string? line)
@@ -1594,113 +1770,7 @@
                 fn (error) error
             :tags $ #{} :option-migration :unit
         'split-block-iter $ %{} 'CodeEntry (:doc |)
-          :code $ quote $ defn split-block-iter (lines acc buffer mode)
-            if (empty? lines)
-              if (empty? buffer) acc $ &list:append acc $ :: mode buffer
-              let
-                  cursor $ .unwrap $ .first lines
-                  left $ &list:rest lines
-                match mode
-                  :empty $ cond
-                      &= cursor |
-                      recur left acc ([]) :empty
-                    (starts-with? cursor "|```")
-                      recur left acc
-                        [] $ &str:slice cursor 3
-                        , :code
-                    (cursor.!match pattern-indented-code)
-                      let
-                          raw $ cursor.!match pattern-indented-code
-                        recur left acc
-                          assert-type
-                            []
-                              .len $ .unwrap $ get1 raw
-                              &str:slice cursor $ .len $ .unwrap (get0 raw)
-                            List respo-md.util.core/BlockBufferValue
-                          , :code
-                    (math-block-single-line? cursor)
-                      recur left
-                        &list:append acc $ :: :math $ [] (math-block-single-line-content cursor)
-                        []
-                        , :empty
-                    (math-block-open? cursor)
-                      let
-                          first-line $ math-block-open-content cursor
-                        recur left acc
-                          if (&= first-line |) ([]) ([] first-line)
-                          , :math
-                    (table-line? cursor)
-                      recur left
-                        &list:append acc $ :: :text buffer
-                        [] $ split-table-content cursor
-                        , :table
-                    true $ recur left acc ([] cursor) :text
-                  :text $ cond
-                      &= cursor |
-                      recur left
-                        &list:append acc $ :: :text buffer
-                        []
-                        , :empty
-                    (starts-with? cursor "|```")
-                      recur left
-                        &list:append acc $ :: :text buffer
-                        [] $ &str:slice cursor 3
-                        , :code
-                    (cursor.!match pattern-indented-code)
-                      let
-                          raw $ cursor.!match pattern-indented-code
-                        recur left
-                          &list:append acc $ :: :text buffer
-                          assert-type
-                            []
-                              .len $ .unwrap $ get1 raw
-                              &str:slice cursor $ .len $ .unwrap (get0 raw)
-                            List respo-md.util.core/BlockBufferValue
-                          , :code
-                    (math-block-single-line? cursor)
-                      let
-                          next-acc $ -> acc
-                            &list:append $ :: :text buffer
-                            &list:append $ :: :math $ [] (math-block-single-line-content cursor)
-                        recur left next-acc ([]) :empty
-                    (math-block-open? cursor)
-                      let
-                          first-line $ math-block-open-content cursor
-                        recur left
-                          &list:append acc $ :: :text buffer
-                          if (&= first-line |) ([]) ([] first-line)
-                          , :math
-                    (table-line? cursor)
-                      recur left
-                        &list:append acc $ :: :text buffer
-                        [] $ split-table-content cursor
-                        , :table
-                    true $ recur left acc (&list:append buffer cursor) :text
-                  :code $ if
-                    or (starts-with? cursor "|```") (cursor.!match pattern-indented-code)
-                    recur left
-                      &list:append acc $ :: :code buffer
-                      []
-                      , :empty
-                    recur left acc (&list:append buffer cursor) :code
-                  :math $ if (math-block-close-line? cursor)
-                    let
-                        tail-line $ math-block-close-content cursor
-                        next-buffer $ if (&= tail-line |) buffer $ &list:append buffer tail-line
-                      recur left
-                        &list:append acc $ :: :math next-buffer
-                        []
-                        , :empty
-                    recur left acc (&list:append buffer cursor) :math
-                  :table $ if (table-line? cursor)
-                    recur left acc
-                      &list:append buffer $ split-table-content cursor
-                      , :table
-                    recur left
-                      &list:append acc $ :: :table buffer
-                      []
-                      , :empty
-                  _ $ raise $ str "|Strange splitting mode: " mode
+          :code $ quote $ defn split-block-iter (lines acc buffer mode) (scan-block-iter anonymous-block lines acc buffer mode)
           :examples $ []
           :schema $ quote $ Fn (List String) (List AnyEnum) (List respo-md.util.core/BlockBufferValue) Tag
             -> $ List AnyEnum
@@ -1731,6 +1801,17 @@
             and (starts-with? cursor ||) (ends-with? cursor ||)
           :examples $ []
           :schema $ quote $ Fn String (-> Bool) (:features :js-ffi)
+        'typed-block $ %{} 'CodeEntry (:doc |)
+          :code $ quote $ defn typed-block (mode buffer)
+            match mode
+              :text $ BlockToken :text $ decode-map-as buffer (List String)
+              :code $ BlockToken :code buffer
+              :math $ BlockToken :math $ decode-map-as buffer (List String)
+              :table $ BlockToken :table $ decode-map-as buffer
+                List $ List String
+              _ $ raise $ str "|Unknown Markdown block: " mode
+          :examples $ []
+          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> respo-md.util.core/BlockToken)
         'unwrap-option $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-option (o)
             match o
