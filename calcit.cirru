@@ -1102,11 +1102,11 @@
         'anonymous-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn anonymous-block (mode buffer) (:: mode buffer)
           :examples $ []
-          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> AnyEnum)
+          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> AnyEnum) (:open :reflect)
         'anonymous-inline-token $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn anonymous-inline-token (tag value) (:: tag value)
           :examples $ []
-          :schema $ quote $ Fn Tag String (-> AnyEnum)
+          :schema $ quote $ Fn Tag String (-> AnyEnum) (:open :reflect)
         'append-blocks $ %{} 'CodeEntry
           :doc "|Appends parsed blocks without rebuilding the reused prefix."
           :code $ quote $ defn append-blocks (acc blocks)
@@ -1689,6 +1689,7 @@
           :schema $ quote $ Fn String
             -> $ List AnyEnum
             :features :js-ffi
+            :open :reflect
         'split-block-incremental $ %{} 'CodeEntry
           :doc "|Parses only appended lines when the new source has the old source as a prefix; returns reuse statistics for benchmarks."
           :code $ quote $ defn split-block-incremental (old-text new-text old-blocks)
@@ -1775,18 +1776,21 @@
           :schema $ quote $ Fn (List String) (List AnyEnum) (List respo-md.util.core/BlockBufferValue) Tag
             -> $ List AnyEnum
             :features :js-ffi
+            :open :reflect
         'split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line (line) (scan-inline line anonymous-inline-token)
           :examples $ []
           :schema $ quote $ Fn Dynamic
             -> $ List AnyEnum
             :features :js-ffi
+            :open :reflect
         'split-line-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line-iter (acc line buffer mode) (scan-inline-iter anonymous-inline-token acc line buffer mode)
           :examples $ []
           :schema $ quote $ Fn (List AnyEnum) String String Tag
             -> $ List AnyEnum
             :features :js-ffi
+            :open :reflect
         'split-table-content $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-table-content (cursor)
             -> cursor
