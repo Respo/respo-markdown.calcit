@@ -313,7 +313,8 @@
                 fn (line) (respo.core/memo-comp-by line comp-line line)
           :examples $ []
           :schema $ quote $ Fn (List String) (-> respo.schema/Component)
-        'decode-render-block $ %{} 'CodeEntry (:doc |)
+        'decode-render-block $ %{} 'CodeEntry
+          :doc "|Reads existing anonymous parser blocks. Cached math lines retain the legacy string conversion before MathML rendering. Fresh scanner math lines are already strings."
           :code $ quote $ defn decode-render-block (block)
             match block
               (:text lines)
@@ -737,6 +738,12 @@
               assert-perf |typed-block-cache-parity $ =
                 resolve-render-blocks sample $ {}
                 resolve-render-blocks sample $ {} $ :parse-result cached
+            let
+                cached $ assoc (parse-markdown |) :blocks $ []
+                  :: :math $ [] nil 1
+              assert-perf |legacy-math-cache-stringification $ =
+                [] $ respo-md.util.core/BlockToken :math $ [] | |1
+                resolve-render-blocks | $ {} $ :parse-result cached
             let
                 base $ make-source 2000 |
                 appended $ str base "|tail\n\n"
