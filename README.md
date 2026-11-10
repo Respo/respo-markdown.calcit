@@ -2,12 +2,13 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## Calcit 0.40.0
+## Calcit 0.41.0
 
 更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染组件、增量解析结果和 Demo 存档格式沿用现有约定。
 Demo 在读取存档后校验 Map，随后将其封装为具名操作。编辑状态更新使用 `DemoState` 和 Respo 的 `CoordKey` 路径。
+Demo 高亮器明确接收源码和语言两个 String；内联缓存恢复时检查 Respo Element 身份，保留原匿名 token 与解析缓存格式。
 
-## 0.9.0 候选
+## 0.9.1 候选
 
 直接调用 MathML 的 `greek-command` 或 `operator-command` 时，使用 `Option String` 接收结果，未知命令返回 `:none`。Markdown 渲染和未知命令的文本回退保持原样。
 
@@ -60,7 +61,7 @@ HUD、存档格式与恢复/保存顺序不改，没有增加兼容改写规则�
 
 0.7.1 候选保持官方 Calcit / `@calcit/procs` **0.34.2**，依赖对齐正式 UI
 **0.14.1**、Respo **0.19.2**、JS-FFI **0.2.10**，传递 Router **0.11.2**。
-这使本库能与正式 Reel 0.9.0 / UI 0.14.1 一起通过 Caps strict；0.7.0 的旧精确
+这使本库能与正式 Reel 0.9.1 / UI 0.14.1 一起通过 Caps strict；0.7.0 的旧精确
 依赖会导致混装图被 strict 拒绝。消费者须协调完整模块图，重新生成 JS 并刷新。
 旧 tag 不移动，不关闭 strict 或使用 main/hash 替代版本。
 

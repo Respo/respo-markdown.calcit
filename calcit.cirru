@@ -85,7 +85,9 @@
                         :parse-result $ :parse-result state
                 space-y 200
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic (-> respo.schema/Component)
+          :schema $ quote $ Fn (Map Dynamic Dynamic)
+            Fn String String $ -> String
+            -> respo.schema/Component
         'initial-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-state (respo-md.util.core/read-demo-state nil)
           :examples $ []
@@ -110,11 +112,11 @@
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
                 indent-option $ match (first indented-lines)
-                  (:none) (Option :none)
+                  (:none) None
                   (:some value)
                     match value
-                      (Number n) (Option :some n)
-                      (String _) (Option :none)
+                      (Number n) (Some n)
+                      (String _) None
                 lines $ match
                   try-decode-map-as
                     if (indent-option .some?) (&list:rest indented-lines) indented-lines
@@ -138,16 +140,16 @@
                   respo-md.util.core/join-strings-dynamic &newline
                 highlight-fn $ match (respo-md.schema/read-field options :highlight)
                   (:some f)
-                    if (nil? f) (Option :none) (Option :some f)
-                  (:none) (Option :none)
+                    if (nil? f) None $ Some f
+                  (:none) None
                 indented? $ &> indented 0
                 code-block $ match highlight-fn
                   (:none)
                     if (&= lang |cirru)
-                      respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                        Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
-                      respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Option :some $ respo-ui.schema/PresentationOptions :class-name
-                        Option :some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
+                      respo.core/memo-comp-by ([] :cirru content) comp-cirru-snippet content $ Some $ respo-ui.schema/PresentationOptions :class-name
+                        Some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
+                      respo.core/memo-comp-by ([] :snippet content) comp-snippet content $ Some $ respo-ui.schema/PresentationOptions :class-name
+                        Some $ if indented? (str-spaced |md-code-block style-code-block css/expand) (str-spaced |md-code-block style-code-block)
                   (:some f)
                     if (fn? f)
                       div
@@ -158,7 +160,7 @@
                             f code language
                         span
                           {} $ :class-name respo-ui.comp/style-copy-wrapper
-                          respo-ui.comp/comp-copy content $ Option :none
+                          respo-ui.comp/comp-copy content None
                       raise |Markdown-:highlight-must-be-a-function-or-nil
               if indented?
                 div
@@ -245,7 +247,7 @@
             let
                 inner $ match
                   try-decode-map-as (respo.core/memo-value-by text render-inline text) (List Dynamic)
-                  (:ok children) children
+                  (:ok children) (map children respo.util.detect/as-element)
                   (:err message) (raise message)
               div
                 match (get options :class-name)
@@ -337,7 +339,7 @@
                 BlockToken :table $ decode-map-as lines $ List (List String)
               _ $ raise "|Invalid Markdown block"
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> respo-md.util.core/BlockToken)
+          :schema $ quote $ Fn Dynamic (-> BlockToken)
         'highlight-code $ %{} 'CodeEntry
           :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
           :code $ quote $ defn highlight-code (content lang highlight-fn)
@@ -424,18 +426,17 @@
               :italic $ InlineToken :italic value
               _ $ raise $ str "|Unknown inline Markdown token: " tag
           :examples $ []
-          :schema $ quote $ Fn Tag String (-> respo-md.util.core/InlineToken)
+          :schema $ quote $ Fn Tag String (-> InlineToken)
         'read-parser-result $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn read-parser-result (options)
             match (respo-md.schema/read-field options :parse-result)
               (:some raw)
-                if (nil? raw) (Option :none)
-                  if (struct? raw)
-                    struct-match raw
-                      respo-md.util.core/ParserResult result $ Option :some result
-                      _ other $ raise "|Invalid Markdown parser result"
-                    raise "|Expected Markdown parser result Struct"
-              (:none) (Option :none)
+                if (nil? raw) None $ if (struct? raw)
+                  struct-match raw
+                    respo-md.util.core/ParserResult result $ Some result
+                    _ other $ raise "|Invalid Markdown parser result"
+                  raise "|Expected Markdown parser result Struct"
+              (:none) None
           :examples $ []
           :schema $ quote $ Fn (Map Tag Dynamic)
             -> $ Option respo-md.util.core/ParserResult
@@ -479,7 +480,7 @@
                 map (:blocks result) decode-render-block
           :examples $ []
           :schema $ quote $ Fn String (Map Tag Dynamic)
-            -> $ List respo-md.util.core/BlockToken
+            -> $ List BlockToken
         'style-blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-blockquote
             {} $ |& $ {}
@@ -620,7 +621,7 @@
                 , &unit
               raise "|Invalid Markdown demo operation"
           :examples $ []
-          :schema $ quote $ Fn respo-md.schema/Op (-> Unit)
+          :schema $ quote $ Fn schema/Op (-> Unit)
         'highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn highligher (code lang)
             str |<code> (respo-md.util.math/escape-html code) |</code>
@@ -660,7 +661,7 @@
           :code $ quote $ defn mount-target ()
             .unwrap $ browser/query-selector |.app
           :examples $ []
-          :schema $ quote $ Fn (-> js-ffi.browser/DomElementHost)
+          :schema $ quote $ Fn (-> browser/DomElementHost)
         'next-store-of $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn next-store-of (op)
             match op
@@ -671,7 +672,7 @@
               (:hydrate-storage store) (respo-md.util.core/hydrate-demo-store store)
               _ $ do (eprintln "|unknown op:" op) @*store
           :examples $ []
-          :schema $ quote $ Fn respo-md.schema/Op
+          :schema $ quote $ Fn schema/Op
             -> $ Map Dynamic Dynamic
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
@@ -704,7 +705,7 @@
           :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
-            option:some? $ browser/query-selector |meta.respo-ssr
+            .some? $ browser/query-selector |meta.respo-ssr
           :examples $ []
           :schema $ quote Bool
       :ns $ %{} 'NsEntry (:doc |)
@@ -829,7 +830,7 @@
                   + full-lines $ :scanned-lines full-result
                   + incremental-lines $ :scanned-lines next-result
           :examples $ []
-          :schema $ quote $ Fn Number String respo-md.util.core/ParserResult Number Number (-> respo-md.perf-test/StreamStats)
+          :schema $ quote $ Fn Number String respo-md.util.core/ParserResult Number Number (-> StreamStats)
         'test-option-block-boundaries! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-option-block-boundaries! ()
             let
@@ -898,20 +899,20 @@
             %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
               :code $ quote $ let
                   value $ {} (:nil nil) (:false false) (:zero 0) (:empty |)
-                assert= (Option :none) (read-field value :missing)
-                assert= (Option :some nil) (read-field value :nil)
-                assert= (Option :some false) (read-field value :false)
-                assert= (Option :some 0) (read-field value :zero)
-                assert= (Option :some |) (read-field value :empty)
+                assert= None $ read-field value :missing
+                assert= (Some nil) (read-field value :nil)
+                assert= (Some false) (read-field value :false)
+                assert= (Some 0) (read-field value :zero)
+                assert= (Some |) (read-field value :empty)
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |keeps-nominal-fields-and-open-members)
               :code $ quote $ let
                   blocks $ [] nil false 0 |
                   value $ respo-md.util.core/ScanResult :blocks blocks :reused-blocks 0 :reparsed-blocks 0 :scanned-lines 0 :incremental? false
                 assert= true $ identical? blocks $ .unwrap-or (read-field value :blocks) ([])
-                assert= (Option :some false) (read-field value :incremental?)
-                assert= (Option :some 0) (read-field value :reused-blocks)
-                assert= (Option :none) (read-field value :missing)
+                assert= (Some false) (read-field value :incremental?)
+                assert= (Some 0) (read-field value :reused-blocks)
+                assert= None $ read-field value :missing
               :tags $ #{} :option-migration :unit
             %{} 'TestEntry (:name |rejects-non-container-inputs)
               :code $ quote $ do
@@ -931,7 +932,7 @@
           :code $ quote $ def store
             {} $ :states $ {}
           :examples $ []
-          :schema $ quote Map
+          :schema $ quote $ Map Tag (Map Dynamic Dynamic)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.schema
     'respo-md.test $ %{} 'FileEntry
@@ -1111,7 +1112,7 @@
         'anonymous-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn anonymous-block (mode buffer) (:: mode buffer)
           :examples $ []
-          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> AnyEnum) (:open :reflect)
+          :schema $ quote $ Fn Tag (List BlockBufferValue) (-> AnyEnum) (:open :reflect)
         'anonymous-inline-token $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn anonymous-inline-token (tag value) (:: tag value)
           :examples $ []
@@ -1159,13 +1160,13 @@
         'get0 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get0 (xs)
             match (js-nullish->option xs)
-              (:none) (Option :none)
+              (:none) None
               (:some matched)
                 match
                   js-nullish->option $ aget (contract/expect-object |RegExp.match matched) 0
-                  (:none) (Option :none)
+                  (:none) None
                   (:some value)
-                    Option :some $ contract/expect-string |RegExp.capture value
+                    Some $ contract/expect-string |RegExp.capture value
           :examples $ []
           :schema $ quote $ Fn T
             -> $ Option String
@@ -1174,13 +1175,13 @@
         'get1 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get1 (xs)
             match (js-nullish->option xs)
-              (:none) (Option :none)
+              (:none) None
               (:some matched)
                 match
                   js-nullish->option $ aget (contract/expect-object |RegExp.match matched) 1
-                  (:none) (Option :none)
+                  (:none) None
                   (:some value)
-                    Option :some $ contract/expect-string |RegExp.capture value
+                    Some $ contract/expect-string |RegExp.capture value
           :examples $ []
           :schema $ quote $ Fn T
             -> $ Option String
@@ -1199,16 +1200,16 @@
                 let
                     formula $ .unwrap $ get1 slash-matched
                     rest-line $ &str:slice line $ + 4 (.len formula)
-                  Option :some $ InlineMath :formula formula :rest-line rest-line
+                  Some $ InlineMath :formula formula :rest-line rest-line
                 if (&< -1 dollar-end-idx)
                   let
                       formula $ &str:slice line 1 $ + 1 dollar-end-idx
                       rest-line $ &str:slice line $ + 2 dollar-end-idx
-                    Option :some $ InlineMath :formula formula :rest-line rest-line
-                  Option :none
+                    Some $ InlineMath :formula formula :rest-line rest-line
+                  , None
           :examples $ []
           :schema $ quote $ Fn String
-            -> $ Option respo-md.util.core/InlineMath
+            -> $ Option InlineMath
             :features :js-ffi
         'handle-inline-star $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn handle-inline-star (left)
@@ -1233,7 +1234,7 @@
                       InlineStar :italic italic rest-line
                     InlineStar :literal
           :examples $ []
-          :schema $ quote $ Fn String (-> respo-md.util.core/InlineStar) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> InlineStar) (:features :js-ffi)
         'hydrate-demo-store $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn hydrate-demo-store (store)
             let
@@ -1282,7 +1283,7 @@
                 incremental? $ :incremental? raw
               &%{} ParserResult :blocks blocks :reused-blocks reused-blocks :reparsed-blocks reparsed-blocks :scanned-lines scanned-lines :incremental? incremental? :mode mode
           :examples $ []
-          :schema $ quote $ Fn respo-md.util.core/ScanResult respo-md.util.core/ParseMode (-> respo-md.util.core/ParserResult)
+          :schema $ quote $ Fn ScanResult ParseMode (-> ParserResult)
         'make-regexp $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-regexp (pattern flags) (new js/RegExp pattern flags)
           :examples $ []
@@ -1380,7 +1381,7 @@
                   , :incremental? false
               make-parser-result raw $ %:: ParseMode :full
           :examples $ []
-          :schema $ quote $ Fn String (-> respo-md.util.core/ParserResult)
+          :schema $ quote $ Fn String (-> ParserResult)
         'parse-markdown-incremental $ %{} 'CodeEntry
           :doc "|Continues a parser result and returns only the changed suffix statistics."
           :code $ quote $ defn parse-markdown-incremental (old-text new-text old-result)
@@ -1400,7 +1401,7 @@
                   %:: ParseMode :fallback
               make-parser-result raw mode
           :examples $ []
-          :schema $ quote $ Fn String String respo-md.util.core/ParserResult (-> respo-md.util.core/ParserResult)
+          :schema $ quote $ Fn String String ParserResult (-> ParserResult)
         'pattern-indented-code $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def pattern-indented-code (respo-md.util.core/make-regexp "|^(\\s+)```" |)
           :examples $ []
@@ -1454,7 +1455,7 @@
                     DemoState :draft draft :text text :parse-result parsed
                   raise "|Invalid Markdown demo draft/text"
           :examples $ []
-          :schema $ quote $ Fn T (-> respo-md.util.core/DemoState) (:generics T)
+          :schema $ quote $ Fn T (-> DemoState) (:generics T)
         'scan-block-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scan-block-iter (emit lines acc buffer mode)
             if (empty? lines)
@@ -1565,10 +1566,10 @@
                   _ $ raise $ str "|Strange splitting mode: " mode
           :examples $ []
           :schema $ quote $ Fn
-            Fn Tag (List respo-md.util.core/BlockBufferValue) (-> T)
+            Fn Tag (List BlockBufferValue) (-> T)
             List String
             List T
-            List respo-md.util.core/BlockBufferValue
+            List BlockBufferValue
             , Tag
               -> $ List T
               :generics T
@@ -1578,7 +1579,7 @@
             scan-block-iter typed-block (split-lines text) ([]) ([]) :empty
           :examples $ []
           :schema $ quote $ Fn String
-            -> $ List respo-md.util.core/BlockToken
+            -> $ List BlockToken
             :features :js-ffi
         'scan-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scan-inline (line emit)
@@ -1763,7 +1764,7 @@
                   .len $ split-lines new-text
                   , :incremental? false
           :examples $ []
-          :schema $ quote $ Fn String String (List Dynamic) (-> respo-md.util.core/ScanResult)
+          :schema $ quote $ Fn String String (List Dynamic) (-> ScanResult)
           :tests $ [] $ %{} 'TestEntry (:name |rejects-invalid-last-blocks)
             :code $ quote $ do
               assert= "|Invalid Markdown block" $ try
@@ -1782,7 +1783,7 @@
         'split-block-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-block-iter (lines acc buffer mode) (scan-block-iter anonymous-block lines acc buffer mode)
           :examples $ []
-          :schema $ quote $ Fn (List String) (List AnyEnum) (List respo-md.util.core/BlockBufferValue) Tag
+          :schema $ quote $ Fn (List String) (List AnyEnum) (List BlockBufferValue) Tag
             -> $ List AnyEnum
             :features :js-ffi
             :open :reflect
@@ -1824,7 +1825,7 @@
                 List $ List String
               _ $ raise $ str "|Unknown Markdown block: " mode
           :examples $ []
-          :schema $ quote $ Fn Tag (List respo-md.util.core/BlockBufferValue) (-> respo-md.util.core/BlockToken)
+          :schema $ quote $ Fn Tag (List BlockBufferValue) (-> BlockToken)
         'unwrap-option $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn unwrap-option (o)
             match o
@@ -1844,7 +1845,7 @@
           :code $ quote $ defn update-draft-state (state next-draft)
             DemoState :draft next-draft :text (:text state) :parse-result $ parse-markdown-incremental (:draft state) next-draft $ :parse-result state
           :examples $ []
-          :schema $ quote $ Fn respo-md.util.core/DemoState String (-> respo-md.util.core/DemoState)
+          :schema $ quote $ Fn DemoState String (-> DemoState)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.util.core
           :require
@@ -1870,48 +1871,48 @@
         'greek-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn greek-command (name)
             match name
-              |alpha $ Option :some "|α"
-              |beta $ Option :some "|β"
-              |gamma $ Option :some "|γ"
-              |delta $ Option :some "|δ"
-              |epsilon $ Option :some "|ε"
-              |varepsilon $ Option :some "|ϵ"
-              |zeta $ Option :some "|ζ"
-              |eta $ Option :some "|η"
-              |theta $ Option :some "|θ"
-              |vartheta $ Option :some "|ϑ"
-              |iota $ Option :some "|ι"
-              |kappa $ Option :some "|κ"
-              |lambda $ Option :some "|λ"
-              |mu $ Option :some "|μ"
-              |nu $ Option :some "|ν"
-              |xi $ Option :some "|ξ"
-              |omicron $ Option :some "|ο"
-              |pi $ Option :some "|π"
-              |varpi $ Option :some "|ϖ"
-              |rho $ Option :some "|ρ"
-              |varrho $ Option :some "|ϱ"
-              |sigma $ Option :some "|σ"
-              |varsigma $ Option :some "|ς"
-              |tau $ Option :some "|τ"
-              |upsilon $ Option :some "|υ"
-              |phi $ Option :some "|φ"
-              |varphi $ Option :some "|ϕ"
-              |chi $ Option :some "|χ"
-              |psi $ Option :some "|ψ"
-              |omega $ Option :some "|ω"
-              |Gamma $ Option :some "|Γ"
-              |Delta $ Option :some "|Δ"
-              |Theta $ Option :some "|Θ"
-              |Lambda $ Option :some "|Λ"
-              |Xi $ Option :some "|Ξ"
-              |Pi $ Option :some "|Π"
-              |Sigma $ Option :some "|Σ"
-              |Upsilon $ Option :some "|Υ"
-              |Phi $ Option :some "|Φ"
-              |Psi $ Option :some "|Ψ"
-              |Omega $ Option :some "|Ω"
-              _ $ Option :none
+              |alpha $ Some "|α"
+              |beta $ Some "|β"
+              |gamma $ Some "|γ"
+              |delta $ Some "|δ"
+              |epsilon $ Some "|ε"
+              |varepsilon $ Some "|ϵ"
+              |zeta $ Some "|ζ"
+              |eta $ Some "|η"
+              |theta $ Some "|θ"
+              |vartheta $ Some "|ϑ"
+              |iota $ Some "|ι"
+              |kappa $ Some "|κ"
+              |lambda $ Some "|λ"
+              |mu $ Some "|μ"
+              |nu $ Some "|ν"
+              |xi $ Some "|ξ"
+              |omicron $ Some "|ο"
+              |pi $ Some "|π"
+              |varpi $ Some "|ϖ"
+              |rho $ Some "|ρ"
+              |varrho $ Some "|ϱ"
+              |sigma $ Some "|σ"
+              |varsigma $ Some "|ς"
+              |tau $ Some "|τ"
+              |upsilon $ Some "|υ"
+              |phi $ Some "|φ"
+              |varphi $ Some "|ϕ"
+              |chi $ Some "|χ"
+              |psi $ Some "|ψ"
+              |omega $ Some "|ω"
+              |Gamma $ Some "|Γ"
+              |Delta $ Some "|Δ"
+              |Theta $ Some "|Θ"
+              |Lambda $ Some "|Λ"
+              |Xi $ Some "|Ξ"
+              |Pi $ Some "|Π"
+              |Sigma $ Some "|Σ"
+              |Upsilon $ Some "|Υ"
+              |Phi $ Some "|Φ"
+              |Psi $ Some "|Ψ"
+              |Omega $ Some "|Ω"
+              _ None
           :examples $ []
           :schema $ quote $ Fn String
             -> $ Option String
@@ -2004,89 +2005,89 @@
         'operator-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn operator-command (name)
             match name
-              |cdot $ Option :some "|⋅"
-              |times $ Option :some "|×"
-              |div $ Option :some "|÷"
-              |pm $ Option :some "|±"
-              |mp $ Option :some "|∓"
-              |wedge $ Option :some "|∧"
-              |vee $ Option :some "|∨"
-              |cap $ Option :some "|∩"
-              |cup $ Option :some "|∪"
-              |neq $ Option :some "|≠"
-              |le $ Option :some "|≤"
-              |leq $ Option :some "|≤"
-              |ge $ Option :some "|≥"
-              |geq $ Option :some "|≥"
-              |approx $ Option :some "|≈"
-              |equiv $ Option :some "|≡"
-              |to $ Option :some "|→"
-              |rightarrow $ Option :some "|→"
-              |Rightarrow $ Option :some "|⇒"
-              |leftarrow $ Option :some "|←"
-              |Leftarrow $ Option :some "|⇐"
-              |leftrightarrow $ Option :some "|↔"
-              |mapsto $ Option :some "|↦"
-              |gets $ Option :some "|←"
-              |implies $ Option :some "|⇒"
-              |iff $ Option :some "|⇔"
-              |longleftarrow $ Option :some "|⟵"
-              |longrightarrow $ Option :some "|⟶"
-              |uparrow $ Option :some "|↑"
-              |downarrow $ Option :some "|↓"
-              |longleftrightarrow $ Option :some "|⟷"
-              |nearrow $ Option :some "|↗"
-              |searrow $ Option :some "|↘"
-              |nwarrow $ Option :some "|↖"
-              |swarrow $ Option :some "|↙"
-              |updownarrow $ Option :some "|↕"
-              |Longleftarrow $ Option :some "|⟸"
-              |Longrightarrow $ Option :some "|⟹"
-              |Uparrow $ Option :some "|⇑"
-              |Downarrow $ Option :some "|⇓"
-              |Leftrightarrow $ Option :some "|⇔"
-              |Longleftrightarrow $ Option :some "|⟺"
-              |Updownarrow $ Option :some "|⇕"
-              |longmapsto $ Option :some "|⟼"
-              |hookrightarrow $ Option :some "|↪"
-              |hookleftarrow $ Option :some "|↩"
-              |twoheadrightarrow $ Option :some "|↠"
-              |twoheadleftarrow $ Option :some "|↞"
-              |leftharpoonup $ Option :some "|↼"
-              |rightharpoonup $ Option :some "|⇀"
-              |rightleftharpoons $ Option :some "|⇌"
-              |nleftarrow $ Option :some "|↚"
-              |nrightarrow $ Option :some "|↛"
-              |nLeftarrow $ Option :some "|⇍"
-              |nRightarrow $ Option :some "|⇏"
-              |nleftrightarrow $ Option :some "|↮"
-              |nLeftrightarrow $ Option :some "|⇎"
-              |in $ Option :some "|∈"
-              |notin $ Option :some "|∉"
-              |subset $ Option :some "|⊂"
-              |subseteq $ Option :some "|⊆"
-              |supset $ Option :some "|⊃"
-              |supseteq $ Option :some "|⊇"
-              |partial $ Option :some "|∂"
-              |nabla $ Option :some "|∇"
-              |infty $ Option :some "|∞"
-              |propto $ Option :some "|∝"
-              |perp $ Option :some "|⊥"
-              |parallel $ Option :some "|∥"
-              |angle $ Option :some "|∠"
-              |circ $ Option :some "|∘"
-              |ast $ Option :some "|∗"
-              |langle $ Option :some "|⟨"
-              |rangle $ Option :some "|⟩"
-              |cong $ Option :some "|≅"
-              |sim $ Option :some "|∼"
-              |simeq $ Option :some "|≃"
-              |mid $ Option :some "|∣"
-              |vert $ Option :some ||
-              |Vert $ Option :some "|‖"
-              |ldots $ Option :some "|…"
-              |cdots $ Option :some "|⋯"
-              _ $ Option :none
+              |cdot $ Some "|⋅"
+              |times $ Some "|×"
+              |div $ Some "|÷"
+              |pm $ Some "|±"
+              |mp $ Some "|∓"
+              |wedge $ Some "|∧"
+              |vee $ Some "|∨"
+              |cap $ Some "|∩"
+              |cup $ Some "|∪"
+              |neq $ Some "|≠"
+              |le $ Some "|≤"
+              |leq $ Some "|≤"
+              |ge $ Some "|≥"
+              |geq $ Some "|≥"
+              |approx $ Some "|≈"
+              |equiv $ Some "|≡"
+              |to $ Some "|→"
+              |rightarrow $ Some "|→"
+              |Rightarrow $ Some "|⇒"
+              |leftarrow $ Some "|←"
+              |Leftarrow $ Some "|⇐"
+              |leftrightarrow $ Some "|↔"
+              |mapsto $ Some "|↦"
+              |gets $ Some "|←"
+              |implies $ Some "|⇒"
+              |iff $ Some "|⇔"
+              |longleftarrow $ Some "|⟵"
+              |longrightarrow $ Some "|⟶"
+              |uparrow $ Some "|↑"
+              |downarrow $ Some "|↓"
+              |longleftrightarrow $ Some "|⟷"
+              |nearrow $ Some "|↗"
+              |searrow $ Some "|↘"
+              |nwarrow $ Some "|↖"
+              |swarrow $ Some "|↙"
+              |updownarrow $ Some "|↕"
+              |Longleftarrow $ Some "|⟸"
+              |Longrightarrow $ Some "|⟹"
+              |Uparrow $ Some "|⇑"
+              |Downarrow $ Some "|⇓"
+              |Leftrightarrow $ Some "|⇔"
+              |Longleftrightarrow $ Some "|⟺"
+              |Updownarrow $ Some "|⇕"
+              |longmapsto $ Some "|⟼"
+              |hookrightarrow $ Some "|↪"
+              |hookleftarrow $ Some "|↩"
+              |twoheadrightarrow $ Some "|↠"
+              |twoheadleftarrow $ Some "|↞"
+              |leftharpoonup $ Some "|↼"
+              |rightharpoonup $ Some "|⇀"
+              |rightleftharpoons $ Some "|⇌"
+              |nleftarrow $ Some "|↚"
+              |nrightarrow $ Some "|↛"
+              |nLeftarrow $ Some "|⇍"
+              |nRightarrow $ Some "|⇏"
+              |nleftrightarrow $ Some "|↮"
+              |nLeftrightarrow $ Some "|⇎"
+              |in $ Some "|∈"
+              |notin $ Some "|∉"
+              |subset $ Some "|⊂"
+              |subseteq $ Some "|⊆"
+              |supset $ Some "|⊃"
+              |supseteq $ Some "|⊇"
+              |partial $ Some "|∂"
+              |nabla $ Some "|∇"
+              |infty $ Some "|∞"
+              |propto $ Some "|∝"
+              |perp $ Some "|⊥"
+              |parallel $ Some "|∥"
+              |angle $ Some "|∠"
+              |circ $ Some "|∘"
+              |ast $ Some "|∗"
+              |langle $ Some "|⟨"
+              |rangle $ Some "|⟩"
+              |cong $ Some "|≅"
+              |sim $ Some "|∼"
+              |simeq $ Some "|≃"
+              |mid $ Some "|∣"
+              |vert $ Some ||
+              |Vert $ Some "|‖"
+              |ldots $ Some "|…"
+              |cdots $ Some "|⋯"
+              _ None
           :examples $ []
           :schema $ quote $ Fn String
             -> $ Option String
