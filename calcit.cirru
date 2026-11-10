@@ -1941,15 +1941,13 @@
         'math-environment-html $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn math-environment-html (name source)
             if (matrix-environment? name)
-              let
-                  rows $ split source |\\
-                  delimiters $ matrix-environment-delimiters name
-                  open-html $ respo-md.util.core/coalesce (&list:nth delimiters 0) |
-                  close-html $ respo-md.util.core/coalesce (&list:nth delimiters 1) |
-                  table-html $ str |<mtable>
-                    respo-md.util.core/join-strings-dynamic (map rows render-math-matrix-row) |
-                    , |</mtable>
-                str |<mrow> (or open-html |) table-html (or close-html |) |</mrow>
+              let[] (open-html close-html) (matrix-environment-delimiters name)
+                let
+                    rows $ split source |\\
+                    table-html $ str |<mtable>
+                      respo-md.util.core/join-strings-dynamic (map rows render-math-matrix-row) |
+                      , |</mtable>
+                  str |<mrow> (or open-html |) table-html (or close-html |) |</mrow>
               str |<mrow><mi>begin</mi><mi> (escape-html name) |</mi></mrow>
           :examples $ []
           :schema $ quote $ Fn String String (-> String) (:features :js-ffi)
@@ -1986,7 +1984,9 @@
               |cases $ [] |<mo>{</mo> nil
               _ $ [] nil nil
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn T
+            -> $ Tuple (JsNullish String) (JsNullish String)
+            :generics T
         'matrix-environment? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn matrix-environment? (name)
             or (&= name |matrix) (&= name |pmatrix) (&= name |bmatrix) (&= name |Bmatrix) (&= name |vmatrix) (&= name |Vmatrix) (&= name |smallmatrix) (&= name |aligned) (&= name |cases)
@@ -2100,7 +2100,9 @@
                   [] name $ &str:slice line $ .len name
                 [] nil line
           :examples $ []
-          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            -> $ Tuple (JsNullish String) String
+            :features :js-ffi
         'parse-math-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-arg (line)
             if (&= | line) ([] |<mrow></mrow> line)
@@ -2154,65 +2156,61 @@
           :doc "|Parses a backslash-prefixed LaTeX-like command and returns a tuple of MathML html and remaining source."
           :code $ quote $ defn parse-math-command (line)
             let[] (name rest-line) (parse-command-name line)
-              if (string? rest-line)
-                if (string? name)
-                  match name
-                    |mathbf $ parse-math-styled-arg rest-line |bold
-                    |mathbb $ parse-math-styled-arg rest-line |double-struck
-                    |mathrm $ parse-math-styled-arg rest-line |normal
-                    |mathit $ parse-math-styled-arg rest-line |italic
-                    |mathsf $ parse-math-styled-arg rest-line |sans-serif
-                    |mathtt $ parse-math-styled-arg rest-line |monospace
-                    |mathcal $ parse-math-styled-arg rest-line |script
-                    |mathfrak $ parse-math-styled-arg rest-line |fraktur
-                    |qquad $ [] "|<mspace width=\"2em\"></mspace>" rest-line
-                    |quad $ [] "|<mspace width=\"1em\"></mspace>" rest-line
-                    |underline $ parse-math-under-arg rest-line |_
-                    |tilde $ parse-math-over-arg rest-line |~
-                    |hat $ parse-math-over-arg rest-line |^
-                    |overline $ parse-math-over-arg rest-line "|¯"
-                    |bar $ parse-math-over-arg rest-line "|¯"
-                    |text $ parse-math-text-arg rest-line false
-                    |operatorname $ parse-math-text-arg rest-line true
-                    |begin $ parse-math-environment rest-line
-                    |binom $ let[] (upper rest1) (parse-math-arg rest-line)
-                      let[] (lower rest2) (parse-math-arg rest1)
-                        []
-                          str |<mrow> (math-delimiter-html "|(") upper (math-delimiter-html |,) lower (math-delimiter-html "|)") |</mrow>
-                          , rest2
-                    |frac $ let[] (numerator rest1) (parse-math-arg rest-line)
-                      let[] (denominator rest2) (parse-math-arg rest1)
-                        [] (str |<mfrac> numerator denominator |</mfrac>) rest2
-                    |xrightarrow $ let[] (upper rest1) (parse-math-arg rest-line)
-                      [] (str "|<mover><mo>→</mo>" upper |</mover>) rest1
-                    |xleftarrow $ let[] (upper rest1) (parse-math-arg rest-line)
-                      [] (str "|<mover><mo>←</mo>" upper |</mover>) rest1
-                    |left $ if (&= | rest-line) ([] || rest-line)
+              if (string? name)
+                match name
+                  |mathbf $ parse-math-styled-arg rest-line |bold
+                  |mathbb $ parse-math-styled-arg rest-line |double-struck
+                  |mathrm $ parse-math-styled-arg rest-line |normal
+                  |mathit $ parse-math-styled-arg rest-line |italic
+                  |mathsf $ parse-math-styled-arg rest-line |sans-serif
+                  |mathtt $ parse-math-styled-arg rest-line |monospace
+                  |mathcal $ parse-math-styled-arg rest-line |script
+                  |mathfrak $ parse-math-styled-arg rest-line |fraktur
+                  |qquad $ [] "|<mspace width=\"2em\"></mspace>" rest-line
+                  |quad $ [] "|<mspace width=\"1em\"></mspace>" rest-line
+                  |underline $ parse-math-under-arg rest-line |_
+                  |tilde $ parse-math-over-arg rest-line |~
+                  |hat $ parse-math-over-arg rest-line |^
+                  |overline $ parse-math-over-arg rest-line "|¯"
+                  |bar $ parse-math-over-arg rest-line "|¯"
+                  |text $ parse-math-text-arg rest-line false
+                  |operatorname $ parse-math-text-arg rest-line true
+                  |begin $ parse-math-environment rest-line
+                  |binom $ let[] (upper rest1) (parse-math-arg rest-line)
+                    let[] (lower rest2) (parse-math-arg rest1)
                       []
-                        math-delimiter-html $ .unwrap-or (.first rest-line) |
-                        &str:slice rest-line 1
-                    |right $ if (&= | rest-line) ([] || rest-line)
+                        str |<mrow> (math-delimiter-html "|(") upper (math-delimiter-html |,) lower (math-delimiter-html "|)") |</mrow>
+                        , rest2
+                  |frac $ let[] (numerator rest1) (parse-math-arg rest-line)
+                    let[] (denominator rest2) (parse-math-arg rest1)
+                      [] (str |<mfrac> numerator denominator |</mfrac>) rest2
+                  |xrightarrow $ let[] (upper rest1) (parse-math-arg rest-line)
+                    [] (str "|<mover><mo>→</mo>" upper |</mover>) rest1
+                  |xleftarrow $ let[] (upper rest1) (parse-math-arg rest-line)
+                    [] (str "|<mover><mo>←</mo>" upper |</mover>) rest1
+                  |left $ if (&= | rest-line) ([] || rest-line)
+                    []
+                      math-delimiter-html $ .unwrap-or (.first rest-line) |
+                      &str:slice rest-line 1
+                  |right $ if (&= | rest-line) ([] || rest-line)
+                    []
+                      math-delimiter-html $ .unwrap-or (.first rest-line) |
+                      &str:slice rest-line 1
+                  |sqrt $ let[] (index-html rest0) (parse-math-root-index rest-line)
+                    let[] (content rest1) (parse-math-arg rest0)
                       []
-                        math-delimiter-html $ .unwrap-or (.first rest-line) |
-                        &str:slice rest-line 1
-                    |sqrt $ let[] (index-html rest0) (parse-math-root-index rest-line)
-                      if (string? rest0)
-                        let[] (content rest1) (parse-math-arg rest0)
-                          []
-                            if (non-nil? index-html) (str |<mroot> content index-html |</mroot>) (str |<msqrt> content |</msqrt>)
-                            , rest1
-                        raise "|[Markdown] invalid root-index remainder"
-                    _ $ [] (math-command-html name) rest-line
-                  if (&= | rest-line) ([] || rest-line)
-                    if
-                      = |, $ .unwrap-or (.first rest-line) |
-                      [] |<mspace></mspace> $ &str:slice rest-line 1
-                      []
-                        str |<mo>\\</mo><mi>
-                          escape-html $ .unwrap-or (.first rest-line) |
-                          , |</mi>
-                        &str:slice rest-line 1
-                raise "|[Markdown] invalid command remainder"
+                        if (string? index-html) (str |<mroot> content index-html |</mroot>) (str |<msqrt> content |</msqrt>)
+                        , rest1
+                  _ $ [] (math-command-html name) rest-line
+                if (&= | rest-line) ([] || rest-line)
+                  if
+                    = |, $ .unwrap-or (.first rest-line) |
+                    [] |<mspace></mspace> $ &str:slice rest-line 1
+                    []
+                      str |<mo>\\</mo><mi>
+                        escape-html $ .unwrap-or (.first rest-line) |
+                        , |</mi>
+                      &str:slice rest-line 1
           :examples $ []
           :schema $ quote $ Fn String
             -> $ List String
@@ -2220,8 +2218,7 @@
         'parse-math-environment $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-environment (line)
             let[] (name rest-line) (parse-math-raw-group line)
-              if
-                and (string? name) (string? rest-line)
+              if (string? name)
                 let
                     closing $ str |\end{ name |}
                     end-index $ &str:find-index rest-line closing
@@ -2257,7 +2254,9 @@
                     &str:slice line $ + end-index 1
                   [] nil line
           :examples $ []
-          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            -> $ Tuple (JsNullish String) String
+            :features :js-ffi
         'parse-math-root-index $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-root-index (line)
             if
@@ -2269,7 +2268,9 @@
                 [] body $ if (&= | rest-line) rest-line $ &str:slice rest-line 1
               [] nil line
           :examples $ []
-          :schema $ quote $ Fn String (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            -> $ Tuple (JsNullish String) String
+            :features :js-ffi
         'parse-math-row $ %{} 'CodeEntry
           :doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached."
           :code $ quote $ defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
@@ -2335,15 +2336,13 @@
         'parse-math-text-arg $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-text-arg (line operator?)
             let[] (content rest-line) (parse-math-raw-group line)
-              if (string? rest-line)
-                if (string? content)
-                  []
-                    if operator?
-                      str "|<mi mathvariant=\"normal\">" (escape-html content) |</mi>
-                      str |<mtext> (escape-html content) |</mtext>
-                    , rest-line
-                  parse-math-styled-arg line |normal
-                raise "|[Markdown] invalid text-group remainder"
+              if (string? content)
+                []
+                  if operator?
+                    str "|<mi mathvariant=\"normal\">" (escape-html content) |</mi>
+                    str |<mtext> (escape-html content) |</mtext>
+                  , rest-line
+                parse-math-styled-arg line |normal
           :examples $ []
           :schema $ quote $ Fn String Bool
             -> $ List String
