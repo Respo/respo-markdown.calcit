@@ -263,16 +263,20 @@
                   (:some v)
                     if (nil? v) |md-block $ str-spaced |md-block v
                   (:none) |md-block
-              list->
+              respo.core/keyed->
                 {} (:class-name class-name)
                   :style $ .unwrap-or (respo-md.schema/read-field options :style) ({})
                 -> blocks $ respo-md.util.core/map-indexed-dynamic $ fn (idx block)
-                  hint-fn $ Fn Number BlockToken $ -> (List Dynamic)
-                  [] idx $ match block
-                    (:text lines) (comp-text-block lines)
-                    (:code lines) (comp-code-block lines options)
-                    (:math lines) (comp-math-block lines)
-                    (:table lines) (comp-table-block lines)
+                  hint-fn $ Fn Number BlockToken $ -> respo.schema/ChildPair
+                  match block
+                    (:text lines)
+                      respo.core/keyed-component idx $ comp-text-block lines
+                    (:code lines)
+                      respo.core/keyed-component idx $ comp-code-block lines options
+                    (:math lines)
+                      respo.core/keyed-component idx $ comp-math-block lines
+                    (:table lines)
+                      respo.core/keyed-element idx $ comp-table-block lines
           :examples $ []
           :schema $ quote $ Fn String (Map Tag Dynamic) (-> respo.schema/Component)
         'comp-table-block $ %{} 'CodeEntry (:doc |)
@@ -582,7 +586,7 @@
             respo.util.format :refer $ hsl
             respo-ui.core :as ui
             respo-ui.css :as css
-            respo.core :refer $ defcomp list-> div pre code span p h1 h2 h3 h4 img a <> style li create-element
+            respo.core :refer $ defcomp div pre code span p h1 h2 h3 h4 img a <> style li create-element
             respo.comp.space :refer $ =<
             respo-md.util.core :refer $ split-block scan-inline InlineToken get1 scan-blocks BlockToken
             respo.util.list :refer $ map-with-idx
@@ -1862,26 +1866,70 @@
           :code $ quote $ defn function-command? (name)
             or (&= name |lim) (&= name |sin) (&= name |cos) (&= name |tan) (&= name |sinh) (&= name |cosh) (&= name |tanh) (&= name |ln) (&= name |log) (&= name |exp) (&= name |det) (&= name |gcd) (&= name |min) (&= name |max)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> Bool)
         'greek-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn greek-command (name)
-            match name (|alpha "|α") (|beta "|β") (|gamma "|γ") (|delta "|δ") (|epsilon "|ε") (|varepsilon "|ϵ") (|zeta "|ζ") (|eta "|η") (|theta "|θ") (|vartheta "|ϑ") (|iota "|ι") (|kappa "|κ") (|lambda "|λ") (|mu "|μ") (|nu "|ν") (|xi "|ξ") (|omicron "|ο") (|pi "|π") (|varpi "|ϖ") (|rho "|ρ") (|varrho "|ϱ") (|sigma "|σ") (|varsigma "|ς") (|tau "|τ") (|upsilon "|υ") (|phi "|φ") (|varphi "|ϕ") (|chi "|χ") (|psi "|ψ") (|omega "|ω") (|Gamma "|Γ") (|Delta "|Δ") (|Theta "|Θ") (|Lambda "|Λ") (|Xi "|Ξ") (|Pi "|Π") (|Sigma "|Σ") (|Upsilon "|Υ") (|Phi "|Φ") (|Psi "|Ψ") (|Omega "|Ω") (_ nil)
+            match name
+              |alpha $ Option :some "|α"
+              |beta $ Option :some "|β"
+              |gamma $ Option :some "|γ"
+              |delta $ Option :some "|δ"
+              |epsilon $ Option :some "|ε"
+              |varepsilon $ Option :some "|ϵ"
+              |zeta $ Option :some "|ζ"
+              |eta $ Option :some "|η"
+              |theta $ Option :some "|θ"
+              |vartheta $ Option :some "|ϑ"
+              |iota $ Option :some "|ι"
+              |kappa $ Option :some "|κ"
+              |lambda $ Option :some "|λ"
+              |mu $ Option :some "|μ"
+              |nu $ Option :some "|ν"
+              |xi $ Option :some "|ξ"
+              |omicron $ Option :some "|ο"
+              |pi $ Option :some "|π"
+              |varpi $ Option :some "|ϖ"
+              |rho $ Option :some "|ρ"
+              |varrho $ Option :some "|ϱ"
+              |sigma $ Option :some "|σ"
+              |varsigma $ Option :some "|ς"
+              |tau $ Option :some "|τ"
+              |upsilon $ Option :some "|υ"
+              |phi $ Option :some "|φ"
+              |varphi $ Option :some "|ϕ"
+              |chi $ Option :some "|χ"
+              |psi $ Option :some "|ψ"
+              |omega $ Option :some "|ω"
+              |Gamma $ Option :some "|Γ"
+              |Delta $ Option :some "|Δ"
+              |Theta $ Option :some "|Θ"
+              |Lambda $ Option :some "|Λ"
+              |Xi $ Option :some "|Ξ"
+              |Pi $ Option :some "|Π"
+              |Sigma $ Option :some "|Σ"
+              |Upsilon $ Option :some "|Υ"
+              |Phi $ Option :some "|Φ"
+              |Psi $ Option :some "|Ψ"
+              |Omega $ Option :some "|Ω"
+              _ $ Option :none
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            -> $ Option String
         'math-command-html $ %{} 'CodeEntry
           :doc "|Maps a recognized LaTeX-like command to a MathML snippet. Unsupported commands fall back to identifiers."
           :code $ quote $ defn math-command-html (name)
-            let
-                greek $ greek-command name
-                operator $ operator-command name
-              if (non-nil? greek)
+            match (greek-command name)
+              (:some greek)
                 str |<mi> (escape-html greek) |</mi>
-                if (non-nil? operator)
-                  str |<mo> (escape-html operator) |</mo>
-                  if (function-command? name)
-                    str "|<mi mathvariant=\"normal\">" (escape-html name) |</mi>
-                    match name (|int "|<mo>∫</mo>") (|iint "|<mo>∬</mo>") (|iiint "|<mo>∭</mo>") (|oint "|<mo>∮</mo>") (|sum "|<mo>∑</mo>") (|prod "|<mo>∏</mo>")
-                      _ $ str |<mi> (escape-html name) |</mi>
+              (:none)
+                match (operator-command name)
+                  (:some operator)
+                    str |<mo> (escape-html operator) |</mo>
+                  (:none)
+                    if (function-command? name)
+                      str "|<mi mathvariant=\"normal\">" (escape-html name) |</mi>
+                      match name (|int "|<mo>∫</mo>") (|iint "|<mo>∬</mo>") (|iiint "|<mo>∭</mo>") (|oint "|<mo>∮</mo>") (|sum "|<mo>∑</mo>") (|prod "|<mo>∏</mo>")
+                        _ $ str |<mi> (escape-html name) |</mi>
           :examples $ []
           :schema $ quote $ Fn String (-> String)
         'math-delimiter-html $ %{} 'CodeEntry
@@ -1918,7 +1966,7 @@
           :code $ quote $ defn math-operator-command? (name)
             or (&= name |pm) (&= name |neq) (&= name |to) (&= name |implies) (&= name |iff) (&= name |rightarrow) (&= name |Rightarrow) (&= name |leftarrow) (&= name |Leftarrow) (&= name |leftrightarrow) (&= name |mapsto) (&= name |gets) (&= name |longleftarrow) (&= name |longrightarrow) (&= name |uparrow) (&= name |downarrow) (&= name |longleftrightarrow) (&= name |nearrow) (&= name |searrow) (&= name |nwarrow) (&= name |swarrow) (&= name |updownarrow) (&= name |Longleftarrow) (&= name |Longrightarrow) (&= name |Uparrow) (&= name |Downarrow) (&= name |Leftrightarrow) (&= name |Longleftrightarrow) (&= name |Updownarrow) (&= name |longmapsto) (&= name |hookrightarrow) (&= name |hookleftarrow) (&= name |twoheadrightarrow) (&= name |twoheadleftarrow) (&= name |leftharpoonup) (&= name |rightharpoonup) (&= name |rightleftharpoonup) (&= name |rightleftharpoons) (&= name |nleftarrow) (&= name |nrightarrow) (&= name |nLeftarrow) (&= name |nRightarrow) (&= name |nleftrightarrow) (&= name |nLeftrightarrow)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> Bool)
         'mathml-markup $ %{} 'CodeEntry
           :doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering."
           :code $ quote $ defn mathml-markup (source display?)
@@ -1943,7 +1991,7 @@
           :code $ quote $ defn matrix-environment? (name)
             or (&= name |matrix) (&= name |pmatrix) (&= name |bmatrix) (&= name |Bmatrix) (&= name |vmatrix) (&= name |Vmatrix) (&= name |smallmatrix) (&= name |aligned) (&= name |cases)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String (-> Bool)
         'normalize-math-source $ %{} 'CodeEntry
           :doc "|Normalizes multi-line math input into a single trimmed line before tokenization."
           :code $ quote $ defn normalize-math-source (source)
@@ -1955,9 +2003,93 @@
           :schema $ quote $ Fn String (-> String)
         'operator-command $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn operator-command (name)
-            match name (|cdot "|⋅") (|times "|×") (|div "|÷") (|pm "|±") (|mp "|∓") (|wedge "|∧") (|vee "|∨") (|cap "|∩") (|cup "|∪") (|neq "|≠") (|le "|≤") (|leq "|≤") (|ge "|≥") (|geq "|≥") (|approx "|≈") (|equiv "|≡") (|to "|→") (|rightarrow "|→") (|Rightarrow "|⇒") (|leftarrow "|←") (|Leftarrow "|⇐") (|leftrightarrow "|↔") (|mapsto "|↦") (|gets "|←") (|implies "|⇒") (|iff "|⇔") (|longleftarrow "|⟵") (|longrightarrow "|⟶") (|uparrow "|↑") (|downarrow "|↓") (|longleftrightarrow "|⟷") (|nearrow "|↗") (|searrow "|↘") (|nwarrow "|↖") (|swarrow "|↙") (|updownarrow "|↕") (|Longleftarrow "|⟸") (|Longrightarrow "|⟹") (|Uparrow "|⇑") (|Downarrow "|⇓") (|Leftrightarrow "|⇔") (|Longleftrightarrow "|⟺") (|Updownarrow "|⇕") (|longmapsto "|⟼") (|hookrightarrow "|↪") (|hookleftarrow "|↩") (|twoheadrightarrow "|↠") (|twoheadleftarrow "|↞") (|leftharpoonup "|↼") (|rightharpoonup "|⇀") (|rightleftharpoons "|⇌") (|nleftarrow "|↚") (|nrightarrow "|↛") (|nLeftarrow "|⇍") (|nRightarrow "|⇏") (|nleftrightarrow "|↮") (|nLeftrightarrow "|⇎") (|in "|∈") (|notin "|∉") (|subset "|⊂") (|subseteq "|⊆") (|supset "|⊃") (|supseteq "|⊇") (|partial "|∂") (|nabla "|∇") (|infty "|∞") (|propto "|∝") (|perp "|⊥") (|parallel "|∥") (|angle "|∠") (|circ "|∘") (|ast "|∗") (|langle "|⟨") (|rangle "|⟩") (|cong "|≅") (|sim "|∼") (|simeq "|≃") (|mid "|∣") (|vert ||) (|Vert "|‖") (|ldots "|…") (|cdots "|⋯") (_ nil)
+            match name
+              |cdot $ Option :some "|⋅"
+              |times $ Option :some "|×"
+              |div $ Option :some "|÷"
+              |pm $ Option :some "|±"
+              |mp $ Option :some "|∓"
+              |wedge $ Option :some "|∧"
+              |vee $ Option :some "|∨"
+              |cap $ Option :some "|∩"
+              |cup $ Option :some "|∪"
+              |neq $ Option :some "|≠"
+              |le $ Option :some "|≤"
+              |leq $ Option :some "|≤"
+              |ge $ Option :some "|≥"
+              |geq $ Option :some "|≥"
+              |approx $ Option :some "|≈"
+              |equiv $ Option :some "|≡"
+              |to $ Option :some "|→"
+              |rightarrow $ Option :some "|→"
+              |Rightarrow $ Option :some "|⇒"
+              |leftarrow $ Option :some "|←"
+              |Leftarrow $ Option :some "|⇐"
+              |leftrightarrow $ Option :some "|↔"
+              |mapsto $ Option :some "|↦"
+              |gets $ Option :some "|←"
+              |implies $ Option :some "|⇒"
+              |iff $ Option :some "|⇔"
+              |longleftarrow $ Option :some "|⟵"
+              |longrightarrow $ Option :some "|⟶"
+              |uparrow $ Option :some "|↑"
+              |downarrow $ Option :some "|↓"
+              |longleftrightarrow $ Option :some "|⟷"
+              |nearrow $ Option :some "|↗"
+              |searrow $ Option :some "|↘"
+              |nwarrow $ Option :some "|↖"
+              |swarrow $ Option :some "|↙"
+              |updownarrow $ Option :some "|↕"
+              |Longleftarrow $ Option :some "|⟸"
+              |Longrightarrow $ Option :some "|⟹"
+              |Uparrow $ Option :some "|⇑"
+              |Downarrow $ Option :some "|⇓"
+              |Leftrightarrow $ Option :some "|⇔"
+              |Longleftrightarrow $ Option :some "|⟺"
+              |Updownarrow $ Option :some "|⇕"
+              |longmapsto $ Option :some "|⟼"
+              |hookrightarrow $ Option :some "|↪"
+              |hookleftarrow $ Option :some "|↩"
+              |twoheadrightarrow $ Option :some "|↠"
+              |twoheadleftarrow $ Option :some "|↞"
+              |leftharpoonup $ Option :some "|↼"
+              |rightharpoonup $ Option :some "|⇀"
+              |rightleftharpoons $ Option :some "|⇌"
+              |nleftarrow $ Option :some "|↚"
+              |nrightarrow $ Option :some "|↛"
+              |nLeftarrow $ Option :some "|⇍"
+              |nRightarrow $ Option :some "|⇏"
+              |nleftrightarrow $ Option :some "|↮"
+              |nLeftrightarrow $ Option :some "|⇎"
+              |in $ Option :some "|∈"
+              |notin $ Option :some "|∉"
+              |subset $ Option :some "|⊂"
+              |subseteq $ Option :some "|⊆"
+              |supset $ Option :some "|⊃"
+              |supseteq $ Option :some "|⊇"
+              |partial $ Option :some "|∂"
+              |nabla $ Option :some "|∇"
+              |infty $ Option :some "|∞"
+              |propto $ Option :some "|∝"
+              |perp $ Option :some "|⊥"
+              |parallel $ Option :some "|∥"
+              |angle $ Option :some "|∠"
+              |circ $ Option :some "|∘"
+              |ast $ Option :some "|∗"
+              |langle $ Option :some "|⟨"
+              |rangle $ Option :some "|⟩"
+              |cong $ Option :some "|≅"
+              |sim $ Option :some "|∼"
+              |simeq $ Option :some "|≃"
+              |mid $ Option :some "|∣"
+              |vert $ Option :some ||
+              |Vert $ Option :some "|‖"
+              |ldots $ Option :some "|…"
+              |cdots $ Option :some "|⋯"
+              _ $ Option :none
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String
+            -> $ Option String
         'parse-command-name $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-command-name (line)
             let
