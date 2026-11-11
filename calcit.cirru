@@ -460,8 +460,9 @@
                   (:italic content)
                     create-element :i $ {} $ :inner-text content
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn T
             -> $ List respo.schema/Element
+            :generics T
             :features :js-ffi
         'resolve-blocks $ %{} 'CodeEntry
           :doc "|Uses a caller-owned parser result when supplied, keeping parser state outside the Respo VDOM tree."
@@ -1589,10 +1590,10 @@
                 js/console.warn "|respo-markdown: ignored non-string inline Markdown"
                 []
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn Input
             Fn Tag String $ -> T
             -> $ List T
-            :generics T
+            :generics Input T
             :features :js-ffi
         'scan-inline-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn scan-inline-iter (emit acc line buffer mode)
@@ -1790,8 +1791,9 @@
         'split-line $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn split-line (line) (scan-inline line anonymous-inline-token)
           :examples $ []
-          :schema $ quote $ Fn Dynamic
+          :schema $ quote $ Fn T
             -> $ List AnyEnum
+            :generics T
             :features :js-ffi
             :open :reflect
         'split-line-iter $ %{} 'CodeEntry (:doc |)
