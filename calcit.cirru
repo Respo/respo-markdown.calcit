@@ -1483,7 +1483,7 @@
                             []
                               .len $ .unwrap $ get1 raw
                               &str:slice cursor $ .len $ .unwrap (get0 raw)
-                            List respo-md.util.core/BlockBufferValue
+                            List BlockBufferValue
                           , :code
                     (math-block-single-line? cursor)
                       recur emit left
@@ -1522,7 +1522,7 @@
                             []
                               .len $ .unwrap $ get1 raw
                               &str:slice cursor $ .len $ .unwrap (get0 raw)
-                            List respo-md.util.core/BlockBufferValue
+                            List BlockBufferValue
                           , :code
                     (math-block-single-line? cursor)
                       let
@@ -1975,10 +1975,10 @@
           :doc "|Converts a math source fragment into a lightweight MathML tree string suitable for browser-native rendering."
           :code $ quote $ defn mathml-markup (source display?)
             let[] (body rest-line)
-              parse-math-row (normalize-math-source source) nil
+              parse-math-row (normalize-math-source source) None
               str |<math><mrow> body |</mrow></math>
           :examples $ []
-          :schema $ quote $ Fn String Dynamic (-> String)
+          :schema $ quote $ Fn String Bool (-> String)
         'matrix-environment-delimiters $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn matrix-environment-delimiters (name)
             match name
@@ -2117,7 +2117,7 @@
                   .unwrap-or (.first line) |
                   , |{
                 let[] (body rest-line)
-                  parse-math-row (&str:slice line 1) |}
+                  parse-math-row (&str:slice line 1) (Some |})
                   [] (str |<mrow> body |</mrow>)
                     if (&= | rest-line) rest-line $ &str:slice rest-line 1
                 parse-math-atom line
@@ -2135,7 +2135,8 @@
                     &= cursor "| "
                     parse-math-atom left
                   (&= cursor |{)
-                    let[] (body rest-line) (parse-math-row left |})
+                    let[] (body rest-line)
+                      parse-math-row left $ Some |}
                       let
                           next-rest $ if (&= | rest-line) rest-line $ &str:slice rest-line 1
                         [] (str |<mrow> body |</mrow>) next-rest
@@ -2270,7 +2271,7 @@
                 not $ &= | line
                 = |[ $ .unwrap-or (.first line) |
               let[] (body rest-line)
-                parse-math-row (&str:slice line 1) |]
+                parse-math-row (&str:slice line 1) (Some |])
                 [] body $ if (&= | rest-line) rest-line $ &str:slice rest-line 1
               [] nil line
           :examples $ []
@@ -2281,7 +2282,7 @@
           :doc "|Consumes a sequence of math atoms until the source ends or a stop delimiter is reached."
           :code $ quote $ defn parse-math-row (line stop-char) (parse-math-row-iter line stop-char |)
           :examples $ []
-          :schema $ quote $ Fn String Dynamic
+          :schema $ quote $ Fn String (Option String)
             -> $ List String
         'parse-math-row-iter $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn parse-math-row-iter (line stop-char acc)
@@ -2289,12 +2290,13 @@
               let
                   cursor $ .unwrap $ .first line
                 if
-                  and (non-nil? stop-char) (&= cursor stop-char)
+                  and (.some? stop-char)
+                    &= cursor $ .unwrap stop-char
                   [] acc line
                   let[] (unit-html rest-line) (parse-math-unit line)
                     recur rest-line stop-char $ str acc unit-html
           :examples $ []
-          :schema $ quote $ Fn String Dynamic String
+          :schema $ quote $ Fn String (Option String) String
             -> $ List String
             :features :js-ffi
         'parse-math-script $ %{} 'CodeEntry (:doc |)
@@ -2384,7 +2386,7 @@
                 respo-md.util.core/join-strings-dynamic
                   map cells $ fn (cell)
                     let
-                        parsed $ parse-math-row cell nil
+                        parsed $ parse-math-row cell None
                       str |<mtd><mrow>
                         respo-md.util.core/unwrap-option $ first parsed
                         , |</mrow></mtd>
