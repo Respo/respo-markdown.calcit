@@ -2,7 +2,7 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## Calcit 0.41.0
+## Calcit 0.41.1
 
 更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染组件、增量解析结果和 Demo 存档格式沿用现有约定。
 Demo 在读取存档后校验 Map，随后将其封装为具名操作。编辑状态更新使用 `DemoState` 和 Respo 的 `CoordKey` 路径。
