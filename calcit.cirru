@@ -170,7 +170,7 @@
                   , code-block
                 , code-block
           :examples $ []
-          :schema $ quote $ Fn (List respo-md.util.core/CodeLine) (Map Tag Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn (List respo-md.util.core/CodeLine) (Map Tag O) (-> respo.schema/Component) (:generics O)
         'comp-image $ %{} 'CodeEntry
           :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
@@ -280,7 +280,7 @@
                     (:table lines)
                       respo.core/keyed-element idx $ comp-table-block lines
           :examples $ []
-          :schema $ quote $ Fn String (Map Tag Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn String (Map Tag O) (-> respo.schema/Component) (:generics O)
         'comp-table-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-table-block (lines)
             let
@@ -438,8 +438,9 @@
                   raise "|Expected Markdown parser result Struct"
               (:none) None
           :examples $ []
-          :schema $ quote $ Fn (Map Tag Dynamic)
+          :schema $ quote $ Fn (Map Tag O)
             -> $ Option respo-md.util.core/ParserResult
+            :generics O
         'render-inline $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-inline (text)
             -> (scan-inline text inline-token)
@@ -470,8 +471,9 @@
               (:none) (split-block text)
               (:some result) (:blocks result)
           :examples $ []
-          :schema $ quote $ Fn String (Map Tag Dynamic)
+          :schema $ quote $ Fn String (Map Tag O)
             -> $ List Dynamic
+            :generics O
         'resolve-render-blocks $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn resolve-render-blocks (text options)
             match (read-parser-result options)
@@ -479,8 +481,9 @@
               (:some result)
                 map (:blocks result) decode-render-block
           :examples $ []
-          :schema $ quote $ Fn String (Map Tag Dynamic)
+          :schema $ quote $ Fn String (Map Tag O)
             -> $ List BlockToken
+            :generics O
         'style-blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defstyle style-blockquote
             {} $ |& $ {}
