@@ -339,7 +339,7 @@
                 BlockToken :table $ decode-map-as lines $ List (List String)
               _ $ raise "|Invalid Markdown block"
           :examples $ []
-          :schema $ quote $ Fn Dynamic (-> BlockToken)
+          :schema $ quote $ Fn AnyEnum (-> BlockToken) (:open :decode)
         'highlight-code $ %{} 'CodeEntry
           :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
           :code $ quote $ defn highlight-code (content lang highlight-fn)
@@ -480,7 +480,9 @@
             match (read-parser-result options)
               (:none) (scan-blocks text)
               (:some result)
-                map (:blocks result) decode-render-block
+                map (:blocks result)
+                  fn (block)
+                    if (enum? block) (decode-render-block block) (raise "|Invalid Markdown block")
           :examples $ []
           :schema $ quote $ Fn String (Map Tag O)
             -> $ List BlockToken
