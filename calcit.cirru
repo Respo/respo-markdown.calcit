@@ -256,7 +256,7 @@
                   (:none) ({})
                 , & inner
           :examples $ []
-          :schema $ quote $ Fn String (Map Dynamic Dynamic) (-> respo.schema/Component)
+          :schema $ quote $ Fn String (Map Tag V) (-> respo.schema/Component) (:generics V)
         'comp-md-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md-block (text options)
             let
@@ -625,7 +625,7 @@
                 , &unit
               raise "|Invalid Markdown demo operation"
           :examples $ []
-          :schema $ quote $ Fn schema/Op (-> Unit)
+          :schema $ quote $ Fn schema/Op (-> Unit) (:features :io :state)
         'highligher $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn highligher (code lang)
             str |<code> (respo-md.util.math/escape-html code) |</code>
@@ -660,7 +660,7 @@
             println "|App started!"
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'mount-target $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn mount-target ()
             .unwrap $ browser/query-selector |.app
@@ -678,6 +678,7 @@
           :examples $ []
           :schema $ quote $ Fn schema/Op
             -> $ Map Dynamic Dynamic
+            :features :io :state
         'persist-storage! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn persist-storage! ()
             println "|Saved at" $ :iso $ shared/date-now-snapshot
@@ -685,7 +686,7 @@
               .unwrap $ get config/site :storage-key
               format-cirru-edn @*store
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'reload! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn reload! ()
             if (nil? build-errors)
@@ -698,7 +699,7 @@
               hud! |error build-errors
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'render-app! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn render-app! ()
             render!
@@ -706,7 +707,7 @@
               comp-container @*store highligher
               , dispatch!
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi :state)
         'ssr? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def ssr?
             .some? $ browser/query-selector |meta.respo-ssr
@@ -737,7 +738,7 @@
               println $ str "|[ok] " label
               raise $ str "|Performance assertion failed: " label
           :examples $ []
-          :schema $ quote $ Fn String Bool (-> Unit)
+          :schema $ quote $ Fn String Bool (-> Unit) (:features :io)
         'main! $ %{} 'CodeEntry
           :doc "|Runs append-only Markdown parser benchmark using Calcit code."
           :code $ quote $ defn main! () (test-option-block-boundaries!)
@@ -815,7 +816,7 @@
                 :blocks old-result
               println "|Incremental parser performance test passed."
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'make-source $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn make-source (n acc)
             if (&= n 0) acc $ recur (dec n) (str acc "|line\n\n")
@@ -951,11 +952,11 @@
                 println $ str "|  actual:   " actual
                 raise $ str "|Test failed: " label
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic Dynamic (-> Dynamic) (:features :js-ffi)
+          :schema $ quote $ Fn String A B (-> Unit) (:generics A B) (:features :io)
         'main! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn main! () (test-escape-html!) (test-normalize-math!) (test-mathml-markup!) (test-inline-non-string!) (println "|All math tests passed.")
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'test-escape-html! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-escape-html! ()
             assert= |&amp; $ escape-html |&
@@ -964,7 +965,7 @@
             assert= | $ escape-html |
             println "|test-escape-html! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'test-inline-non-string! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-inline-non-string! ()
             let
@@ -974,7 +975,7 @@
               println "|test-inline-non-string! done"
             , &unit
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'test-mathml-markup! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-mathml-markup! ()
             assert= |<math><mrow><mn>42</mn></mrow></math> $ mathml-markup |42 false
@@ -1037,14 +1038,14 @@
               respo-md.util.math/parse-math-environment |{matrix}x
             println "|test-mathml-markup! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
         'test-normalize-math! $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn test-normalize-math! ()
             assert= |a+b $ normalize-math-source "|  a+b  "
             assert= |ab $ normalize-math-source "|  a \n b  "
             println "|test-normalize-math! done"
           :examples $ []
-          :schema $ quote $ Fn (-> Unit) (:features :js-ffi)
+          :schema $ quote $ Fn (-> Unit) (:features :io :js-ffi)
       :ns $ %{} 'NsEntry (:doc |)
         :code $ quote $ ns respo-md.test
           :require
