@@ -900,8 +900,9 @@
               (map? value) (get value field)
               true $ raise "|[Markdown] expected Struct or Map"
           :examples $ []
-          :schema $ quote $ Fn Dynamic Tag
+          :schema $ quote $ Fn Container Tag
             -> $ Option Dynamic
+            :generics Container
           :tests $ []
             %{} 'TestEntry (:name |keeps-map-absence-and-falsey-payloads)
               :code $ quote $ let
