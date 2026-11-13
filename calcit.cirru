@@ -107,7 +107,7 @@
         'blockquote $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn blockquote (props & children) (create-element :blockquote props & children)
           :examples $ []
-          :schema $ quote $ Fn Dynamic (& Dynamic) (-> respo.schema/Element) (:features :js-ffi)
+          :schema $ quote $ Fn PropsInput (& Dynamic) (-> respo.schema/Element) (:generics PropsInput) (:features :js-ffi)
         'comp-code-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-code-block (indented-lines options)
             let
