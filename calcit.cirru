@@ -1770,7 +1770,7 @@
                   .len $ split-lines new-text
                   , :incremental? false
           :examples $ []
-          :schema $ quote $ Fn String String (List Dynamic) (-> ScanResult)
+          :schema $ quote $ Fn String String (List CachedBlock) (-> ScanResult) (:generics CachedBlock)
           :tests $ [] $ %{} 'TestEntry (:name |rejects-invalid-last-blocks)
             :code $ quote $ do
               assert= "|Invalid Markdown block" $ try
