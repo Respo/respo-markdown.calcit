@@ -322,24 +322,24 @@
         'decode-render-block $ %{} 'CodeEntry
           :doc "|Reads existing anonymous parser blocks. Cached math lines retain the legacy string conversion before MathML rendering. Fresh scanner math lines are already strings."
           :code $ quote $ defn decode-render-block (block)
-            match block
-              (:text lines)
-                BlockToken :text $ decode-map-as lines $ List String
-              (:code lines)
-                if (list? lines)
-                  BlockToken :code $ decode-map-as lines $ List respo-md.util.core/CodeLine
-                  raise |Invalid-Markdown-code-block-lines
-              (:math lines)
-                if (list? lines)
-                  BlockToken :math $ map lines $ fn (line)
-                    hint-fn $ Fn Dynamic $ -> String
-                    str line
-                  raise "|Invalid Markdown math block lines"
-              (:table lines)
-                BlockToken :table $ decode-map-as lines $ List (List String)
-              _ $ raise "|Invalid Markdown block"
+            if (enum? block)
+              match block
+                (:text lines)
+                  BlockToken :text $ decode-map-as lines $ List String
+                (:code lines)
+                  if (list? lines)
+                    BlockToken :code $ decode-map-as lines $ List respo-md.util.core/CodeLine
+                    raise |Invalid-Markdown-code-block-lines
+                (:math lines)
+                  if (list? lines)
+                    BlockToken :math $ map lines $ fn (line) (str line)
+                    raise "|Invalid Markdown math block lines"
+                (:table lines)
+                  BlockToken :table $ decode-map-as lines $ List (List String)
+                _ $ raise "|Invalid Markdown block"
+              raise "|Invalid Markdown block"
           :examples $ []
-          :schema $ quote $ Fn AnyEnum (-> BlockToken) (:open :decode)
+          :schema $ quote $ Fn Raw (-> BlockToken) (:generics Raw) (:open :decode)
         'highlight-code $ %{} 'CodeEntry
           :doc "|调用既有自定义高亮回调，并检查 HTML 结果为 String。内容可信度由调用者负责；不缓存回调结果，不用于默认纯文本路径。"
           :code $ quote $ defn highlight-code (content lang highlight-fn)
@@ -480,9 +480,7 @@
             match (read-parser-result options)
               (:none) (scan-blocks text)
               (:some result)
-                map (:blocks result)
-                  fn (block)
-                    if (enum? block) (decode-render-block block) (raise "|Invalid Markdown block")
+                map (:blocks result) decode-render-block
           :examples $ []
           :schema $ quote $ Fn String (Map Tag O)
             -> $ List BlockToken
