@@ -1162,7 +1162,7 @@
           :code $ quote $ defn coalesce (a b)
             if (nil? a) b a
           :examples $ []
-          :schema $ quote $ Fn Dynamic Dynamic (-> Dynamic)
+          :schema $ quote $ Fn Value Fallback (-> Dynamic) (:generics Value Fallback)
         'get0 $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn get0 (xs)
             match (js-nullish->option xs)
