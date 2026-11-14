@@ -125,19 +125,16 @@
                   (:err message) (raise message)
                 indented $ indent-option .unwrap-or 0
                 indentation $ if (&> indented 0)
-                  respo-md.util.core/join-strings-dynamic (repeat "| " indented) |
+                  .join-string (repeat "| " indented) |
                   , |
-                lang $ let
-                    raw-lang $
-                      first lines
-                      , .unwrap-or |
-                  if (string? raw-lang) raw-lang |
-                content $ -> (&list:rest lines)
+                lang $ .unwrap-or (first lines) |
+                content $ -> (.rest lines)
                   map $ fn (line)
+                    hint-fn $ Fn String $ -> String
                     if (starts-with? line indentation)
                       &str:slice line $ .len indentation
                       , line
-                  respo-md.util.core/join-strings-dynamic &newline
+                  .join-string &newline
                 highlight-fn $ match (respo-md.schema/read-field options :highlight)
                   (:some f)
                     if (nil? f) None $ Some f
