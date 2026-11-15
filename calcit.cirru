@@ -1253,8 +1253,9 @@
                 either states $ {}
                 , :data restored
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic)
+          :schema $ quote $ Fn (Map Dynamic Value)
             -> $ Map Dynamic Dynamic
+            :generics Value
         'ignore-inline-star? $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn ignore-inline-star? (left)
             if (&= left |) true $ =
