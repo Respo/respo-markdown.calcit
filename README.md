@@ -4,6 +4,8 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 ## Calcit 0.43.0
 
+0.9.3 对齐 Respo 0.19.11、UI 0.15.5 和 Router 0.12.9，修复浏览器缺少 `process` 时的启动白屏；请同步依赖并重新构建。
+
 更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染、增量解析结果和 Demo 存档格式沿用现有约定。直接调用 `comp-md` 时，选项 Map 的键须为 Tag，例如 `:class-name`。
 Demo 在读取存档后校验 Map，随后将其封装为具名操作。编辑状态更新使用 `DemoState` 和 Respo 的 `CoordKey` 路径。
 Demo 高亮器明确接收源码和语言两个 String；内联缓存恢复时检查 Respo Element 身份，保留原匿名 token 与解析缓存格式。
