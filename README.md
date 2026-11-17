@@ -2,13 +2,13 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
-## Calcit 0.42.1
+## Calcit 0.43.0
 
 更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染、增量解析结果和 Demo 存档格式沿用现有约定。直接调用 `comp-md` 时，选项 Map 的键须为 Tag，例如 `:class-name`。
 Demo 在读取存档后校验 Map，随后将其封装为具名操作。编辑状态更新使用 `DemoState` 和 Respo 的 `CoordKey` 路径。
 Demo 高亮器明确接收源码和语言两个 String；内联缓存恢复时检查 Respo Element 身份，保留原匿名 token 与解析缓存格式。
 
-## 0.9.1 候选
+## 历史 0.9.1
 
 直接调用 MathML 的 `greek-command` 或 `operator-command` 时，使用 `Option String` 接收结果，未知命令返回 `:none`。Markdown 渲染和未知命令的文本回退保持原样。
 
@@ -326,6 +326,7 @@ calcit fix --workflow strict --verify --format json
 calcit --check-only --ns respo-md.comp.container --ns respo-md.comp.md --ns respo-md.config --ns respo-md.main --ns respo-md.schema --ns respo-md.util.core --ns respo-md.util.math --summary-only --format json
 calcit test --exclude-tag js-only --require-match --summary-only --format json
 calcit calcit.cirru js
+calcit --reload-fn respo.render.html/make-string js
 node --test scripts/inline-render.test.mjs
 yarn vite build --base=./
 ```

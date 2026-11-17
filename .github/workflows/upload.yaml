@@ -85,6 +85,7 @@ jobs:
           echo "prefix=${asset_prefix}" >> "$GITHUB_OUTPUT"
           echo "base-url=${VITE_BASE_URL}" >> "$GITHUB_OUTPUT"
           calcit calcit.cirru js
+          calcit --reload-fn respo.render.html/make-string js
           node --test scripts/inline-render.test.mjs
           yarn vite build --base="$VITE_BASE_URL"
 
