@@ -88,6 +88,7 @@
           :schema $ quote $ Fn (Map Dynamic Dynamic)
             Fn String String $ -> String
             -> respo.schema/Component
+            :features :state
         'initial-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-state (respo-md.util.core/read-demo-state nil)
           :examples $ []
@@ -167,7 +168,7 @@
                   , code-block
                 , code-block
           :examples $ []
-          :schema $ quote $ Fn (List respo-md.util.core/CodeLine) (Map Tag O) (-> respo.schema/Component) (:generics O)
+          :schema $ quote $ Fn (List respo-md.util.core/CodeLine) (Map Tag O) (-> respo.schema/Component) (:generics O) (:features :state)
         'comp-image $ %{} 'CodeEntry
           :doc "|按首个 ]( 的 Unicode 标量位置切开原始片段，保留空标签和完整 URL；不能用会丢弃空项的 split 再按固定下标解包。"
           :code $ quote $ defn comp-image (chunk)
@@ -253,7 +254,7 @@
                   (:none) ({})
                 , & inner
           :examples $ []
-          :schema $ quote $ Fn String (Map Tag V) (-> respo.schema/Component) (:generics V)
+          :schema $ quote $ Fn String (Map Tag V) (-> respo.schema/Component) (:generics V) (:features :state)
         'comp-md-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defcomp comp-md-block (text options)
             let
@@ -277,7 +278,7 @@
                     (:table lines)
                       respo.core/keyed-element idx $ comp-table-block lines
           :examples $ []
-          :schema $ quote $ Fn String (Map Tag O) (-> respo.schema/Component) (:generics O)
+          :schema $ quote $ Fn String (Map Tag O) (-> respo.schema/Component) (:generics O) (:features :state)
         'comp-table-block $ %{} 'CodeEntry (:doc |)
           :code $ quote $ defn comp-table-block (lines)
             let
@@ -315,7 +316,7 @@
               , & $ -> lines $ map
                 fn (line) (respo.core/memo-comp-by line comp-line line)
           :examples $ []
-          :schema $ quote $ Fn (List String) (-> respo.schema/Component)
+          :schema $ quote $ Fn (List String) (-> respo.schema/Component) (:features :state)
         'decode-render-block $ %{} 'CodeEntry
           :doc "|Reads existing anonymous parser blocks. Cached math lines retain the legacy string conversion before MathML rendering. Fresh scanner math lines are already strings."
           :code $ quote $ defn decode-render-block (block)
