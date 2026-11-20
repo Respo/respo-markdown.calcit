@@ -4,6 +4,8 @@ Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdow
 
 ## Calcit 0.44.0
 
+0.9.5 配对 Calcit 0.44.0、Respo 0.19.13、UI 0.15.7、Router 0.12.11 与 JS-FFI 0.2.19；升级后请重新安装并生成 JS。
+
 0.9.4 对齐 Respo 0.19.12、UI 0.15.6 和 Router 0.12.10，保留浏览器缺少 `process` 时的启动修复；请同步依赖并重新构建。
 
 更新源码后请同步升级 Calcit CLI 与 `@calcit/procs`。Markdown 渲染、增量解析结果和 Demo 存档格式沿用现有约定。直接调用 `comp-md` 时，选项 Map 的键须为 Tag，例如 `:class-name`。
