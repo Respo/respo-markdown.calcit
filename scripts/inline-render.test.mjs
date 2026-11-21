@@ -3,7 +3,7 @@ import { test } from "node:test";
 import * as c from "../js-out/calcit.core.mjs";
 import { comp_md, comp_md_block, resolve_blocks } from "../js-out/respo-md.comp.md.mjs";
 import { make_string } from "../js-out/respo.render.html.mjs";
-import { DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, parse_markdown_incremental, read_demo_state, split_line, split_line_iter } from "../js-out/respo-md.util.core.mjs";
+import { BlockToken, DemoState, ParserResult, ScanResult, hydrate_demo_store, parse_markdown, parse_markdown_incremental, read_demo_state, scan_blocks, split_block, split_line, split_line_iter } from "../js-out/respo-md.util.core.mjs";
 import { escape_html } from "../js-out/respo-md.util.math.mjs";
 import { comp_container } from "../js-out/respo-md.comp.container.mjs";
 import { Op } from "../js-out/respo-md.schema.mjs";
@@ -61,6 +61,21 @@ test("inline emphasis, code and URL remain actual rendered nodes", () => {
   assert.ok(html.includes("<code"));
   assert.ok(html.includes('href="https://example.com/"'));
 });
+test("named blocks preserve scanner content while legacy blocks remain anonymous", () => {
+  const source = "# 标题 🐈\n\nText\n\n```js\ncode\n```\n\n$$\nx+y\n$$\n\n| a | b |\n|---|---|\n| x | y |";
+  const typed = scan_blocks(source).toArray();
+  const legacy = split_block(source).toArray();
+  const plain = (value) => value && typeof value.toArray === "function" ? value.toArray().map(plain) : value;
+  const shape = (blocks) => blocks.map((block) => [block.tag.value, plain(block.extra[0])]);
+  assert.deepEqual(shape(typed), [
+    ["text", ["# 标题 🐈"]], ["text", ["Text"]], ["code", ["js", "code"]],
+    ["math", ["x+y"]], ["text", []], ["table", [["a", "b"], ["---", "---"], ["x", "y"]]],
+  ]);
+  assert.deepEqual(shape(typed), shape(legacy));
+  for (const block of typed) assert.equal(c.option_$o_unwrap(c.enum_definition(block)), BlockToken);
+  for (const block of legacy) assert.equal(c.enum_definition(block).tag.value, "none");
+});
+
 test("low-level inline scanners keep anonymous tokens and reuse the supplied prefix", () => {
   const tags = c.init_tags(["text", "code", "emphasis", "none"]);
   const tokens = split_line("hi **bold**").toArray();

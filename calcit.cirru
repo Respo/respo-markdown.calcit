@@ -1058,7 +1058,7 @@
           :examples $ []
           :schema $ quote UnionDef
         'BlockToken $ %{} 'CodeEntry
-          :doc "|Named rendering blocks. The scanner keeps its public anonymous output and emits this type for the renderer."
+          :doc "|Named blocks returned by scan-blocks: text and math contain List<String>, code contains List<CodeLine>, and table contains List<List<String>>. The legacy split-block API remains anonymous."
           :code $ quote $ defenum BlockToken
             :text $ List String
             :code $ List CodeLine
@@ -1579,7 +1579,8 @@
               -> $ List T
               :generics T
               :features :js-ffi
-        'scan-blocks $ %{} 'CodeEntry (:doc |)
+        'scan-blocks $ %{} 'CodeEntry
+          :doc "|Parse Markdown into named BlockToken values. Text, code, math and table blocks keep their typed payloads; use split-block for the legacy anonymous representation."
           :code $ quote $ defn scan-blocks (text)
             scan-block-iter typed-block (split-lines text) ([]) ([]) :empty
           :examples $ []
