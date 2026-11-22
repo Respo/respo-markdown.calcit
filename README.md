@@ -30,6 +30,21 @@ CLI / `@calcit/procs` 同步正式 **0.35.1**，依赖 UI **0.15.1**、Respo **0
 
 原完整strict、全部定义、原native/JS/MathML/增量性能与逐字符等价回归、包年龄门禁和COS action内置verify保留；本轮精确结果以PR为准，不引用历史运行或浏览器操作作为本次证据。不新增测试/验证脚本或编译器fix规则。
 
+## 具名 Markdown 块
+
+需要分析文本而非渲染页面时，可调用 `respo-md.util.core/scan-blocks`。它返回 `List<BlockToken>`：`:text` 和 `:math` 的载荷为 `List<String>`，`:code` 为 `List<CodeLine>`（字符串或旧缩进数字），`:table` 为 `List<List<String>>`。例如，朗读器可用 `match` 取出 `:text`，跳过代码、公式和表格。
+
+```cirru.no-run
+let
+    blocks $ respo-md.util.core/scan-blocks "|# Title\n\nText"
+  map blocks $ fn (block)
+    match block
+      (:text lines) (join-string lines |)
+      _ |
+```
+
+`scan-blocks` 与旧 `split-block` 共用扫描器，但返回具名块并检查块载荷；旧入口仍返回匿名 Enum，供现有消费者兼容。具名入口需要 Calcit 的 `:js-ffi`，其所有块载荷都会检查；无效载荷会报错，不会静默丢弃。
+
 ## 内联扫描与渲染
 
 渲染器使用具名 `InlineToken`，文本、数学、代码和链接等分支均携带 `String`。直接调用低层 `split-line` 或 `split-line-iter` 的项目继续收到原匿名 Enum，包括原有 tag 和载荷格式。
