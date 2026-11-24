@@ -1476,7 +1476,7 @@
                       recur emit left acc
                         [] $ &str:slice cursor 3
                         , :code
-                    (cursor.!match pattern-indented-code)
+                    (not (js-nullish? (cursor.!match pattern-indented-code)))
                       let
                           raw $ cursor.!match pattern-indented-code
                         recur emit left acc
@@ -1514,7 +1514,7 @@
                         &list:append acc $ emit :text buffer
                         [] $ &str:slice cursor 3
                         , :code
-                    (cursor.!match pattern-indented-code)
+                    (not (js-nullish? (cursor.!match pattern-indented-code)))
                       let
                           raw $ cursor.!match pattern-indented-code
                         recur emit left
@@ -1545,7 +1545,8 @@
                         , :table
                     true $ recur emit left acc (&list:append buffer cursor) :text
                   :code $ if
-                    or (starts-with? cursor "|```") (cursor.!match pattern-indented-code)
+                    or (starts-with? cursor "|```")
+                      not $ js-nullish? $ cursor.!match pattern-indented-code
                     recur emit left
                       &list:append acc $ emit :code buffer
                       []
@@ -1955,7 +1956,11 @@
                     table-html $ str |<mtable>
                       respo-md.util.core/join-strings-dynamic (map rows render-math-matrix-row) |
                       , |</mtable>
-                  str |<mrow> (or open-html |) table-html (or close-html |) |</mrow>
+                  str |<mrow>
+                    .unwrap-or (js-nullish->option open-html) |
+                    , table-html
+                      .unwrap-or (js-nullish->option close-html) |
+                      , |</mrow>
               str |<mrow><mi>begin</mi><mi> (escape-html name) |</mi></mrow>
           :examples $ []
           :schema $ quote $ Fn String String (-> String) (:features :js-ffi)
