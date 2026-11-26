@@ -85,9 +85,10 @@
                         :parse-result $ :parse-result state
                 space-y 200
           :examples $ []
-          :schema $ quote $ Fn (Map Dynamic Dynamic)
+          :schema $ quote $ Fn (Map K V)
             Fn String String $ -> String
             -> respo.schema/Component
+            :generics K V
             :features :state
         'initial-state $ %{} 'CodeEntry (:doc |)
           :code $ quote $ def initial-state (respo-md.util.core/read-demo-state nil)
