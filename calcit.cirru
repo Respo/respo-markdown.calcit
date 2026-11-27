@@ -769,16 +769,14 @@
                 code-result $ parse-markdown-incremental code-old code-new $ parse-markdown code-old
                 legacy-state $ respo-md.util.core/read-demo-state $ {} (:draft base) (:text "|legacy inline") (:parse-result nil)
               assert-perf |incremental-mode $ :incremental? incremental
-              assert-perf |typed-incremental-mode $ =
-                respo-md.util.core/unwrap-or
-                  first $ :mode incremental
-                  , :unknown
-                , :incremental
-              assert-perf |typed-full-mode $ =
-                respo-md.util.core/unwrap-or
-                  first $ :mode full-result
-                  , :unknown
-                , :full
+              assert-perf |typed-incremental-mode $ match (:mode incremental)
+                (:full) false
+                (:incremental reused reparsed) true
+                (:fallback) false
+              assert-perf |typed-full-mode $ match (:mode full-result)
+                (:full) true
+                (:incremental reused reparsed) false
+                (:fallback) false
               assert-perf |same-block-output $ =
                 .len $ :blocks full-result
                 .len $ :blocks incremental
@@ -1722,7 +1720,9 @@
                     (:some block)
                       cond
                           enum? block
-                          &enum:nth block 0
+                          let
+                              mode $ &enum:nth block 0
+                            if (tag? mode) mode $ raise "|Invalid Markdown block tag"
                         (nil? block) :unknown
                         true $ raise "|Invalid Markdown block"
                   last-text $ if (= last-mode :text)
