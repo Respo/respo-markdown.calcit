@@ -109,8 +109,8 @@ test("style omission does not hide invalid provided values", () => {
   const tags = c.init_tags(["style", "color"]);
   const renderBlock = (options) => make_string(comp_md_block("plain", options));
   assert.equal(renderBlock(c._$n__$M_(tags.style, null)), renderBlock(c._$n__$M_()));
-  for (const [value, type] of [[false, "bool"], [0, "number"], ["", "string"]]) {
-    assert.throws(() => renderBlock(c._$n__$M_(tags.style, value)), {message: `[Respo] expected :style to be a map, got: :${type}`});
+  for (const [value, text] of [[false, "false"], [0, "0"], ["", "|"]]) {
+    assert.throws(() => renderBlock(c._$n__$M_(tags.style, value)), {message: `[Respo] expected :style to be a map, got: ${text}`});
   }
   assert.ok(renderBlock(c._$n__$M_(tags.style, c._$n__$M_(tags.color, "red"))).includes('style="color:red;"'));
 });
