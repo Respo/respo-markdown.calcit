@@ -2,9 +2,13 @@
 
 Markdown 渲染与增量解析；Demo：<http://repo.respo-mvc.org/respo-markdown/>。
 
+## Calcit 0.47.1
+
+0.9.11 候选配对正式 Respo 0.20.1、UI 0.16.7、Router 0.12.19 与 JS-FFI 0.2.26；请同步更新 Calcit / `@calcit/procs`，运行 `caps --strict --ci` 重新安装模块，再生成 JS。Markdown 接口和原存档格式保持。正式 tag 发布前请勿当作已发布版本。
+
 ## Calcit 0.46.0
 
-0.9.10 候选配对正式 Respo 0.20.0、UI 0.16.6、Router 0.12.18 与 JS-FFI 0.2.26；请同步更新 Calcit / `@calcit/procs`，运行 `caps --strict --ci` 重新安装模块，再生成 JS。Markdown 接口和原存档格式保持。正式 tag 发布前请勿当作已发布版本。
+0.9.10 配对正式 Respo 0.20.0、UI 0.16.6、Router 0.12.18 与 JS-FFI 0.2.26。
 
 ## Calcit 0.45.0
 
